@@ -257,7 +257,7 @@ state-of-the-art biological modeling or training efficiency.
 The repository contains:
 \begin{itemize}
 \item \texttt{BIDI\_CALCULUS\_CORE.md}: formal core;
-\item \texttt{FORMAL\_SEMANTIC\_SPINE.md}: AST, runtime-state, reduction, and invariant-spine roadmap;
+\item \texttt{FORMAL\_SEMANTIC\_SPINE.md}: AST, runtime-state, reduction, and invariant-spine contract;
 \item \texttt{CDC\_LANGUAGE.md}: source language;
 \item \texttt{bidi\_calculus.py}: reference reducer;
 \item \texttt{cdc\_semantics.py}: declarative AST/state/invariant records;
@@ -267,14 +267,21 @@ The repository contains:
 \item \texttt{system.cdc} and \texttt{laws.cdc}: native witness programs.
 \end{itemize}
 
-\section{Next Formalization Step}
+\section{Semantic Spine}
 
-The clean next step is already pinned in the repository as a formal semantic
-spine: define a typed abstract syntax for \texttt{.cdc}, a single state tuple,
-and a small-step operational semantics for flow, commit, and nesting. From
-there, the Python reducer, bridge, paper, and law checks can be generated or
-audited as projections of one semantic object. The same invariant table can then
-be ported into a theorem prover or bounded verifier.
+The artifact is organized around one semantic spine rather than parallel
+descriptions. \texttt{.cdc} source is parsed into a source AST; execution is
+understood against a runtime state tuple; reductions are classified as flow,
+commit, or nesting steps; and law checks discharge named invariant records. The
+reference reducer remains the executable realization, while the source language,
+paper, and witness suite are kept close enough to be audited as projections of
+the same object.
+
+This makes the theorem-prover lift narrow and explicit. The finite discrete layer
+is the natural first target: trit quantization, prefix-walk admissibility, commit
+barrier preservation, and localized normal forms. The carrier algebra and
+continuous-flow assumptions can then be formalized around the same invariant
+table.
 
 \section{Conclusion}
 
