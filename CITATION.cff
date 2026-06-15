@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "BiDi Coherence-Delta Calculus"
+message: "If you use this calculus, reference implementation, or paper source, please cite this repository."
+type: software
+authors:
+  - family-names: Ellis
+    given-names: Edward
+date-released: "2026-06-15"
+version: "0.1.0"
+license: MIT
+repository-code: "https://github.com/ETEllis/bidi-coherence-delta-calculus"
+abstract: >-
+  BiDi Coherence-Delta Calculus is a compact formal substrate for hybrid systems
+  with continuous flow, evented commits, delayed coupling, local invariants,
+  nested reference frames, and executable coherence witnesses.

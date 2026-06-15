@@ -1,0 +1,32 @@
+[project]
+name = "bidi-coherence-delta-calculus"
+version = "0.1.0"
+description = "Reference reducer, .cdc bootstrap bridge, executable law witnesses, and paper source for BiDi Coherence-Delta Calculus."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Edward Ellis" }]
+keywords = [
+  "hybrid-systems",
+  "formal-methods",
+  "dynamical-systems",
+  "programming-languages",
+  "active-inference",
+  "mixed-reality",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Interpreters",
+]
+
+[project.urls]
+Homepage = "https://github.com/ETEllis/bidi-coherence-delta-calculus"
+Repository = "https://github.com/ETEllis/bidi-coherence-delta-calculus"
+
+[tool.setuptools]
+py-modules = ["bidi_calculus", "cdc_boot", "cdc_semantics", "calculus_laws", "acceptance"]
