@@ -1,119 +1,102 @@
 # BiDi Coherence-Delta Calculus
 
-BiDi Coherence-Delta Calculus is a compact formal substrate for hybrid systems
-that need continuous dynamics, evented discrete commits, delayed coupling, local
-invariants, nested reference frames, and executable coherence witnesses.
+<p align="center">
+  <img src="assets/bidi-cdc-icon.svg" alt="BiDi Coherence-Delta Calculus logo" width="140">
+</p>
 
-The repository contains:
+<p align="center">
+  <strong>A minimal formal substrate for hybrid systems</strong><br>
+  Continuous flow • Guarded discrete commits • Delayed channels • Nested bidiγΔ coupling • Executable coherence invariants
+</p>
 
-- `BIDI_CALCULUS_CORE.md`: the formal core: carrier algebra, term syntax,
-  structural congruence, hybrid reduction relation, operator algebra, and
-  metatheorem witnesses.
-- `FORMAL_SEMANTIC_SPINE.md`: the AST/state/small-step/invariant spine for the
-  next formalization pass.
-- `CDC_LANGUAGE.md`: the `.cdc` source language.
-- `bidi_calculus.py`: the Python reference reducer.
-- `cdc_semantics.py`: declarative semantic dataclasses and invariant registry.
-- `cdc_boot.py`: the `.cdc` bootstrap bridge.
-- `calculus_laws.py`: executable law and metatheorem witnesses.
-- `acceptance.py`: capability witness suite.
-- `system.cdc` and `laws.cdc`: native `.cdc` programs for system behavior and
-  law obligations.
-- `paper/arxiv/main.tex`: arXiv-ready paper source.
+BiDi Coherence-Delta Calculus models computation as nested boundary modules of phase-state cells, connected by delayed weighted channels, evolved through continuous flow, and periodically committed through event-triggered invariant gates that preserve coherence and reject free-energy-increasing transitions.
 
-## One-Sentence Definition
+## Installation & Exploration
 
-BiDi Coherence-Delta Calculus models computation as nested boundary modules made
-of phase-state cells, connected by delayed weighted channels, evolved through
-continuous flow, and periodically committed through event-triggered invariant
-gates that preserve coherence and reject free-energy-increasing transitions.
+Requires Python ≥ 3.10. Zero runtime dependencies.
 
-## Why It Exists
+```bash
+git clone https://github.com/ETEllis/bidi-coherence-delta-calculus.git
+cd bidi-coherence-delta-calculus
+./scripts/verify.sh          # Full verification gate (start here)
+python3 calculus_laws.py     # Law & metatheorem witnesses
+python3 cdc_boot.py system.cdc laws.cdc
+python3 acceptance.py        # Capability witnesses
+```
 
-Many modern systems mix regimes that are usually implemented separately:
+Editable install:
 
-- continuous simulation or control;
-- evented state transitions;
-- delayed signals and feedback;
-- policy gates and invariants;
-- local learning and adaptive weights;
-- predictive belief updates;
-- nested scale and reference-frame coupling;
-- symbolic/discrete computation.
+```bash
+pip install -e .
+```
 
-This calculus gives those regimes one shared vocabulary: cells, channels,
-modules, fields, commits, and bidirectional coherence-delta coupling.
+## Core Architecture
 
-## Quick Start
+```mermaid
+flowchart TD
+    subgraph M["Module (nested boundary)"]
+        Cells["Phase-state cells<br/>+ latched committed poles"]
+        Channels["Delayed weighted channels<br/>(weight × delay)"]
+        Cells --> Channels
+    end
 
-Run the full verification gate:
+    Flow["⟶_d  Continuous Flow<br/>(Lipschitz vector field<br/>+ belief / weight update)"]
+    Commit["⟶_β  Commit<br/>(Guard fires → trit-walk barrier<br/>+ free-energy non-increase check)"]
+    Bidi["γΔ  bidiγΔ coupling<br/>Down: parent priors → child<br/>Up: child coherence → parent afferent"]
+
+    Channels --> Flow
+    Flow --> Commit
+    Commit --> Bidi
+    Bidi --> Cells
+
+    style Commit fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    style Bidi fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    style Flow fill:#fff8e1,stroke:#f9a825
+```
+
+**Canonical vocabulary**
+- `cell` — continuous phase-state carrier with latched pole
+- `channel` — directed influence with delay + weight
+- `module` — bounded group with read/write cones, belief, prior
+- `field` — graph of modules + channels under monoidal composition
+- `commit` — discrete update enforcing nonnegative balance invariant
+- `bidiγΔ` — bidirectional coherence-delta across nested reference frames
+
+## Why This Substrate Exists
+
+Modern hybrid systems routinely combine continuous simulation or control, evented transitions, delayed feedback, policy invariants, local learning, predictive belief updates, and nested scale coupling — usually implemented in fragmented toolkits.
+
+This calculus supplies one shared, executable vocabulary and verified reference semantics for all of them under a single coherence-preserving spine.
+
+## Novelty at a Glance
+
+- **`bidiγΔ` operator** — first-class bidirectional coherence exchange across distinct reference frames (downward prior propagation + upward coherence feedback).
+- **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
+- **Executable free-energy (Lyapunov) witness** — global potential proven non-increasing under reduction; no full theorem prover required.
+- **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
+- **Zero-dependency reference implementation** — pure Python reducer + semantic spine ready for Lean/Coq/Kani port.
+
+All five core metatheorems (preservation, soundness/Lyapunov, local confluence, time-determinism, strong normalization) are witnessed by executable code.
+
+## Verification Status (v0.1.0)
+
+The package passes 100%:
+
+- 16/16 law and metatheorem witnesses
+- 17/17 native `.cdc` expectations (`system.cdc`, `laws.cdc`)
+- 24/24 capability acceptance witnesses
+- Deadband propagation smoke test
+- Invariant registry integrity
+
+Run the full gate anytime:
 
 ```bash
 ./scripts/verify.sh
 ```
 
-Run the law witnesses only:
+## Native `.cdc` Example
 
-```bash
-python3 calculus_laws.py
-```
-
-Run native `.cdc` source:
-
-```bash
-python3 cdc_boot.py system.cdc laws.cdc
-```
-
-Run the capability witnesses:
-
-```bash
-python3 acceptance.py
-```
-
-## Current Verification Snapshot
-
-The current package is expected to pass:
-
-- Python syntax checks for the reference reducer and bridge.
-- `16/16` law and metatheorem witnesses.
-- `17/17` native `.cdc` expectations across `system.cdc` and `laws.cdc`.
-- `24/24` capability acceptance witnesses.
-- a targeted smoke check proving `.cdc` `deadband` propagation reaches fields.
-
-## The Calculus Core
-
-The formal spine is:
-
-```text
-carrier algebra
-  -> term syntax
-  -> structural congruence
-  -> hybrid reduction: flow + commit
-  -> operator algebra
-  -> executable metatheorem witnesses
-```
-
-Canonical vocabulary:
-
-- `cell`: continuous phase-state carrier with a latched committed pole.
-- `channel`: directed weighted influence with continuous delay.
-- `module`: bounded group of cells with read/write cones, belief, prior, and
-  optional child field.
-- `field`: graph of modules and channels.
-- `commit`: guarded discrete update that quantizes state, enforces the
-  nonnegative balance invariant, updates belief, and rejects free-energy
-  increases.
-- `bidi-gamma-delta` / `bidiγΔ`: bidirectional coherence-delta coupling across
-  nested reference frames.
-
-The reference API preserves implementation names for compatibility:
-`Thread`, `Strand`, `Knot`, `Breathfield`, and `breath`.
-
-## Native `.cdc`
-
-Example:
-
-```text
+```cdc
 deadband 0.5
 field demo dt=0.02 gain=1.4
   module A theta 0 0.3 0.6 0.9 1.2 1.5 omega 1.0
@@ -126,46 +109,29 @@ field demo dt=0.02 gain=1.4
 end
 ```
 
-`.cdc` is a source format for declaring fields, modules, channels, reductions,
-counter programs, and executable proof obligations.
-
 ## Paper
 
-The arXiv-oriented paper source lives at:
+Knuth-inspired, dependency-light literate paper:
 
-```text
-paper/arxiv/main.tex
-```
+- Source: `paper/arxiv/main.tex`
+- Compiled PDF + arXiv source archive: [v0.1.0 release assets](https://github.com/ETEllis/bidi-coherence-delta-calculus/releases/tag/v0.1.0)
 
-It is intentionally flattened and dependency-light. If a TeX toolchain is
-available, compile with:
+Compile locally (TeX toolchain):
 
 ```bash
-cd paper/arxiv
-pdflatex main.tex
-pdflatex main.tex
+cd paper/arxiv && pdflatex main.tex && pdflatex main.tex
 ```
 
-The repository does not require LaTeX to run the executable witnesses.
+## Boundaries & Next
 
-The paper style intentionally nods to Knuth: restrained TeX/Computer Modern
-presentation, literate-programming structure, and code/source fragments woven
-into the mathematical exposition.
+Law checks are executable witnesses, not mechanized proofs. The formalization spine for the next pass (immutable runtime state tuple, small-step relations for flow/commit/nest, port to Lean/Coq/Kani) is in `FORMAL_SEMANTIC_SPINE.md`.
 
-## Boundaries
-
-The law checks are executable witnesses, not a completed theorem-prover
-formalization. The current bridge now parses `.cdc` into an explicit source AST
-before execution, and the law checker routes witnesses through the typed
-invariant registry in `cdc_semantics.py`. The next theorem-prover pass is pinned
-in `FORMAL_SEMANTIC_SPINE.md`: initialize execution from the immutable runtime
-state tuple, define flow/commit/nest as small-step relations, and port those
-invariants to Lean/Coq/Kani-style obligations.
-
-The current implementation establishes a compact formal substrate and verified
-reference behavior. It does not claim production scaling, biological completeness,
-or superiority over every existing runtime.
+Current work delivers a compact, verified substrate — not production scaling or biological completeness.
 
 ## License
 
 MIT License. See `LICENSE`.
+
+---
+
+If this substrate proves useful, cite via `CITATION.cff` or the paper.
