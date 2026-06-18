@@ -27,6 +27,15 @@ def num(tok):
     return float(t)
 TRIT = {"+": 0.0, "-": math.pi, "o": math.pi / 2, "0": math.pi / 2}
 
+
+def parse_lines(value):
+    lines = tuple(int(x) for x in value.split(",") if x != "")
+    if not lines:
+        raise SyntaxError("lines= must name at least one target cell")
+    if any(i < 0 for i in lines):
+        raise SyntaxError(f"lines= cannot contain negative indexes: {value}")
+    return lines
+
 # ── operator algebra over the carrier (for `expect law ...`) ───────────────── #
 def _rand(n=6):  return [cmath.rect(1.0, random.uniform(0, 2 * math.pi)) for _ in range(n)]
 def _close(a, b, tol=1e-9): return all(abs(x - y) < tol for x, y in zip(a, b))
@@ -124,7 +133,7 @@ class CDC:
         ctx = self.stack.pop()
         if isinstance(ctx, Field) and hasattr(ctx, "_attach"):
             parent, module = ctx._attach
-            parent.bf.knots[module].child = ctx.bf
+            parent.bf.nest(module, ctx.bf)
         if isinstance(ctx, Counter) and ctx.start is not None:
             ctx.result = ctx.cf.run(ctx.start)
 
@@ -218,8 +227,17 @@ class CDC:
             bf.add(k); return
 
         if kw == "channel":
-            bf.wire(flags[1], flags[3], weight=float(kv.get("weight", 1.0)),
-                    tau=float(kv.get("delay", 0.0)), hebbian=("plastic" in flags)); return
+            src, dst = flags[1], flags[3]
+            angle = num(kv["angle"]) if "angle" in kv else 0.0
+            lines = parse_lines(kv["lines"]) if "lines" in kv else None
+            weight = num(kv.get("weight", "1.0"))
+            tau = num(kv.get("delay", "0.0"))
+            if "/" in src or "/" in dst:
+                bf.relate(src, dst, weight=weight, tau=tau, angle=angle, lines=lines)
+            else:
+                bf.wire(src, dst, weight=weight, tau=tau, angle=angle, lines=lines,
+                        hebbian=("plastic" in flags))
+            return
         if kw == "guard":
             i = int(flags[3]) if len(flags) > 3 else 0
             bf.guards[flags[1]] = (lambda idx: (lambda k, t: math.sin(k.threads[idx].theta) - 0.7))(i); return
@@ -277,6 +295,17 @@ class CDC:
             v = int(a[2])
             ipo = max((getattr(k.child, "inner_per_outer", 0) for k in bf.knots.values() if k.child), default=0)
             return (ipo >= v, f"multirate >= {v} (got {ipo})")
+        if p == "interference":
+            # expect interference <src-path> <dst-path> <cos|sin|gamma|energy> <op> <v>
+            src, dst, fld, op, v = a[1], a[2], a[3], a[4], float(a[5])
+            src_obj, dst_obj = bf.resolve(src), bf.resolve(dst)
+            candidates = [s for s in bf.strands if s.dst is dst_obj] + dst_obj.inbound
+            strand = next((s for s in candidates if s.src is src_obj), None)
+            if strand is None:
+                raise SyntaxError(f"no relation found for interference assertion: {src} -> {dst}")
+            ro = bf.relation_readout(strand)[fld]
+            ok = ro >= v if op == ">=" else ro <= v if op == "<=" else abs(ro - v) < 1e-6
+            return (ok, f"interference {src}->{dst} {fld} {op} {v} (got {ro:.2f})")
         raise SyntaxError(f"expect: {line}")
 
     def report(self):

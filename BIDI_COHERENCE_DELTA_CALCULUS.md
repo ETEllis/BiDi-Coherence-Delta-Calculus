@@ -8,7 +8,7 @@ BiDi Coherence-Delta Calculus is a universal substrate for hybrid systems that n
 
 ## One-Line Definition
 
-BiDi Coherence-Delta Calculus is a host-independent calculus for coupled bounded processes: phase-state cells are grouped into boundary modules, connected by delayed weighted channels, evolved continuously, and periodically committed through event-triggered invariant gates that preserve coherence and reduce variational prediction error.
+BiDi Coherence-Delta Calculus is a host-independent calculus for coupled bounded processes: phase-state cells are grouped into boundary modules, connected by delayed weighted channels that may carry angular phase bias and line projection, evolved continuously, and periodically committed through event-triggered invariant gates that preserve coherence and reduce variational prediction error.
 
 ## What It Gives An Engineer
 
@@ -81,11 +81,11 @@ is the smaller cell/channel/module/field/commit set above.
 | coherence barrier | nonnegative balance invariant | A prefix-walk constraint that prevents negative coherence debt. |
 | surprise | prediction error | Difference between received evidence and current belief/prior. |
 | Core-fold | latent projection | A reduced internal representation distilled from middle state channels. |
-| bidiγΔ | bidirectional coherence-delta coupling | Up/down coupling of coherence and error across nested scales. |
+| bidiγΔ | bidirectional coherence-delta coupling | Path-aware relation across nested scales; the neutral `alpha=0` case gives up/down cones. |
 
 Formal phrasing:
 
-> The formal cross-scale operator is `bidi-gamma-delta`: bidirectional coherence-delta coupling. It carries context downward, evidence upward, and coherence/error differences across nested reference frames.
+> The formal cross-scale operator is `bidi-gamma-delta`: bidirectional coherence-delta coupling. It carries context downward, evidence upward, angular phase difference, and coherence/error differences across nested reference frames.
 
 ## Formal Object Model
 
@@ -132,7 +132,8 @@ A channel connects source boundary module to destination boundary module:
 source -> destination
 weight
 delay tau
-optional line index
+angle alpha
+optional projected line indexes
 optional Hebbian adaptation
 ```
 
@@ -140,7 +141,9 @@ Interpretation:
 
 - this is signal propagation with delay;
 - delay is continuous, not tick-indexed;
-- influence can be all-channel or line-specific;
+- `angle` rotates the source into the destination reference frame;
+- influence can be all-channel or projected onto selected target lines;
+- endpoints may be nesting paths such as `P/c -> P`;
 - optional plasticity changes channel strength from correlation.
 
 ### Boundary Module (`Knot`)
@@ -175,7 +178,7 @@ A field contains modules and coupling channels:
 
 ```text
 modules: name -> boundary module
-channels: delayed weighted couplings
+channels: delayed weighted angular/path relations
 dt: integration step for realization
 gain: coupling gain
 deadband: ternary quantization threshold
@@ -194,7 +197,7 @@ Interpretation:
 
 ### 1. Afferent Signal
 
-For each destination module, incoming influence is the delayed weighted sum of source outputs, modulated by source and destination boundary openness.
+For each destination module, incoming influence is the delayed weighted sum of source outputs, rotated by relation angle, optionally projected onto target lines, and modulated by source and destination boundary openness.
 
 Operational meaning:
 
@@ -266,13 +269,14 @@ Definition:
 
 - gamma (`gamma`) is coherence, the phase-order magnitude;
 - delta (`delta`) is the difference between predicted/actual, parent/child, or local/global coherence;
-- down-coupling sends parent context into child priors;
-- up-coupling sends child coherence into parent evidence;
+- down-coupling sends parent context into children through an aggregate relation;
+- up-coupling sends child coherence into parent evidence through an aggregate relation;
+- nonzero angular phase bias rotates either direction into a different reference frame;
 - the two directions together define reference-frame coupling.
 
 Operational meaning:
 
-> `bidi-gamma-delta` couples nested systems by sending context downward and evidence upward, while exposing the coherence/error delta between scales.
+> `bidi-gamma-delta` couples nested systems by sending context downward and evidence upward, while exposing the phase/coherence/error delta between scales.
 
 This maps cleanly to:
 
@@ -352,7 +356,7 @@ deadband <real>
 field <name> dt=<real> gain=<real>
 module <name> theta <theta1..theta6>
 module <name> trits <s1..s6>
-channel <a> -> <b> delay=<real> weight=<real> [plastic]
+channel <path-a> -> <path-b> delay=<real> weight=<real> angle=<real> lines=<i,j> [plastic]
 guard <name> crossing <i>
 flow <real>
 commit <name>
@@ -363,7 +367,7 @@ Interpretation:
 
 - declare a field;
 - declare boundary modules;
-- declare delayed channels;
+- declare delayed, angular, optionally projected channels;
 - declare event triggers;
 - advance continuous flow;
 - perform guarded commits.
@@ -489,7 +493,7 @@ That is an integration hypothesis, not a merge instruction.
 
 ## Abstract
 
-BiDi Coherence-Delta Calculus is a formal substrate for hybrid systems that must behave continuously and commit discretely. It models computation as nested boundary modules made of phase-state cells, connected by delayed weighted channels. The field evolves through continuous dynamics, while event-triggered commits quantize state, enforce invariants, update belief, and reject incoherent transitions. Its cross-scale operator, `bidi-gamma-delta`, sends context downward and evidence upward so nested reference frames can stay compatible. The result is a compact language for simulations, agents, adaptive UI, policy gates, predictive control, social fields, and mixed-reality world models.
+BiDi Coherence-Delta Calculus is a formal substrate for hybrid systems that must behave continuously and commit discretely. It models computation as nested boundary modules made of phase-state cells, connected by delayed weighted channels that can rotate phase, project onto selected target dimensions, and cross nested paths. The field evolves through continuous dynamics, while event-triggered commits quantize state, enforce invariants, update belief, and reject incoherent transitions. Its cross-scale operator, `bidi-gamma-delta`, sends context downward and evidence upward so nested reference frames can stay compatible. The result is a compact language for simulations, agents, adaptive UI, policy gates, predictive control, social fields, and mixed-reality world models.
 
 ## Minimal Engineer Handoff
 
@@ -498,13 +502,13 @@ If you are implementing or reviewing BiDi Coherence-Delta Calculus, preserve the
 1. A phase cell has continuous phase plus latched committed pole.
 2. Runtime ternary value is derived from phase by deadband quantization.
 3. Boundary openness gates influence.
-4. Channels are directed, weighted, and continuously delayed.
+4. Channels are directed, weighted, continuously delayed, optionally angle-biased, and optionally projected onto target lines.
 5. A boundary module owns input/output cones, belief, prior, precision, and optional child field.
 6. Continuous flow updates phase, amplitude, belief, and plastic weights.
 7. Guards fire evented commits off-grid.
 8. A commit enforces the nonnegative balance invariant.
 9. A commit is rejected if it increases local free energy.
-10. Nested fields exchange context downward and coherence/evidence upward through `bidi-gamma-delta`.
+10. Nested fields exchange context downward and coherence/evidence upward through `bidi-gamma-delta`; this is the `alpha=0` case of the general path relation.
 11. Operators `gate`, `interfere`, and `corefold` remain primitive operations over boundary state.
 12. The native notation must be able to declare modules, channels, guards, flow, and commits.
 13. Capability claims should be backed by small witness programs.
@@ -522,7 +526,7 @@ Use:
 Use in engineering docs:
 
 - phase cell;
-- delayed coupling channel;
+- delayed angular coupling channel;
 - boundary module;
 - coupled process field;
 - evented commit;

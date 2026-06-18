@@ -28,7 +28,8 @@ The AST should represent only the canonical calculus primitives:
 
 - `CellTerm`: phase, amplitude, intrinsic frequency, plasticity, optional latch.
 - `ModuleTerm`: named cell vector plus belief, prior, precision, and action gain.
-- `ChannelTerm`: source, destination, weight, delay, optional line, plasticity flag.
+- `ChannelTerm`: source path, destination path, weight, delay, angular phase bias,
+  optional line projection, and plasticity flag.
 - `FieldTerm`: modules, channels, child fields, timestep, gain, deadband, gating.
 - `CounterTerm`: register-machine witness term for universality.
 
@@ -39,7 +40,7 @@ The AST should represent only the canonical calculus primitives:
 A runtime state is:
 
 ```text
-S = (t, modules, channels, child_fields, deadband, dt, gain, gated)
+S = (t, modules, channels, child_fields, inbound_relations, deadband, dt, gain, gated)
 ```
 
 Each module state carries:
@@ -68,6 +69,12 @@ The canonical reduction relation has three step kinds:
 | `flow(d)` | `F ->_d F'` | evolve phase, amplitude, belief, and plasticity for duration `d` |
 | `commit(m)` | `F ->_beta F'` | guarded quantize/barrier/belief/latch update for module `m` |
 | `nest(m)` | `m[[F]]` | exchange parent context downward and child coherence upward |
+
+Operationally, nesting is represented as two automatically installed
+path-aware relations at angular bias `alpha=0`: one aggregate child-to-parent
+up-cone and one aggregate parent-to-child down-cone for each child module.
+General channels may use nonzero `alpha` and projected `lines`, so the original
+parent/child cone is the neutral case of the same relation operator.
 
 The reference reducer may integrate flow numerically, but the semantic relation
 is the source of truth. Numerical choices should be recorded as realization
@@ -138,6 +145,8 @@ explicit Lipschitz/determinism assumptions.
 
 - `.cdc` parses into `ProgramTerm`.
 - `cdc_boot.py` executes from a parsed source AST rather than raw line commands.
+- relation witnesses cover angular phase, dimension projection, path endpoints,
+  and `.cdc` nesting auto-cone installation.
 - every witness in `calculus_laws.py` references an `InvariantSpec`.
 - the paper's invariant table matches `cdc_semantics.py`.
 - `scripts/verify.sh` proves code, `.cdc`, witnesses, and semantic registry stay

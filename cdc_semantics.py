@@ -140,12 +140,14 @@ class ModuleTerm:
 
 @dataclass(frozen=True)
 class ChannelTerm:
-    src: Name
+    src: Name                      # may be a nesting path: "m", "m/n", "m/n/p"
     dst: Name
     weight: Real = 1.0
     delay: Real = 0.0
     line: int | None = None
     plastic: bool = False
+    angle: Real = 0.0              # angular phase bias on entry to the target frame
+    lines: Tuple[int, ...] | None = None
 
 
 @dataclass(frozen=True)

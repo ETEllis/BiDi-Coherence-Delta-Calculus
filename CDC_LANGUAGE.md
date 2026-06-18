@@ -37,7 +37,7 @@ module      = "module" name "theta" real { real } [ "omega" real { real } ]
             | "module" name "trits" pole pole pole pole pole pole ;
 pole        = "+" | "-" | "o" ;                 (* + yang, - yin, o crossing *)
 
-channel     = "channel" name "->" name { kwarg } [ "plastic" ] ;
+channel     = "channel" path "->" path { kwarg } [ "plastic" ] ;
 nest        = "nest" name { kwarg } newline { module | channel } "end" ;
 guard       = "guard" name "crossing" int ;
 flow        = "flow" real ;                     (* ⟶_d : evolve continuously *)
@@ -55,9 +55,11 @@ top-expect  = "expect" "law" lawname ;
 
 kwarg       = key "=" value ;                   (* e.g. gain=2.5 delay=0.7 open=yes *)
 real        = number | "pi" | "pi/2" | "pi/4" | "3pi/2" | "tau" ;
+path        = name { "/" name } ;
 ```
 
 `#` begins a comment. Reals accept the circle literals `pi`, `pi/2`, … directly.
+`lines=` is a comma-separated list of nonnegative target cell indexes.
 
 ---
 
@@ -68,8 +70,9 @@ real        = number | "pi" | "pi/2" | "pi/4" | "3pi/2" | "tau" ;
 | `field … end` | a Breathfield term; `open=yes` lifts boundary gating (plain coupling), `open=no` keeps it (gated coupling) |
 | `module m theta …` | a module (Knot): the cell-vector by phase; `omega` sets intrinsic frequency, `precision`/`prior`/`act` arm predictive coding and active inference |
 | `module m trits + - o …` | a module by committed/crossing poles |
-| `channel a -> b` | a delayed weighted channel (Strand); `delay=τ`, `weight=w`, `plastic` enables Hebbian adaptation |
-| `nest m … end` | attach a child Breathfield to module `m` (fractal self-reference; child `dt` gives the inner timescale) |
+| `channel a -> b` | a delayed weighted channel (Strand); `delay=τ`, `weight=w`, `angle=α`, `lines=0,2`, and `plastic` are supported |
+| `channel P/c -> P` | a path-aware relation crossing nesting boundaries; endpoint depth determines up/down/lateral/diagonal orientation |
+| `nest m … end` | attach a child Breathfield to module `m`; closing the block installs the `α=0` bidiγΔ up/down relation cone |
 | `guard m crossing i` | arm an event: a `commit` fires when cell `i` reaches its crossing |
 | `flow d` | continuous reduction `⟶_d` for real duration `d` |
 | `commit m` / `commit all` | guarded reduction `⟶_β` (snap, barrier, belief, free-energy guard, latch) |
@@ -87,6 +90,7 @@ expect coherence X >= 0.9             expect localized M
 expect address M == 27                expect delay W D 0.7
 expect belief G near 1.0 0.1          expect weight a b > 0.6
 expect events-offgrid                 expect multirate >= 4
+expect interference A B cos <= -0.9   expect interference P/c P gamma >= 0.5
 expect reg c1 == 7                     (inside a counter)
 expect law gate-abelian | interfere-monoid | rotation-linear | corefold-morphism
 expect law preservation | soundness | normalforms
@@ -111,6 +115,7 @@ than a semantic dependency.
 |---|---|
 | `system.cdc` | continuous dynamics, delay lines, hybrid events, multirate nesting, predictive coding, plasticity, normal-form commits, two-counter universality |
 | `laws.cdc` | the operator algebra (`⊙ ⊞ ⟳ ∂`) and metatheorems (T1 preservation, T2 soundness, T5 normal forms) as proof obligations |
+| `relations.cdc` | angular phase, dimension projection, and cross-scale path relation witnesses |
 | `examples/*.cdc` | showcase programs |
 | `cdc_boot.py` | the single bootstrap bridge (not the language) |
 

@@ -6,10 +6,10 @@
 
 <p align="center">
   <strong>A minimal formal substrate for hybrid systems</strong><br>
-  Continuous flow • Guarded discrete commits • Delayed channels • Nested bidiγΔ coupling • Executable coherence invariants
+  Continuous flow • Guarded discrete commits • Delayed angular channels • Nested bidiγΔ coupling • Executable coherence invariants
 </p>
 
-BiDi Coherence-Delta Calculus models computation as nested boundary modules of phase-state cells, connected by delayed weighted channels, evolved through continuous flow, and periodically committed through event-triggered invariant gates that preserve coherence and reject free-energy-increasing transitions.
+BiDi Coherence-Delta Calculus models computation as nested boundary modules of phase-state cells, connected by delayed weighted channels that may also carry angular phase bias, dimension projection, and path-aware cross-scale endpoints. Fields evolve through continuous flow and periodically commit through event-triggered invariant gates that preserve coherence and reject free-energy-increasing transitions.
 
 ## Installation & Exploration
 
@@ -36,13 +36,13 @@ pip install -e .
 flowchart TD
     subgraph M["Module (nested boundary)"]
         Cells["Phase-state cells<br/>+ latched committed poles"]
-        Channels["Delayed weighted channels<br/>(weight × delay)"]
+    Channels["Delayed angular channels<br/>(weight × delay × angle × lines)"]
         Cells --> Channels
     end
 
     Flow["⟶_d  Continuous Flow<br/>(Lipschitz vector field<br/>+ belief / weight update)"]
     Commit["⟶_β  Commit<br/>(Guard fires → trit-walk barrier<br/>+ free-energy non-increase check)"]
-    Bidi["γΔ  bidiγΔ coupling<br/>Down: parent priors → child<br/>Up: child coherence → parent afferent"]
+    Bidi["γΔ  bidiγΔ coupling<br/>Path-aware relations across nested frames<br/>α=0 cone: parent ↔ child"]
 
     Channels --> Flow
     Flow --> Commit
@@ -56,11 +56,11 @@ flowchart TD
 
 **Canonical vocabulary**
 - `cell` — continuous phase-state carrier with latched pole
-- `channel` — directed influence with delay + weight
+- `channel` — directed influence with delay, weight, angular phase, and optional line projection
 - `module` — bounded group with read/write cones, belief, prior
 - `field` — graph of modules + channels under monoidal composition
 - `commit` — discrete update enforcing nonnegative balance invariant
-- `bidiγΔ` — bidirectional coherence-delta across nested reference frames
+- `bidiγΔ` — bidirectional coherence-delta across nested reference frames and path endpoints
 
 ## Why This Substrate Exists
 
@@ -70,7 +70,8 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 
 ## Novelty at a Glance
 
-- **`bidiγΔ` operator** — first-class bidirectional coherence exchange across distinct reference frames (downward prior propagation + upward coherence feedback).
+- **`bidiγΔ` operator** — first-class bidirectional coherence exchange across distinct reference frames; nesting is the `α=0` special case of the same relation operator.
+- **Angular/path channels** — channels can rotate incoming phase by `angle=`, project onto selected `lines=`, and connect paths such as `P/c -> P`.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Executable free-energy (Lyapunov) witness** — global potential proven non-increasing under reduction; no full theorem prover required.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
@@ -78,14 +79,16 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 
 All five core metatheorems (preservation, soundness/Lyapunov, local confluence, time-determinism, strong normalization) are witnessed by executable code.
 
-## Verification Status (v0.1.0)
+## Verification Status (v0.1.1)
 
 The package passes 100%:
 
 - 16/16 law and metatheorem witnesses
 - 17/17 native `.cdc` expectations (`system.cdc`, `laws.cdc`)
+- 5/5 relational phase-channel witnesses plus native `relations.cdc`
 - 24/24 capability acceptance witnesses
 - Deadband propagation smoke test
+- Line projection validation
 - Invariant registry integrity
 
 Run the full gate anytime:
@@ -101,7 +104,7 @@ deadband 0.5
 field demo dt=0.02 gain=1.4
   module A theta 0 0.3 0.6 0.9 1.2 1.5 omega 1.0
   module B trits + o - + o -
-  channel A -> B delay=0.2 weight=1.0
+  channel A -> B delay=0.2 weight=1.0 angle=pi/4 lines=0,2,4
   guard B crossing 0
   flow 3.0
   commit B
@@ -114,7 +117,7 @@ end
 Knuth-inspired, dependency-light literate paper:
 
 - Source: `paper/arxiv/main.tex`
-- Compiled PDF + arXiv source archive: [v0.1.0 release assets](https://github.com/ETEllis/bidi-coherence-delta-calculus/releases/tag/v0.1.0)
+- The checked source tree is the current paper source; `./scripts/verify.sh` compiles it when `tectonic` is available.
 
 Compile locally (TeX toolchain):
 

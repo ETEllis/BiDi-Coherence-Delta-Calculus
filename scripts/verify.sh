@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "== Python syntax =="
-python3 -m py_compile bidi_calculus.py cdc_boot.py cdc_semantics.py calculus_laws.py acceptance.py
+python3 -m py_compile bidi_calculus.py cdc_boot.py cdc_semantics.py calculus_laws.py acceptance.py relation_witness.py
 
 echo
 echo "== Law and metatheorem witnesses =="
@@ -13,6 +13,11 @@ python3 calculus_laws.py
 echo
 echo "== Native .cdc execution =="
 python3 cdc_boot.py system.cdc laws.cdc
+
+echo
+echo "== Relational phase-channel witnesses =="
+python3 relation_witness.py
+python3 cdc_boot.py relations.cdc
 
 echo
 echo "== Capability acceptance witnesses =="
@@ -32,6 +37,25 @@ c.run("deadband 0.25\nfield F dt=0.02 gain=1.2 deadband=0.4\nend\n")
 assert abs(c.fields["F"].bf.deadband - 0.4) < 1e-12
 
 print("deadband propagation: ok")
+PY
+
+echo
+echo "== Line projection validation =="
+python3 - <<'PY'
+from cdc_boot import CDC
+
+try:
+    CDC().run("""
+field bad open=yes
+  module A theta 0 0 0 0 0 0
+  module B theta 0 0 0 0 0 0
+  channel A -> B lines=-1
+end
+""")
+except SyntaxError:
+    print("line projection validation: ok")
+else:
+    raise AssertionError("negative line index was accepted")
 PY
 
 echo

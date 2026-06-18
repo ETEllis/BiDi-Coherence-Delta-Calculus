@@ -54,10 +54,29 @@ class Thread:
 #  STRAND — directed coupling with a continuous delay τ
 # --------------------------------------------------------------------------- #
 class Strand:
-    __slots__ = ("src", "dst", "weight", "tau", "line", "hebbian", "eta")
-    def __init__(self, src, dst, weight=1.0, tau=0.0, line=None, hebbian=False, eta=0.2):
+    __slots__ = ("src", "dst", "weight", "tau", "line", "hebbian", "eta", "angle", "lines", "broadcast")
+    def __init__(self, src, dst, weight=1.0, tau=0.0, line=None, hebbian=False, eta=0.2,
+                 angle=0.0, lines=None, broadcast=False):
         self.src, self.dst, self.weight, self.tau = src, dst, weight, tau
         self.line, self.hebbian, self.eta = line, hebbian, eta   # line=None couples all aligned threads
+        self.angle = angle                                       # alpha: angular phase bias on entry
+        self.lines = lines                                       # dimension projection; None means all target cells
+        self.broadcast = broadcast                               # one aggregate source -> all target cells
+
+
+class Aggregate:
+    """Read-only phasor source for the mean state of a field or module list."""
+    __slots__ = ("scope",)
+
+    def __init__(self, scope):
+        self.scope = scope
+
+    def _modules(self):
+        return list(self.scope.knots.values()) if hasattr(self.scope, "knots") else self.scope
+
+    def delayed(self, t, tau):
+        zs = [cmath.rect(1, th.theta) for k in self._modules() for th in k.threads]
+        return [sum(zs) / len(zs)] if zs else [0j]
 
 
 # --------------------------------------------------------------------------- #
@@ -74,6 +93,7 @@ class Knot:
         self.precision = 1.0                      # sensory precision
         self.act_gain  = 0.0                      # >0 enables active inference (acts on the world)
         self.child     = None                     # nested Breathfield (child field)
+        self.inbound   = []                       # path-aware and cross-scale relations targeting this module
         self.history   = [(0.0, [th.z for th in self.threads])]  # for delayed strand reads
         # universality (instruction-knot) fields — dormant unless set:
         self.kind = None; self.reg = None; self.nxt = None; self.alt = None; self.count = 0
@@ -215,39 +235,114 @@ class Breathfield:
         self.F_log = []          # (t, knot, F) at commits — free-energy witness
 
     def add(self, knot):     self.knots[knot.name] = knot; knot.deadband = self.deadband; return knot
-    def wire(self, s, d, weight=1.0, tau=0.0, line=None, hebbian=False, eta=0.2):
-        self.strands.append(Strand(self.knots[s], self.knots[d], weight, tau, line, hebbian, eta))
+    @staticmethod
+    def _lines(lines, n):
+        if lines is None:
+            return None
+        vals = (lines,) if isinstance(lines, int) else tuple(lines)
+        if not vals:
+            raise ValueError("lines must name at least one target cell")
+        bad = [i for i in vals if not isinstance(i, int) or i < 0 or i >= n]
+        if bad:
+            raise ValueError(f"line index out of range for target arity {n}: {bad}")
+        return vals
+
+    def wire(self, s, d, weight=1.0, tau=0.0, line=None, hebbian=False, eta=0.2, angle=0.0, lines=None):
+        dst = self.knots[d]
+        if lines is None and line is not None:
+            lines = (line,)
+        lines = self._lines(lines, dst.n)
+        self.strands.append(Strand(self.knots[s], dst, weight, tau, line, hebbian, eta, angle, lines))
+
+    def resolve(self, path):
+        """Resolve a nesting path like 'm', 'm/n', or 'm/n/p' to a module."""
+        if not isinstance(path, str):
+            return path
+        field, knot = self, None
+        for part in path.split("/"):
+            field = field if knot is None else knot.child
+            if field is None:
+                raise KeyError(f"cannot descend through module without child field: {knot.name}")
+            knot = field.knots[part]
+        return knot
+
+    def relate(self, src_path, dst_path, weight=1.0, tau=0.0, angle=0.0, lines=None):
+        """Path-aware, angle-biased bidi-gamma-delta relation.
+
+        Source and destination may live at different nesting depths. Direction
+        (up, down, lateral, or diagonal) is determined by the endpoints.
+        """
+        src, dst = self.resolve(src_path), self.resolve(dst_path)
+        lines = self._lines(lines, dst.n)
+        s = Strand(src, dst, weight, tau, None, False, 0.2, angle, lines)
+        dst.inbound.append(s)
+        return s
+
+    def relation_readout(self, strand, t=None):
+        """Return averaged phase-interference observables for a relation."""
+        if t is None:
+            t = self.t
+        dst, srcz = strand.dst, strand.src.delayed(t, strand.tau)
+        lines = strand.lines if strand.lines is not None else range(dst.n)
+        cs = ss = en = 0.0
+        acc = 0j
+        n = 0
+        for i in lines:
+            if i >= dst.n:
+                continue
+            val = srcz[0] if strand.broadcast else (srcz[i] if i < len(srcz) else None)
+            if val is None:
+                continue
+            dth = (cmath.phase(val) + strand.angle) - dst.threads[i].theta
+            kap_src = (max(0.0, 1.0 - abs(math.cos(cmath.phase(val))) / self.deadband)
+                       if abs(val) > EPS else 0.0)
+            kap_dst = dst.threads[i].kappa(self.deadband)
+            cs += math.cos(dth)
+            ss += math.sin(dth)
+            en += kap_src * kap_dst * (1 - math.cos(dth))
+            acc += strand.weight * cmath.rect(1, dth)
+            n += 1
+        n = max(1, n)
+        return dict(cos=cs / n, sin=ss / n, gamma=abs(acc) / n, energy=en / n)
+
     def nest(self, parent_name, child_field):
-        self.knots[parent_name].child = child_field
+        parent = self.knots[parent_name]
+        parent.child = child_field
+        parent.inbound.append(Strand(Aggregate(child_field), parent,
+                                     weight=self.gain * 0.6, angle=0.0, broadcast=True))
+        for child in child_field.knots.values():
+            child.inbound.append(Strand(Aggregate([parent]), child,
+                                        weight=child_field.gain * 0.3, angle=0.0, broadcast=True))
+        return parent
 
     # afferent vector A for a knot (delayed, permeability-gated superposition) ---
     def afferent(self, knot, t):
         A = [0j] * knot.n
-        for s in self.strands:
-            if s.dst is not knot: continue
+        for s in [s for s in self.strands if s.dst is knot] + knot.inbound:
             srcz = s.src.delayed(t, s.tau)
-            for i in range(knot.n):
-                if self.kappa_gate and abs(srcz[i]) > EPS:
-                    kap_src = max(0.0, 1.0 - abs(math.cos(cmath.phase(srcz[i]))) / self.deadband)
+            rot = cmath.rect(1.0, s.angle)
+            lines = s.lines if s.lines is not None else range(knot.n)
+            has_threads = hasattr(s.src, "threads")
+            for i in lines:
+                val = srcz[0] if s.broadcast else (srcz[i] if i < len(srcz) else None)
+                if val is None or i >= knot.n:
+                    continue
+                if self.kappa_gate:
+                    kap_src = (max(0.0, 1.0 - abs(math.cos(cmath.phase(val))) / self.deadband)
+                               if abs(val) > EPS else 0.0)
+                    kap_dst = knot.threads[i].kappa(self.deadband)
                 else:
-                    kap_src = 1.0
-                A[i] += s.weight * (1.0 + s.src.threads[i].plast) * kap_src * srcz[i]
-        # bidiγΔ up-cone: a nested child's coherence organizes the parent (mean-field pull)
-        if knot.child is not None:
-            gchild = sum(k.coherence() for k in knot.child.knots.values()) / max(1, len(knot.child.knots))
-            zmean = sum(cmath.rect(1, th.theta) for th in knot.threads)
-            phi = cmath.phase(zmean) if abs(zmean) > EPS else 0.0
-            for i in range(knot.n):
-                A[i] += self.gain * 0.6 * gchild * cmath.rect(1, phi)
+                    kap_src = kap_dst = 1.0
+                plast = s.src.threads[i].plast if (has_threads and i < len(s.src.threads)) else 0.0
+                A[i] += s.weight * (1.0 + plast) * kap_src * kap_dst * (rot * val)
         return A
 
     # continuous flow ------------------------------------------------------- #
     def _dtheta(self, knot, thetas, A):
         d = []
         for i, th in enumerate(knot.threads):
-            kap = (max(0.0, 1.0 - abs(math.cos(thetas[i])) / self.deadband)) if self.kappa_gate else 1.0
             drive = abs(A[i]) * math.sin(cmath.phase(A[i]) - thetas[i]) if abs(A[i]) > EPS else 0.0
-            d.append(th.omega + self.gain * kap * drive)
+            d.append(th.omega + self.gain * drive)
         return d
 
     def _flow_step(self, dt):
@@ -281,12 +376,9 @@ class Breathfield:
 
     # one outer advance with nesting (multirate) + event detection ---------- #
     def step(self):
-        # down-cone (bidiγΔ): parent state biases each child's prior; step child fast (multirate)
+        # Step each child field fast; cross-scale context flows through relations.
         for knot in self.knots.values():
             if knot.child is not None:
-                ctx = knot.threads[0].theta
-                for ck in knot.child.knots.values():
-                    ck.prior = [0.3 * math.cos(ctx)] * ck.n
                 inner = max(1, int(round(self.dt / knot.child.dt)))
                 for _ in range(inner):
                     knot.child.step()
