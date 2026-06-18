@@ -54,7 +54,7 @@ def _law(name):
     if name == "preservation":
         for _ in range(500):
             k = Knot("k", threads=[Thread(theta=random.uniform(0, 6.28)) for _ in range(6)])
-            k.breath([0j] * 6)
+            k.commit([0j] * 6)
             r = 0
             for t in k.trits():
                 r += t
@@ -66,7 +66,7 @@ def _law(name):
             k = Knot("k", threads=[Thread(theta=random.uniform(0, 6.28)) for _ in range(6)])
             k.belief = [random.uniform(-1, 1) for _ in range(6)]; k.precision = random.uniform(.1, 5)
             A = [cmath.rect(random.uniform(0, 1.5), random.uniform(0, 6.28)) for _ in range(6)]
-            f0 = k.free_energy(A); f1, _ = k.breath(A); worst = max(worst, f1 - f0)
+            f0 = k.free_energy(A); f1, _ = k.commit(A); worst = max(worst, f1 - f0)
         return worst <= 1e-9
     if name == "normalforms":
         c = census(); return c["classical_localized"] == 5 and c["localized"] == 51
@@ -227,7 +227,7 @@ class CDC:
         if kw == "commit":
             if flags[1] == "all": bf.breathe_all()
             else:
-                k = bf.knots[flags[1]]; k.breath(bf.afferent(k, bf.t))
+                k = bf.knots[flags[1]]; k.commit(bf.afferent(k, bf.t))
             return
         if kw == "expect":
             self.results.append(self.eval_expect(bf, flags[1:], line)); return

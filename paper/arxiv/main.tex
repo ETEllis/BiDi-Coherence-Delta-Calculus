@@ -170,8 +170,8 @@ paths are distinct reference frames.
 
 \section{Operator Algebra}
 
-The reference reducer checks the following operator laws over the standard
-carrier.
+The invariant registry has nine keys. Four are algebraic invariants over the
+standard carrier:
 
 \begin{center}
 \begin{tabular}{llll}
@@ -186,10 +186,11 @@ core-fold & $\partial$ & latent projection & linear and equivariant\\
 \end{tabular}
 \end{center}
 
-\section{Executable Metatheorem Witnesses}
+\section{Executable Reduction Witnesses}
 
-The current artifact checks five claims. They are intentionally phrased as
-executable witnesses rather than completed proof-assistant theorems.
+The remaining five registry keys are reduction and metatheorem invariants. They
+are intentionally phrased as executable witnesses rather than completed
+proof-assistant theorems.
 
 \begin{claim}[Preservation]
 Every guarded commit produces an admissible committed module: the prefix walk of
@@ -216,7 +217,9 @@ For $n=6$, the saturated localized count is Catalan $C_3=5$ and the crossing-
 permitting localized count is $51$.
 \end{claim}
 
-The witness suite reports 16/16 law and metatheorem checks, 17/17 native
+Together, the four algebraic invariants and five reduction invariants make the
+9-key semantic registry exercised by the law checker. The witness suite reports
+16/16 law and metatheorem checks, 9/9 invariant keys exercised, 17/17 native
 \texttt{.cdc} expectations, and 24/24 capability witnesses.
 
 \section{Native Source Language}

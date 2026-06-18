@@ -131,7 +131,7 @@ class Knot:
         return [l[i].z for i in idx]
 
     # --- guarded discrete commit (barrier + free-energy guard) ---------------- #
-    def breath(self, A, snap=0.25):
+    def commit(self, A, snap=0.25):
         """Commit toward attractors, latch σ, enforce the coherence barrier (rank≥0),
         but only if free energy does not increase."""
         F0 = self.free_energy(A)
@@ -164,6 +164,10 @@ class Knot:
             t = th.trit(self.deadband)
             if t != 0: th.sigma = t
         return F1, True
+
+    def breath(self, A, snap=0.25):
+        """Compatibility alias for the older reference API name."""
+        return self.commit(A, snap=snap)
 
 
 # --------------------------------------------------------------------------- #
@@ -301,7 +305,7 @@ class Breathfield:
                 frac = g0 / (g0 - g1) if g1 != g0 else 1.0
                 t_event = (self.t - self.dt) + frac * self.dt
                 A = self.afferent(self.knots[nm], self.t)
-                F, ok = self.knots[nm].breath(A)
+                F, ok = self.knots[nm].commit(A)
                 self.events.append((t_event, nm))
                 self.F_log.append((t_event, nm, F))
 
@@ -314,7 +318,7 @@ class Breathfield:
     def breathe_all(self):
         for knot in self.knots.values():
             A = self.afferent(knot, self.t)
-            F, ok = knot.breath(A)
+            F, ok = knot.commit(A)
             self.F_log.append((self.t, knot.name, F))
 
     def global_coherence(self):
@@ -336,7 +340,7 @@ class CounterField:
     def instr(self, name, kind, reg=None, nxt=None, alt=None):
         k = Knot(name, n=1); k.kind = kind; k.reg = reg; k.nxt = nxt; k.alt = alt
         self.knots[name] = k; return k
-    def breath(self, knot):
+    def commit(self, knot):
         """Generic guarded instruction commit. Returns the next active instruction."""
         if knot.kind == "inc":
             self.knots[knot.reg].count += 1
@@ -356,9 +360,13 @@ class CounterField:
             k = self.knots[self.active]
             if k.kind == "halt": break
             self.trace.append((self.active, {n: self.knots[n].count for n in self.knots if self.knots[n].kind == "reg"}))
-            self.active = self.breath(k)
+            self.active = self.commit(k)
             steps += 1
         return {n: self.knots[n].count for n in self.knots if self.knots[n].kind == "reg"}
+
+    def breath(self, knot):
+        """Compatibility alias for the older reference API name."""
+        return self.commit(knot)
 
 
 def minsky_add(a, b):
@@ -417,7 +425,7 @@ def parse_legacy_program(source):
         elif h == "flow":
             bf.advance(float(tok[1]))
         elif h == "breath":
-            k = bf.knots[tok[1]]; A = bf.afferent(k, bf.t); k.breath(A)
+            k = bf.knots[tok[1]]; A = bf.afferent(k, bf.t); k.commit(A)
     return bf
 
 

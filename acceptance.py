@@ -168,7 +168,7 @@ def D2():  # barrier + guard: a commit never increases free energy
         for nm in ("A", "B"):
             k = bf.knots[nm]; A = bf.afferent(k, bf.t)
             Fpre = k.free_energy(A)
-            Fpost, ok = k.breath(A)
+            Fpost, ok = k.commit(A)
             worst = max(worst, Fpost - Fpre); n += 1
     return worst <= 1e-9, f"over {n} commits, max ΔF = {worst:.2e} ≤ 0 (free-energy guard holds)"
 
@@ -257,7 +257,7 @@ def F1():  # strengthened operators function in a continuous, running field
     bf.wire("A", "B"); bf.advance(1.0)
     A, B = bf.knots["A"], bf.knots["B"]
     g, i, c = A.gate(B), A.interfere(B), A.corefold()
-    A2 = bf.afferent(A, bf.t); F, ok = A.breath(A2)
+    A2 = bf.afferent(A, bf.t); F, ok = A.commit(A2)
     return len(g) == 6 and len(i) == 6 and len(c) == 6, "Gate/interfere/Core-fold + commit all operate in a flowing field"
 
 def F2():  # operators route through scale-relative socialization (shared boundary state)

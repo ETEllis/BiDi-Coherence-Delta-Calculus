@@ -3,10 +3,10 @@
 """
 BiDi Coherence-Delta Calculus · LAW CHECKER
 ===========================================
-Executable-checks the claims that make "calculus" literal: the operator algebra's
-equational laws and the five metatheorems. Each is witnessed over random elements
-or explicit constructions against the reference engine, so the formal claims are
-test-backed rather than merely asserted.
+Executable-checks the claims that make "calculus" literal: four operator-algebra
+invariants and five reduction/metatheorem invariants. Each is witnessed over
+random elements or explicit constructions against the reference engine, so the
+formal claims are test-backed rather than merely asserted.
 
     python3 calculus_laws.py
 """
@@ -33,6 +33,8 @@ def committed(trits):                                               # build a co
     return Knot("k", threads=[Thread(theta=m[t]) for t in trits])
 
 INVARIANTS = invariant_index()
+ALGEBRAIC_KEYS = {"gate-abelian", "interfere-monoid", "rotation-linear", "corefold-morphism"}
+REDUCTION_KEYS = set(INVARIANTS) - ALGEBRAIC_KEYS
 USED_INVARIANTS = set()
 CHECKS = []
 def check(name, ok, detail="", invariant=None):
@@ -67,7 +69,7 @@ def admissible(trits):
 ok_T1 = True
 for _ in range(2000):
     k = Knot("k", threads=[Thread(theta=rng.uniform(0, 2 * math.pi)) for _ in range(6)])
-    k.breath([0j] * 6)                                  # commit (barrier repairs negative debt)
+    k.commit([0j] * 6)                                  # commit (barrier repairs negative debt)
     if not admissible(k.trits()): ok_T1 = False; break
 check("T1 Preservation: every commit ⟹ admissible committed state", ok_T1, "2000 random commits", invariant="preservation")
 
@@ -77,7 +79,7 @@ for _ in range(3000):
     k = Knot("k", threads=[Thread(theta=rng.uniform(0, 2 * math.pi)) for _ in range(6)])
     k.belief = [rng.uniform(-1, 1) for _ in range(6)]; k.precision = rng.uniform(0.1, 5)
     A = [runit() * rng.uniform(0, 1.5) for _ in range(6)]
-    Fpre = k.free_energy(A); Fpost, _ = k.breath(A)
+    Fpre = k.free_energy(A); Fpost, _ = k.commit(A)
     worst = max(worst, Fpost - Fpre)
 check("T2 Soundness: Φ non-increasing across every commit", worst <= 1e-9, f"max ΔΦ = {worst:.2e}", invariant="soundness")
 
@@ -87,7 +89,7 @@ def two_field():
     bf.add(Knot("A", threads=[Thread(theta=0.7 + 0.3 * i) for i in range(6)]))
     bf.add(Knot("B", threads=[Thread(theta=2.1 - 0.4 * i) for i in range(6)]))
     return bf                                            # NO channel A↔B : disjoint state
-def commit(bf, nm): k = bf.knots[nm]; k.breath(bf.afferent(k, bf.t))
+def commit(bf, nm): k = bf.knots[nm]; k.commit(bf.afferent(k, bf.t))
 f1 = two_field(); commit(f1, "A"); commit(f1, "B")
 f2 = two_field(); commit(f2, "B"); commit(f2, "A")
 diamond = f1.knots["A"].trits() == f2.knots["A"].trits() and f1.knots["B"].trits() == f2.knots["B"].trits()
@@ -108,7 +110,7 @@ check("T4 Flow additivity: ⟶_{d1};⟶_{d2} = ⟶_{d1+d2}  (grid-aligned, exact
 cen = census()
 nf_count_ok = (cen["classical_localized"] == 5 and cen["localized"] == 51)
 nf = committed((1, 1, -1, -1, 1, -1))                   # a localized closure (∆C: 1,2,1,0,1,0)
-before = nf.trits(); nf.breath([0j] * 6); irreducible = nf.trits() == before
+before = nf.trits(); nf.commit([0j] * 6); irreducible = nf.trits() == before
 check("T5 Normal forms: ⟶_β-irreducible committed modules = localized (Catalan C₃=5)",
       nf_count_ok and irreducible, f"{cen['classical_localized']} closures; fixed point stable", invariant="normalforms")
 
@@ -125,4 +127,6 @@ if __name__ == "__main__":
     print("─" * 76)
     print(f"  {npass}/{len(CHECKS)} laws & metatheorems witnessed")
     print(f"  {len(USED_INVARIANTS)}/{len(INVARIANTS)} invariant keys exercised")
+    print(f"  {len(USED_INVARIANTS & ALGEBRAIC_KEYS)}/{len(ALGEBRAIC_KEYS)} algebraic keys · "
+          f"{len(USED_INVARIANTS & REDUCTION_KEYS)}/{len(REDUCTION_KEYS)} reduction keys")
     print("═" * 76)
