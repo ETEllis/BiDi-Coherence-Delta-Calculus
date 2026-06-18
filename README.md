@@ -6,10 +6,10 @@
 
 <p align="center">
   <strong>A minimal formal substrate for hybrid systems</strong><br>
-  Continuous flow • Guarded discrete commits • Delayed angular channels • Nested bidiγΔ coupling • Executable coherence invariants
+  Continuous flow • Guarded ternary commits • Delayed angular channels • Trace/window measurement • Executable coherence invariants
 </p>
 
-BiDi Coherence-Delta Calculus models computation as nested boundary modules of phase-state cells, connected by delayed weighted channels that may also carry angular phase bias, dimension projection, and path-aware cross-scale endpoints. Fields evolve through continuous flow and periodically commit through event-triggered invariant gates that preserve coherence and reject free-energy-increasing transitions.
+BiDi Coherence-Delta Calculus models computation as nested boundary modules of phase-state cells, connected by delayed weighted channels that may also carry angular phase bias, dimension projection, and path-aware cross-scale endpoints. Fields evolve through continuous flow and periodically commit through event-triggered ternary invariant gates. A derived trace/window layer lets any module, relation, or projected boundary act as observer, participant, or measurement interface without adding a Boolean observer primitive.
 
 ## Installation & Exploration
 
@@ -21,6 +21,7 @@ cd bidi-coherence-delta-calculus
 ./scripts/verify.sh          # Full verification gate (start here)
 python3 calculus_laws.py     # Law & metatheorem witnesses
 python3 cdc_boot.py system.cdc laws.cdc
+python3 trace_window_witness.py
 python3 acceptance.py        # Capability witnesses
 ```
 
@@ -61,6 +62,7 @@ flowchart TD
 - `field` — graph of modules + channels under monoidal composition
 - `commit` — discrete update enforcing nonnegative balance invariant
 - `bidiγΔ` — bidirectional coherence-delta across nested reference frames and path endpoints
+- `window` — derived observer projection over a field, producing ternary traces and measurement records
 
 ## Why This Substrate Exists
 
@@ -72,6 +74,7 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 
 - **`bidiγΔ` operator** — first-class bidirectional coherence exchange across distinct reference frames; nesting is the `α=0` special case of the same relation operator.
 - **Angular/path channels** — channels can rotate incoming phase by `angle=`, project onto selected `lines=`, and connect paths such as `P/c -> P`.
+- **Trace/window observer layer** — any module, relation, or projected boundary can hold a causal window; committing measurements are guarded ternary commits.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Executable free-energy (Lyapunov) witness** — global potential proven non-increasing under reduction; no full theorem prover required.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
@@ -79,13 +82,14 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 
 All five core metatheorems (preservation, soundness/Lyapunov, local confluence, time-determinism, strong normalization) are witnessed by executable code.
 
-## Verification Status (v0.1.1)
+## Verification Status (v0.1.2)
 
 The package passes 100%:
 
 - 16/16 law and metatheorem witnesses
 - 17/17 native `.cdc` expectations (`system.cdc`, `laws.cdc`)
 - 5/5 relational phase-channel witnesses plus native `relations.cdc`
+- 8/8 ternary trace/window witnesses
 - 24/24 capability acceptance witnesses
 - Deadband propagation smoke test
 - Line projection validation
@@ -129,7 +133,9 @@ cd paper/arxiv && pdflatex main.tex && pdflatex main.tex
 
 Law checks are executable witnesses, not mechanized proofs. The formalization spine for the next pass (immutable runtime state tuple, small-step relations for flow/commit/nest, port to Lean/Coq/Kani) is in `FORMAL_SEMANTIC_SPINE.md`.
 
-Current work delivers a compact, verified substrate — not production scaling or biological completeness.
+The observer/measurement extension is documented in `TERNARY_TRACE_WINDOW_SEMANTICS.md`.
+
+Current work delivers a compact, verified substrate — not production scaling, biological completeness, or a finished physics theory.
 
 ## License
 

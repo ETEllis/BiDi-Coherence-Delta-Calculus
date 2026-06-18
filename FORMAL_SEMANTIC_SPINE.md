@@ -22,6 +22,10 @@ The current repository already has working reducer behavior and passing witness
 suites. The refinement is to make the formal spine explicit enough that future
 code and proofs can be generated from, or audited against, the same source.
 
+Trace/window semantics are derived from this spine. They do not add a fourth
+foundational step kind. They name causal observer windows, trace spans, and
+measurement records over `flow`, `commit`, and `nest`.
+
 ## AST
 
 The AST should represent only the canonical calculus primitives:
@@ -32,6 +36,9 @@ The AST should represent only the canonical calculus primitives:
   optional line projection, and plasticity flag.
 - `FieldTerm`: modules, channels, child fields, timestep, gain, deadband, gating.
 - `CounterTerm`: register-machine witness term for universality.
+- `WindowSpec`, `TraceSpan`, `ObserverSpec`, `MeasurementRecord`,
+  `AgencySummary`, and `IncidenceSpec`: derived observer/measurement records over
+  the same field state.
 
 `cdc_semantics.py` now defines these as dataclasses.
 
@@ -79,6 +86,21 @@ parent/child cone is the neutral case of the same relation operator.
 The reference reducer may integrate flow numerically, but the semantic relation
 is the source of truth. Numerical choices should be recorded as realization
 parameters, not confused with the calculus definition.
+
+## Derived Trace/Window Layer
+
+The trace/window layer records how a bounded observer window sees a field:
+
+```text
+phase-time      continuous flow and rotation
+event-time      ordered guarded commits
+trace-time      phase/event history through a window
+```
+
+The discrete outcome space remains ternary: `+`, `0`, `-`. The middle value is a
+real crossing/aperture state, not a Boolean false. A committing measurement is a
+guarded ternary commit plus a `MeasurementRecord`; passive observation produces a
+`TraceSpan` and leaves field dynamics unchanged.
 
 ## Typed Invariant Table
 
@@ -147,6 +169,8 @@ explicit Lipschitz/determinism assumptions.
 - `cdc_boot.py` executes from a parsed source AST rather than raw line commands.
 - relation witnesses cover angular phase, dimension projection, path endpoints,
   and `.cdc` nesting auto-cone installation.
+- trace/window witnesses cover passive observation, committing measurement,
+  trace additivity, causal windows, and projected higher-order boundaries.
 - every witness in `calculus_laws.py` references an `InvariantSpec`.
 - the paper's invariant table matches `cdc_semantics.py`.
 - `scripts/verify.sh` proves code, `.cdc`, witnesses, and semantic registry stay

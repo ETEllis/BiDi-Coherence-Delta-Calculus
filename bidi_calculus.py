@@ -24,6 +24,7 @@ between events; commits fire when guard predicates cross zero, located off-grid
 by linear interpolation. No global tick.
 """
 import math, cmath, itertools
+from cdc_semantics import AgencySummary, IncidenceSpec, MeasurementRecord, TraceSpan, WindowSpec
 
 TAU2 = 2 * math.pi
 EPS  = 1e-12
@@ -233,6 +234,8 @@ class Breathfield:
         self.events = []         # (time, knot_name) log of commits fired off-grid
         self.guards = {}         # knot_name -> callable(knot, t) -> float ; commit fires on up-crossing
         self.F_log = []          # (t, knot, F) at commits — free-energy witness
+        self.trace_log = []      # TraceSpan records from passive observation
+        self.measurements = []   # MeasurementRecord records from committing observation
 
     def add(self, knot):     self.knots[knot.name] = knot; knot.deadband = self.deadband; return knot
     @staticmethod
@@ -304,6 +307,179 @@ class Breathfield:
             n += 1
         n = max(1, n)
         return dict(cos=cs / n, sin=ss / n, gamma=abs(acc) / n, energy=en / n)
+
+    def window(self, name, scope_path, horizon_time=None, horizon_events=None,
+               lines=None, angle_frame=0.0, projection="phase",
+               sampling_policy="history", commit_policy="passive"):
+        """Describe a derived observer window over a path in this field."""
+        scope = self.resolve(scope_path)
+        lines = self._lines(lines, scope.n)
+        return WindowSpec(name=name, scope_path=scope_path, horizon_time=horizon_time,
+                          horizon_events=horizon_events, lines=lines,
+                          angle_frame=angle_frame, projection=projection,
+                          sampling_policy=sampling_policy, commit_policy=commit_policy)
+
+    @staticmethod
+    def _history_at(knot, t):
+        h = knot.history
+        if t <= h[0][0]:
+            return h[0][1]
+        if t >= h[-1][0]:
+            return h[-1][1]
+        lo, hi = 0, len(h) - 1
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            if h[mid][0] <= t:
+                lo = mid
+            else:
+                hi = mid
+        (t0, v0), (t1, v1) = h[lo], h[hi]
+        f = 0.0 if t1 == t0 else (t - t0) / (t1 - t0)
+        return [a + (b - a) * f for a, b in zip(v0, v1)]
+
+    def trace_window(self, scope_path, t0=None, t1=None, horizon_time=None,
+                     horizon_events=None, lines=None, angle_frame=0.0,
+                     name="window", record=True):
+        """Passively observe a ternary phase window without changing dynamics."""
+        knot = self.resolve(scope_path)
+        lines = self._lines(lines, knot.n)
+        t1 = self.t if t1 is None else t1
+        if t1 > self.t + EPS:
+            raise ValueError("trace windows cannot read future field state")
+        if t0 is None:
+            if horizon_time is not None:
+                t0 = max(0.0, t1 - horizon_time)
+            elif horizon_events:
+                event_times = [t for t, nm in self.events if nm == knot.name and t <= t1]
+                t0 = event_times[-horizon_events] if len(event_times) >= horizon_events else 0.0
+            else:
+                t0 = t1
+        if t0 > t1 + EPS:
+            raise ValueError("trace window start cannot be after its end")
+        idxs = tuple(lines) if lines is not None else tuple(range(knot.n))
+        times = {t0, t1}
+        times.update(t for t, _ in knot.history if t0 <= t <= t1)
+        samples = []
+        gammas, cos_steps, sin_steps, energies = [], [], [], []
+        total_motion = 0.0
+        prev = None
+        for ts in sorted(times):
+            zs = self._history_at(knot, ts)
+            phases = tuple(wrap(cmath.phase(zs[i]) + angle_frame) for i in idxs if i < len(zs))
+            if not phases:
+                continue
+            selected = [cmath.rect(1, p) for p in phases]
+            gammas.append(abs(sum(selected)) / len(selected))
+            samples.append((ts, phases))
+            if prev is not None:
+                deltas = [sdiff(a, b) for a, b in zip(phases, prev)]
+                if deltas:
+                    mean_delta = sum(deltas) / len(deltas)
+                    cos_steps.append(math.cos(mean_delta))
+                    sin_steps.append(math.sin(mean_delta))
+                    energies.append(1 - math.cos(mean_delta))
+                    total_motion += sum(abs(d) for d in deltas) / len(deltas)
+            prev = phases
+        event0 = sum(1 for t, _ in self.events if t < t0)
+        event1 = sum(1 for t, _ in self.events if t <= t1)
+        commit_count = sum(1 for t, nm in self.events if t0 < t <= t1 and nm == knot.name)
+        trace = TraceSpan(
+            scope_path=scope_path,
+            t0=t0,
+            t1=t1,
+            event0=event0,
+            event1=event1,
+            lines=lines,
+            angle_frame=angle_frame,
+            samples=tuple(samples),
+            commit_count=commit_count,
+            holds=0,
+            mean_cos_delta=sum(cos_steps) / len(cos_steps) if cos_steps else 1.0,
+            mean_sin_delta=sum(sin_steps) / len(sin_steps) if sin_steps else 0.0,
+            mean_gamma=sum(gammas) / len(gammas) if gammas else 0.0,
+            mean_energy=sum(energies) / len(energies) if energies else 0.0,
+            total_phase_motion=total_motion,
+        )
+        if record:
+            self.trace_log.append(trace)
+        return trace
+
+    def _relation_energy_between(self, observer, target):
+        candidates = [s for s in self.strands if s.dst is target] + target.inbound
+        strand = next((s for s in candidates if s.src is observer), None)
+        return self.relation_readout(strand)["energy"] if strand is not None else 0.0
+
+    def measure(self, observer_path, target_path=None, lines=None, angle_frame=0.0,
+                snap=0.25, commit=True):
+        """Measure through a window; committing measurements are guarded ternary commits."""
+        target_path = target_path or observer_path
+        observer = self.resolve(observer_path)
+        target = self.resolve(target_path)
+        win = self.window("measurement", target_path, horizon_time=self.dt,
+                          lines=lines, angle_frame=angle_frame,
+                          commit_policy="committing" if commit else "passive")
+        pre = self.trace_window(target_path, horizon_time=self.dt, lines=win.lines,
+                                angle_frame=angle_frame, name=win.name, record=False)
+        A = self.afferent(target, self.t)
+        F0 = target.free_energy(A)
+        if commit:
+            F1, ok = target.commit(A, snap=snap)
+            if ok:
+                target.push(self.t)
+                self.events.append((self.t, target.name))
+                self.F_log.append((self.t, target.name, F1))
+        else:
+            F1, ok = F0, False
+        post = self.trace_window(target_path, horizon_time=self.dt, lines=win.lines,
+                                 angle_frame=angle_frame, name=win.name, record=False)
+        record = MeasurementRecord(
+            observer_path=observer_path,
+            target_path=target_path,
+            window=win,
+            pre_trace=pre,
+            post_trace=post,
+            outcome_trit=target.trits(),
+            phi_delta=F1 - F0,
+            relation_energy=self._relation_energy_between(observer, target),
+            committed=bool(ok),
+            barrier_applied=commit and target.admissible(),
+        )
+        self.measurements.append(record)
+        return record
+
+    def project_boundary(self, name, source_paths, lines=None, angle_frame=0.0):
+        """Project subordinate paths into a higher-order boundary module."""
+        sources = [self.resolve(p) for p in source_paths]
+        n = max((s.n for s in sources), default=0)
+        lines = self._lines(lines, n) if lines is not None else None
+        idxs = tuple(lines) if lines is not None else tuple(range(n))
+        threads = []
+        for i in range(n):
+            if i not in idxs:
+                threads.append(Thread(theta=math.pi / 2))
+                continue
+            vals = [s.threads[i].z for s in sources if i < s.n]
+            z = sum(vals) / len(vals) if vals else 0j
+            threads.append(Thread(theta=wrap(cmath.phase(z) + angle_frame), amp=abs(z) if abs(z) > EPS else 1.0))
+        knot = Knot(name, threads=threads)
+        self.add(knot)
+        return knot
+
+    def agency_summary(self, scope_path, horizon_time=None, lines=None):
+        """Summarize scale-relative agency as windowed stability and error reduction."""
+        knot = self.resolve(scope_path)
+        trace = self.trace_window(scope_path, horizon_time=horizon_time or self.dt,
+                                  lines=lines, record=False)
+        A = self.afferent(knot, self.t)
+        current_f = knot.free_energy(A)
+        prior_error = sum((knot.belief[i] - knot.prior[i]) ** 2 for i in range(knot.n)) / max(1, knot.n)
+        return AgencySummary(scope_path=scope_path,
+                             window=self.window("agency", scope_path, horizon_time=horizon_time or self.dt, lines=lines),
+                             free_energy_drop=max(0.0, trace.mean_energy - current_f),
+                             prediction_error_drop=max(0.0, trace.mean_energy - prior_error),
+                             action_effect=sum(abs(th.omega) for th in knot.threads) / max(1, knot.n),
+                             cross_scale_gain=sum(s.weight for s in knot.inbound),
+                             stability=trace.mean_gamma)
 
     def nest(self, parent_name, child_field):
         parent = self.knots[parent_name]

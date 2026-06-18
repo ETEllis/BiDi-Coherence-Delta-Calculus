@@ -91,8 +91,11 @@ compositional reasoning. This is the equational backbone.
 
 ## 4 · Reduction (a hybrid relation)
 
-Computation is a binary relation on fields with two faces — continuous **flow** and
+Computation is a reduction relation on fields with two faces — continuous **flow** and
 discrete **commit**. A *run* is any interleaving.
+
+Observer windows, trace spans, and measurement records are derived views over
+this relation. They are not additional reduction constructors.
 
 ### 4.1 Flow `⟶_d`  (continuous, `d ∈ ℝ≥0`)
 
@@ -128,6 +131,10 @@ where `commit(m, Â)` does, atomically:
 event time is located off the realization grid by interpolation, so commits are
 event-driven, not clocked.
 
+The committed runtime value remains ternary. The crossing state `0` is a real
+open aperture state, not a Boolean false. A committing measurement is therefore a
+windowed `commit` that records a ternary outcome vector.
+
 ### 4.3 Cross-scale coupling `bidiγΔ`
 
 For a nested term `m⟦F⟧`, reduction interleaves parent and child by installing two
@@ -155,6 +162,21 @@ Three operators act on modules; all are executable-checked (`calculus_laws.py`):
 Two named facts fall out: **complement** (錯) `= ⊙` by `𝟙_π` is the group inverse on
 saturated modules; **time** `= ⟳`. The committed runtime values `{−,+}ⁿ` under
 complement form `(ℤ/2)ⁿ`; the phase values under gate form the torus `𝕋ⁿ`.
+
+### 5.1 Derived trace/window operators
+
+The reducer also exposes derived observer records:
+
+- `WindowSpec`: a path/line/angle-bounded projection over a field;
+- `TraceSpan`: phase and event history observed through a window;
+- `ObserverSpec`: any module, relation, or projected boundary holding a window;
+- `MeasurementRecord`: a passive or committing observation record;
+- `IncidenceSpec`: a projected higher-order boundary from subordinate paths.
+
+These are not primitive constructors. They are executable summaries over the
+same flow/commit/nest substrate. Their witnesses check that passive observation
+does not alter dynamics, committing measurement does not increase `Φ`, and trace
+windows cannot read future state.
 
 ---
 
@@ -220,9 +242,10 @@ fixed points   ⟶  normal forms (T5)           bidiγΔ          ⟶  path/phas
 ```
 
 Five constructors, one congruence, two reduction rules, three operators, one
-potential, five theorems. Everything else — the 24 acceptance behaviors, the neural
-and backend regimes, the universality construction — is *derived* by instantiating
-this core. That is the maximal-compression form.
+potential, five theorems. Everything else — the 24 acceptance behaviors, the
+neural and backend regimes, the universality construction, and the ternary
+trace/window observer layer — is *derived* by instantiating this core. That is
+the maximal-compression form.
 
 ---
 

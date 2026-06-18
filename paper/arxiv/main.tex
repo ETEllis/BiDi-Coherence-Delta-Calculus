@@ -51,7 +51,8 @@ scales and path endpoints. Its reference implementation includes a Python
 reducer, a native source language (\texttt{.cdc}), executable law witnesses, and
 capability witnesses for hybrid flow, off-grid commits, delay lines,
 angle-biased relation channels, multirate nesting, predictive belief updates,
-local plasticity, and a two-counter universality construction. The
+local plasticity, ternary trace/window measurement, and a two-counter
+universality construction. The
 current artifact is not presented as a completed theorem-prover development;
 rather, it is an executable calculus whose algebraic and reduction properties
 are stated compactly and checked by a reproducible witness suite.
@@ -167,6 +168,14 @@ The local objective is
 \right].
 \]
 
+\paragraph{Trace windows and measurement.}
+A window is a derived path/line/angle-bounded projection over a field. A trace
+records phase-time and event-time through that window without changing dynamics.
+A committing measurement is a windowed commit record: it uses the existing
+guarded commit, reports a ternary outcome vector in $\{+,0,-\}^n$, and must not
+increase $\Phi_m$. Thus observer, participant, and measurement interface are
+roles over windows, not new primitive entities.
+
 \paragraph{Nested reference frames.}
 For $m\nest{F}$, \CDC\ couples parent and child by bidirectional
 coherence-delta, written $\bidi$: parent context is carried downward and child
@@ -228,8 +237,8 @@ permitting localized count is $51$.
 Together, the four algebraic invariants and five reduction invariants make the
 9-key semantic registry exercised by the law checker. The witness suite reports
 16/16 law and metatheorem checks, 9/9 invariant keys exercised, 17/17 native
-\texttt{.cdc} expectations, 5/5 relational phase-channel witnesses, and 24/24
-capability witnesses.
+\texttt{.cdc} expectations, 5/5 relational phase-channel witnesses, 8/8
+ternary trace/window witnesses, and 24/24 capability witnesses.
 
 \section{Native Source Language}
 
@@ -276,7 +285,9 @@ The repository contains:
 \item \texttt{cdc\_boot.py}: \texttt{.cdc} bridge;
 \item \texttt{calculus\_laws.py}: law/metatheorem witnesses;
 \item \texttt{acceptance.py}: capability witnesses;
-\item \texttt{system.cdc} and \texttt{laws.cdc}: native witness programs.
+\item \texttt{relation\_witness.py}: angular/path relation witnesses;
+\item \texttt{trace\_window\_witness.py}: ternary observer-window witnesses;
+\item \texttt{system.cdc}, \texttt{laws.cdc}, and \texttt{relations.cdc}: native witness programs.
 \end{itemize}
 
 \section{Semantic Spine}

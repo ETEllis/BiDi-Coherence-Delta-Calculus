@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "== Python syntax =="
-python3 -m py_compile bidi_calculus.py cdc_boot.py cdc_semantics.py calculus_laws.py acceptance.py relation_witness.py
+python3 -m py_compile bidi_calculus.py cdc_boot.py cdc_semantics.py calculus_laws.py acceptance.py relation_witness.py trace_window_witness.py
 
 echo
 echo "== Law and metatheorem witnesses =="
@@ -18,6 +18,10 @@ echo
 echo "== Relational phase-channel witnesses =="
 python3 relation_witness.py
 python3 cdc_boot.py relations.cdc
+
+echo
+echo "== Ternary trace/window witnesses =="
+python3 trace_window_witness.py
 
 echo
 echo "== Capability acceptance witnesses =="

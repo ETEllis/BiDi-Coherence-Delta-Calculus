@@ -1,6 +1,6 @@
 [project]
 name = "bidi-coherence-delta-calculus"
-version = "0.1.1"
+version = "0.1.2"
 description = "Reference reducer, .cdc bootstrap bridge, executable law witnesses, and paper source for BiDi Coherence-Delta Calculus."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,4 +29,4 @@ Homepage = "https://github.com/ETEllis/bidi-coherence-delta-calculus"
 Repository = "https://github.com/ETEllis/bidi-coherence-delta-calculus"
 
 [tool.setuptools]
-py-modules = ["bidi_calculus", "cdc_boot", "cdc_semantics", "calculus_laws", "acceptance", "relation_witness"]
+py-modules = ["bidi_calculus", "cdc_boot", "cdc_semantics", "calculus_laws", "acceptance", "relation_witness", "trace_window_witness"]

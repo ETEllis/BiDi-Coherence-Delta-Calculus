@@ -1,8 +1,8 @@
 # BiDi Coherence-Delta Calculus
 
-Date: 2026-06-15
+Date: 2026-06-18
 
-Status: public engineering specification, v1.
+Status: public engineering specification, v0.1.2.
 
 BiDi Coherence-Delta Calculus is a universal substrate for hybrid systems that need continuous dynamics, discrete commitments, delayed coupling, local invariants, nested reference frames, and coherence-preserving operators.
 
@@ -24,6 +24,7 @@ The calculus gives one compact substrate for:
 - reference-frame coupling across scales;
 - gated policy/invariant enforcement;
 - symbolic/discrete computation through configured instruction modules;
+- ternary trace/window measurement without Boolean observer primitives;
 - a small native surface notation for declaring fields, modules, channels, flow, and commits.
 
 The key value is not that it replaces every existing runtime. The value is that it gives a unified language for systems that are usually split across state machines, reactive runtimes, neural dynamics, simulations, control loops, and policy gates.
@@ -82,6 +83,9 @@ is the smaller cell/channel/module/field/commit set above.
 | surprise | prediction error | Difference between received evidence and current belief/prior. |
 | Core-fold | latent projection | A reduced internal representation distilled from middle state channels. |
 | bidiγΔ | bidirectional coherence-delta coupling | Path-aware relation across nested scales; the neutral `alpha=0` case gives up/down cones. |
+| window | observer projection | A derived path/line/angle-bounded view over a field. |
+| trace | observed history | Phase/event history sampled through a window. |
+| measurement | ternary trace contraction | A passive trace or committing guarded-commit record. |
 
 Formal phrasing:
 
@@ -97,7 +101,7 @@ A phase cell holds:
 theta: phase angle
 a: amplitude
 p: plasticity
-sigma: latched binary pole
+sigma: latched committed pole
 mu: memory
 omega: intrinsic angular velocity
 ```
@@ -241,6 +245,20 @@ The commit performs:
 Operational meaning:
 
 > A breath is an atomic guarded commit with invariant enforcement and free-energy rejection. It is the bridge between continuous dynamics and discrete state.
+
+### 3.5 Trace/Window Measurement
+
+An observer is a role held through a window, not a privileged substance:
+
+```text
+window = scope path + line projection + angle frame + horizon
+trace  = phase/event history through that window
+measure = passive trace or committing ternary commit record
+```
+
+Passive observation records without changing dynamics. Committing measurement
+uses the existing guarded commit and returns a ternary outcome vector. The
+crossing value `0` remains a real aperture state, not a Boolean false.
 
 ### 4. Free Energy
 
@@ -386,10 +404,14 @@ The `acceptance.py` witnesses cover:
 | D | emergent coherence, free-energy guarded commits, predictive belief tracking, action/perception split |
 | E | evented state machines, Minsky-counter computation, neural-style dynamics, native syntax |
 | F | Gate/interfere/Core-fold, scale-gated operators, multiscale coherence under load |
+| G | ternary trace/window measurement, causal observer windows, projected boundaries |
 
-Local run result on 2026-06-15:
+Local run result on 2026-06-18:
 
 ```text
+16/16 law and metatheorem witnesses
+5/5 relational phase-channel witnesses
+8/8 ternary trace/window witnesses
 24/24 boxes green
 ```
 
@@ -493,7 +515,7 @@ That is an integration hypothesis, not a merge instruction.
 
 ## Abstract
 
-BiDi Coherence-Delta Calculus is a formal substrate for hybrid systems that must behave continuously and commit discretely. It models computation as nested boundary modules made of phase-state cells, connected by delayed weighted channels that can rotate phase, project onto selected target dimensions, and cross nested paths. The field evolves through continuous dynamics, while event-triggered commits quantize state, enforce invariants, update belief, and reject incoherent transitions. Its cross-scale operator, `bidi-gamma-delta`, sends context downward and evidence upward so nested reference frames can stay compatible. The result is a compact language for simulations, agents, adaptive UI, policy gates, predictive control, social fields, and mixed-reality world models.
+BiDi Coherence-Delta Calculus is a formal substrate for hybrid systems that must behave continuously and commit discretely. It models computation as nested boundary modules made of phase-state cells, connected by delayed weighted channels that can rotate phase, project onto selected target dimensions, and cross nested paths. The field evolves through continuous dynamics, while event-triggered commits quantize state into ternary outcomes, enforce invariants, update belief, and reject incoherent transitions. Its derived trace/window layer lets any module, relation, or projected boundary serve as observer or measurement participant without adding a Boolean observer primitive. The result is a compact language for simulations, agents, adaptive UI, policy gates, predictive control, social fields, and mixed-reality world models.
 
 ## Minimal Engineer Handoff
 
@@ -510,9 +532,10 @@ If you are implementing or reviewing BiDi Coherence-Delta Calculus, preserve the
 9. A commit is rejected if it increases local free energy.
 10. Nested fields exchange context downward and coherence/evidence upward through `bidi-gamma-delta`; this is the `alpha=0` case of the general path relation.
 11. Operators `gate`, `interfere`, and `corefold` remain primitive operations over boundary state.
-12. The native notation must be able to declare modules, channels, guards, flow, and commits.
-13. Capability claims should be backed by small witness programs.
-14. Performance and scaling claims require separate benchmarks.
+12. Observer windows and measurement records are derived; they preserve the ternary `+ / 0 / -` outcome space.
+13. The native notation must be able to declare modules, channels, guards, flow, and commits.
+14. Capability claims should be backed by small witness programs.
+15. Performance and scaling claims require separate benchmarks.
 
 ## Canonical Naming
 

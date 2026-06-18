@@ -220,7 +220,91 @@ class ReductionStep:
     kind: StepKind
     duration: Real = 0.0
     module: Name | None = None
+    t0: Real = 0.0
+    t1: Real = 0.0
+    event_index: int | None = None
+    scope_path: Name | None = None
+    observer_window: Name | None = None
     witness: str = ""
+
+
+@dataclass(frozen=True)
+class WindowSpec:
+    """A derived observer window over a field, not a primitive reduction."""
+    name: Name
+    scope_path: Name
+    horizon_time: Real | None = None
+    horizon_events: int | None = None
+    lines: Tuple[int, ...] | None = None
+    angle_frame: Real = 0.0
+    projection: Name = "phase"
+    sampling_policy: Name = "history"
+    commit_policy: Name = "passive"
+
+
+@dataclass(frozen=True)
+class TraceSpan:
+    """Observed window history over continuous phase-time and event counters."""
+    scope_path: Name
+    t0: Real
+    t1: Real
+    event0: int
+    event1: int
+    lines: Tuple[int, ...] | None = None
+    angle_frame: Real = 0.0
+    samples: Tuple[Tuple[Real, Tuple[Phase, ...]], ...] = field(default_factory=tuple)
+    commit_count: int = 0
+    holds: int = 0
+    mean_cos_delta: Real = 0.0
+    mean_sin_delta: Real = 0.0
+    mean_gamma: Real = 0.0
+    mean_energy: Real = 0.0
+    total_phase_motion: Real = 0.0
+
+
+@dataclass(frozen=True)
+class ObserverSpec:
+    """Observer as a relational role held through a window."""
+    holder_path: Name
+    window: WindowSpec
+    mode: Name = "passive"  # passive | participatory | committing
+
+
+@dataclass(frozen=True)
+class MeasurementRecord:
+    """A ternary commit-conditioned trace contraction."""
+    observer_path: Name
+    target_path: Name
+    window: WindowSpec
+    pre_trace: TraceSpan
+    post_trace: TraceSpan
+    outcome_trit: Tuple[Trit, ...]
+    phi_delta: Real
+    relation_energy: Real
+    committed: bool
+    barrier_applied: bool
+
+
+@dataclass(frozen=True)
+class AgencySummary:
+    """Windowed control and error-reduction summary for a scope."""
+    scope_path: Name
+    window: WindowSpec
+    free_energy_drop: Real
+    prediction_error_drop: Real
+    action_effect: Real
+    cross_scale_gain: Real
+    stability: Real
+
+
+@dataclass(frozen=True)
+class IncidenceSpec:
+    """A higher-order boundary projected from subordinate paths."""
+    name: Name
+    source_paths: Tuple[Name, ...]
+    window: WindowSpec
+    aggregate_rule: Name = "mean-phase"
+    corefold_rule: Name = "identity"
 
 
 @dataclass(frozen=True)
