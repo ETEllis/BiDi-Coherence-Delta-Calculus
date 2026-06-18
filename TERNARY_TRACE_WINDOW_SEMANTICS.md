@@ -10,25 +10,25 @@ The foundational spine remains:
 
 ```text
 flow     continuous phase-time reduction
-commit   guarded ternary event reduction
+commit   guarded balanced-ternary event reduction
 nest     scale-relative bidi-gamma-delta coupling
 ```
 
 Everything below is a projection over that spine.
 
-## Ternary Constraint
+## Balanced-Ternary Constraint
 
-The discrete layer is always ternary:
+The discrete layer is always balanced ternary:
 
 ```text
-+    expansion / outward commitment / asserted pole
-0    balance / crossing / aperture / unresolved pivot
--    contraction / return commitment / opposed pole
++1   expansion / outward commitment / asserted pole
+ 0   resting equilibrium / crossing / aperture / unresolved pivot
+-1   contraction / return commitment / opposed pole
 ```
 
 The middle value is not false, null, or absence. It is the live crossing where a
 boundary is most open to relation. This is why measurement records in BIDI
-produce trits, not Boolean outcomes.
+produce balanced trits, not Boolean outcomes.
 
 ## Time
 
@@ -174,12 +174,14 @@ phase alignment, relation energy, and scale.
 
 - trace motion composes across adjacent windows;
 - passive observation leaves field state unchanged;
-- committing measurement yields only ternary outcomes;
+- committing measurement yields only balanced-ternary outcomes;
 - committing measurement does not increase `Phi`;
 - observer effect appears only after the commit boundary;
 - nested child coherence can act as a multiscale agency signal;
 - one subordinate module can participate in multiple projected boundaries;
 - trace windows cannot read future state.
+- observer mode is role-relative rather than substance-relative;
+- projected incidence boundaries are first-class trace targets.
 
 These witnesses make the layer executable without changing the calculus's
 foundation.

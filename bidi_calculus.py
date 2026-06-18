@@ -551,7 +551,10 @@ class Breathfield:
             s.weight = max(0.0, min(4.0, s.weight + dt * s.eta * (corr - 0.15 * s.weight)))
 
     # one outer advance with nesting (multirate) + event detection ---------- #
-    def step(self):
+    def step(self, dt=None):
+        saved_dt = self.dt
+        if dt is not None:
+            self.dt = dt
         # Step each child field fast; cross-scale context flows through relations.
         for knot in self.knots.values():
             if knot.child is not None:
@@ -576,11 +579,12 @@ class Breathfield:
                 F, ok = self.knots[nm].commit(A)
                 self.events.append((t_event, nm))
                 self.F_log.append((t_event, nm, F))
+        self.dt = saved_dt
 
     def advance(self, T):
-        steps = int(round(T / self.dt))
-        for _ in range(steps):
-            self.step()
+        target = self.t + T
+        while self.t + EPS < target:
+            self.step(min(self.dt, target - self.t))
 
     # convenience: a discrete guarded commit on every module (used without a clock) #
     def breathe_all(self):

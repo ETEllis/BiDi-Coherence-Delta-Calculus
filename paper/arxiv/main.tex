@@ -43,15 +43,16 @@
 
 \begin{abstract}
 We introduce \CDC, a small formal substrate for systems that combine continuous
-dynamics, event-triggered discrete commitments, delayed angular coupling, local
+dynamics, event-triggered balanced-ternary commitments, delayed angular coupling, local
 invariants, nested reference frames, and belief/error minimization. The calculus
 uses five canonical primitives---cells, channels, modules, fields, and
 commits---plus a bidirectional coherence-delta operator for coupling nested
-scales and path endpoints. Its reference implementation includes a Python
-reducer, a native source language (\texttt{.cdc}), executable law witnesses, and
+scales and path endpoints. Its current executable artifact includes a
+transitional Python reducer, a native source language (\texttt{.cdc}),
+executable law witnesses, and
 capability witnesses for hybrid flow, off-grid commits, delay lines,
 angle-biased relation channels, multirate nesting, predictive belief updates,
-local plasticity, ternary trace/window measurement, and a two-counter
+local plasticity, balanced-ternary trace/window measurement, and a two-counter
 universality construction. The
 current artifact is not presented as a completed theorem-prover development;
 rather, it is an executable calculus whose algebraic and reduction properties
@@ -172,9 +173,9 @@ The local objective is
 A window is a derived path/line/angle-bounded projection over a field. A trace
 records phase-time and event-time through that window without changing dynamics.
 A committing measurement is a windowed commit record: it uses the existing
-guarded commit, reports a ternary outcome vector in $\{+,0,-\}^n$, and must not
-increase $\Phi_m$. Thus observer, participant, and measurement interface are
-roles over windows, not new primitive entities.
+guarded commit, reports a balanced-ternary outcome vector in
+$\{-1,0,+1\}^n$, and must not increase $\Phi_m$. Thus observer, participant,
+and measurement interface are roles over windows, not new primitive entities.
 
 \paragraph{Nested reference frames.}
 For $m\nest{F}$, \CDC\ couples parent and child by bidirectional
@@ -187,14 +188,16 @@ are distinct reference frames.
 
 \section{Operator Algebra}
 
-The invariant registry has nine keys. Four are algebraic invariants over the
-standard carrier:
+The invariant registry has eleven keys. Two pin the finite bridge/carrier layer,
+and four are algebraic invariants over the standard carrier:
 
 \begin{center}
 \begin{tabular}{llll}
 \toprule
 Operator & Symbol & Meaning & Witnessed laws\\
 \midrule
+balanced carrier & $\{-1,0,+1\}$ & equilibrium-centered commits & finite codomain\\
+dyadic/triadic bridge & $2^6=4^3$ & 64-state codebook & finite bijection\\
 gate & $\odot$ & phase composition & abelian group on $\mathbb{T}^n$\\
 interfere & $\oplus$ & superposition & commutative monoid\\
 rotation & $\rot_\phi$ & global phase action & linear over $\oplus$\\
@@ -214,6 +217,9 @@ Every guarded commit produces an admissible committed module: the prefix walk of
 runtime trits never goes negative.
 \end{claim}
 
+The witness now includes both randomized commits and exact enumeration of all
+$3^6$ committed balanced-trit walks.
+
 \begin{claim}[Commit soundness]
 The commit relation never increases local free energy because the guard holds
 instead of accepting a free-energy-increasing update.
@@ -224,8 +230,9 @@ Commits on modules with disjoint channel footprints commute.
 \end{claim}
 
 \begin{claim}[Flow additivity]
-For grid-aligned durations in the reference reducer,
-$\xrightarrow{d_1};\xrightarrow{d_2}$ equals $\xrightarrow{d_1+d_2}$.
+For off-grid split durations in the reference reducer,
+$\xrightarrow{d_1};\xrightarrow{d_2}$ agrees with $\xrightarrow{d_1+d_2}$
+within numerical realization tolerance.
 \end{claim}
 
 \begin{claim}[Normal forms]
@@ -234,11 +241,12 @@ For $n=6$, the saturated localized count is Catalan $C_3=5$ and the crossing-
 permitting localized count is $51$.
 \end{claim}
 
-Together, the four algebraic invariants and five reduction invariants make the
-9-key semantic registry exercised by the law checker. The witness suite reports
-16/16 law and metatheorem checks, 9/9 invariant keys exercised, 17/17 native
-\texttt{.cdc} expectations, 5/5 relational phase-channel witnesses, 8/8
-ternary trace/window witnesses, and 24/24 capability witnesses.
+Together, the two bridge/carrier invariants, four algebraic invariants, and five
+reduction invariants make the 11-key semantic registry exercised by the law
+checker. The witness suite reports 20/20 law, metatheorem, and bridge checks,
+11/11 invariant keys exercised, 28/28 native \texttt{.cdc} expectations, 5/5
+relational phase-channel witnesses, 12/12 balanced-ternary trace/window witnesses, and
+24/24 capability witnesses.
 
 \section{Native Source Language}
 
@@ -279,14 +287,17 @@ The repository contains:
 \begin{itemize}
 \item \texttt{BIDI\_CALCULUS\_CORE.md}: formal core;
 \item \texttt{FORMAL\_SEMANTIC\_SPINE.md}: AST, runtime-state, reduction, and invariant-spine contract;
+\item \texttt{NATIVE\_SELF\_HOSTING\_MANDATE.md}: host-debt burn-down path toward native \texttt{.cdc} self-hosting;
+\item \texttt{VERIFICATION\_OBLIGATION\_MATRIX.md}: claim-to-witness-to-proof tracking;
 \item \texttt{CDC\_LANGUAGE.md}: source language;
-\item \texttt{bidi\_calculus.py}: reference reducer;
+\item \texttt{kernel.cdc}: native self-hosting contract;
+\item \texttt{bidi\_calculus.py}: transitional reference reducer;
 \item \texttt{cdc\_semantics.py}: declarative AST/state/invariant records;
 \item \texttt{cdc\_boot.py}: \texttt{.cdc} bridge;
 \item \texttt{calculus\_laws.py}: law/metatheorem witnesses;
 \item \texttt{acceptance.py}: capability witnesses;
 \item \texttt{relation\_witness.py}: angular/path relation witnesses;
-\item \texttt{trace\_window\_witness.py}: ternary observer-window witnesses;
+\item \texttt{trace\_window\_witness.py}: balanced-ternary observer-window witnesses;
 \item \texttt{system.cdc}, \texttt{laws.cdc}, and \texttt{relations.cdc}: native witness programs.
 \end{itemize}
 
@@ -296,9 +307,11 @@ The artifact is organized around one semantic spine rather than parallel
 descriptions. \texttt{.cdc} source is parsed into a source AST; execution is
 understood against a runtime state tuple; reductions are classified as flow,
 commit, or nesting steps; and law checks discharge named invariant records. The
-reference reducer remains the executable realization, while the source language,
-paper, and witness suite are kept close enough to be audited as projections of
-the same object.
+reference reducer remains the current executable realization, while the source
+language, paper, and witness suite are kept close enough to be audited as
+projections of the same object. The self-hosting target is stronger: move the
+parser state, reducer state, witness state, and trace/window state into native
+\texttt{.cdc} terms until the host is only a replaceable loader.
 
 This makes the theorem-prover lift narrow and explicit. The finite discrete layer
 is the natural first target: trit quantization, prefix-walk admissibility, commit

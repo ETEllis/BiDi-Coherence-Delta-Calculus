@@ -10,9 +10,10 @@ formal claims are test-backed rather than merely asserted.
 
     python3 calculus_laws.py
 """
+import itertools
 import math, cmath, random
 from bidi_calculus import Thread, Knot, Breathfield, census
-from cdc_semantics import invariant_index
+from cdc_semantics import BALANCED_TRITS, DYADIC_TRIADIC_CLOSURE_STATES, invariant_index
 
 rng = random.Random(7)
 def runit():  return cmath.rect(1.0, rng.uniform(0, 2 * math.pi))   # random unit carrier
@@ -45,6 +46,27 @@ def check(name, ok, detail="", invariant=None):
     CHECKS.append((name, ok, detail, invariant))
 
 # ── OPERATOR ALGEBRA ─────────────────────────────────────────────────────── #
+balanced_ok = (BALANCED_TRITS == (-1, 0, 1)
+               and sum(BALANCED_TRITS) == 0
+               and {-x for x in BALANCED_TRITS} == set(BALANCED_TRITS))
+check("balanced ternary carrier is centered at equilibrium",
+      balanced_ok,
+      "-1 + 0 + 1 = 0",
+      invariant="balanced-ternary-carrier")
+
+dyadic_to_quads = {
+    n: ((n >> 4) & 3, (n >> 2) & 3, n & 3)
+    for n in range(DYADIC_TRIADIC_CLOSURE_STATES)
+}
+quads_to_dyadic = {q: n for n, q in dyadic_to_quads.items()}
+closure64 = (2 ** 6 == 4 ** 3 == DYADIC_TRIADIC_CLOSURE_STATES
+             and len(dyadic_to_quads) == len(quads_to_dyadic) == 64
+             and all(quads_to_dyadic[q] == n for n, q in dyadic_to_quads.items()))
+check("dyadic/triadic bridge has exact 64-state bijection",
+      closure64,
+      "2^6 = 4^3 = 64",
+      invariant="dyadic-triadic-closure")
+
 a, b, c = vec(), vec(), vec()
 check("⊙ gate associative",  close(gate(gate(a, b), c), gate(a, gate(b, c))), invariant="gate-abelian")
 check("⊙ gate commutative",  close(gate(a, b), gate(b, a)), invariant="gate-abelian")
@@ -73,6 +95,18 @@ for _ in range(2000):
     if not admissible(k.trits()): ok_T1 = False; break
 check("T1 Preservation: every commit ⟹ admissible committed state", ok_T1, "2000 random commits", invariant="preservation")
 
+ok_T1_exact = True
+for ts in itertools.product(BALANCED_TRITS, repeat=6):
+    k = committed(ts)
+    k.commit([0j] * 6)
+    if not all(t in BALANCED_TRITS for t in k.trits()) or not admissible(k.trits()):
+        ok_T1_exact = False
+        break
+check("T1 Preservation exact: all 3^6 committed walks remain balanced/admissible",
+      ok_T1_exact,
+      "729 finite cases",
+      invariant="balanced-ternary-carrier")
+
 # ── T2 · SOUNDNESS (Lyapunov): a commit never increases free energy Φ ──────── #
 worst = -1e9
 for _ in range(3000):
@@ -82,6 +116,22 @@ for _ in range(3000):
     Fpre = k.free_energy(A); Fpost, _ = k.commit(A)
     worst = max(worst, Fpost - Fpre)
 check("T2 Soundness: Φ non-increasing across every commit", worst <= 1e-9, f"max ΔΦ = {worst:.2e}", invariant="soundness")
+
+def phase_gap(bf):
+    return abs(((bf.knots["x"].threads[0].theta - bf.knots["y"].threads[0].theta + math.pi) % (2 * math.pi)) - math.pi)
+
+sym = Breathfield(dt=0.005, gain=1.6, kappa_gate=False)
+sym.add(Knot("x", threads=[Thread(theta=0.0, omega=0.0)]))
+sym.add(Knot("y", threads=[Thread(theta=1.0, omega=0.0)]))
+sym.wire("x", "y", weight=1.0)
+sym.wire("y", "x", weight=1.0)
+gap0 = phase_gap(sym)
+sym.advance(0.4)
+gap1 = phase_gap(sym)
+check("T2 Flow subset: symmetric delay-free coupling reduces phase disagreement",
+      gap1 < gap0,
+      f"{gap0:.3f}->{gap1:.3f}",
+      invariant="soundness")
 
 # ── T3 · LOCAL CONFLUENCE (diamond): non-adjacent commits commute ──────────── #
 def two_field():
@@ -101,10 +151,13 @@ def flow_field():
     bf.add(Knot("x", threads=[Thread(theta=0.0, omega=1.0)]))
     bf.add(Knot("y", threads=[Thread(theta=2.0, omega=1.3)]))
     bf.wire("x", "y"); bf.wire("y", "x"); return bf
-g1 = flow_field(); g1.advance(0.4); g1.advance(0.4)
-g2 = flow_field(); g2.advance(0.8)
+g1 = flow_field(); g1.advance(0.37); g1.advance(0.23)
+g2 = flow_field(); g2.advance(0.60)
 add_err = max(abs(g1.knots[n].threads[0].theta - g2.knots[n].threads[0].theta) for n in "xy")
-check("T4 Flow additivity: ⟶_{d1};⟶_{d2} = ⟶_{d1+d2}  (grid-aligned, exact)", add_err < 1e-12, f"err={add_err:.1e}", invariant="flow-additivity")
+check("T4 Flow additivity: ⟶_{d1};⟶_{d2} = ⟶_{d1+d2}  (off-grid, numeric)",
+      add_err < 1e-3,
+      f"err={add_err:.1e}",
+      invariant="flow-additivity")
 
 # ── T5 · NORMAL FORMS = Catalan: irreducible values are localized closures ─── #
 cen = census()

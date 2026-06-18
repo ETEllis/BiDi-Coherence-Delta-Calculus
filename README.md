@@ -5,11 +5,40 @@
 </p>
 
 <p align="center">
-  <strong>A minimal formal substrate for hybrid systems</strong><br>
-  Continuous flow • Guarded ternary commits • Delayed angular channels • Trace/window measurement • Executable coherence invariants
+  <strong>A native language with a formal coherence-calculus kernel</strong><br>
+  Continuous flow • Balanced-ternary commits • Delayed angular channels • Trace/window measurement • Executable coherence invariants
 </p>
 
-BiDi Coherence-Delta Calculus models computation as nested boundary modules of phase-state cells, connected by delayed weighted channels that may also carry angular phase bias, dimension projection, and path-aware cross-scale endpoints. Fields evolve through continuous flow and periodically commit through event-triggered ternary invariant gates. A derived trace/window layer lets any module, relation, or projected boundary act as observer, participant, or measurement interface without adding a Boolean observer primitive.
+BiDi Coherence-Delta Calculus is a native `.cdc` language whose semantic kernel
+is a compact coherence calculus. It models computation as nested boundary
+modules of phase-state cells, connected by delayed weighted channels that may
+also carry angular phase bias, dimension projection, and path-aware cross-scale
+endpoints. Fields evolve through continuous flow and periodically commit through
+event-triggered balanced-ternary invariant gates. A derived trace/window layer
+lets any module, relation, or projected boundary act as observer, participant,
+or measurement interface without adding a Boolean observer primitive.
+
+## Center Of Gravity
+
+CDC is the language. The calculus is the kernel semantics.
+
+That gives the project two separate success stories:
+
+- **Language success:** developers can install `cdc`, write `.cdc`, run `.cdc`,
+  test `.cdc`, and eventually build/package `.cdc` programs without touching the
+  construction host.
+- **Calculus success:** the language kernel has explicit terms, reductions,
+  invariants, witnesses, and theorem-prover obligations.
+
+The current Python files are transitional construction scaffolding and executable
+witnesses. They are not the desired language surface.
+
+## Native Status
+
+This repository is on a native `.cdc` self-hosting track. The removal plan is
+explicit in `NATIVE_SELF_HOSTING_MANDATE.md`: all current host behavior must be
+replaced by native `.cdc` semantics and witnesses before host files are deleted
+without breaking verification.
 
 ## Installation & Exploration
 
@@ -20,7 +49,7 @@ git clone https://github.com/ETEllis/bidi-coherence-delta-calculus.git
 cd bidi-coherence-delta-calculus
 ./scripts/verify.sh          # Full verification gate (start here)
 python3 calculus_laws.py     # Law & metatheorem witnesses
-python3 cdc_boot.py system.cdc laws.cdc
+python3 cdc_boot.py kernel.cdc system.cdc laws.cdc
 python3 trace_window_witness.py
 python3 acceptance.py        # Capability witnesses
 ```
@@ -37,7 +66,7 @@ pip install -e .
 flowchart TD
     subgraph M["Module (nested boundary)"]
         Cells["Phase-state cells<br/>+ latched committed poles"]
-    Channels["Delayed angular channels<br/>(weight × delay × angle × lines)"]
+        Channels["Delayed angular channels<br/>(weight × delay × angle × lines)"]
         Cells --> Channels
     end
 
@@ -60,9 +89,13 @@ flowchart TD
 - `channel` — directed influence with delay, weight, angular phase, and optional line projection
 - `module` — bounded group with read/write cones, belief, prior
 - `field` — graph of modules + channels under monoidal composition
-- `commit` — discrete update enforcing nonnegative balance invariant
+- `commit` — discrete update enforcing a balanced-ternary nonnegative balance invariant
 - `bidiγΔ` — bidirectional coherence-delta across nested reference frames and path endpoints
 - `window` — derived observer projection over a field, producing ternary traces and measurement records
+
+Legacy implementation names (`Thread`, `Strand`, `Knot`, `Breathfield`,
+`breath`) are compatibility anchors only. New docs and user-facing language
+should use the canonical vocabulary above.
 
 ## Why This Substrate Exists
 
@@ -74,22 +107,26 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 
 - **`bidiγΔ` operator** — first-class bidirectional coherence exchange across distinct reference frames; nesting is the `α=0` special case of the same relation operator.
 - **Angular/path channels** — channels can rotate incoming phase by `angle=`, project onto selected `lines=`, and connect paths such as `P/c -> P`.
-- **Trace/window observer layer** — any module, relation, or projected boundary can hold a causal window; committing measurements are guarded ternary commits.
+- **Trace/window observer layer** — any module, relation, or projected boundary can hold a causal window; committing measurements are guarded balanced-ternary commits.
+- **Balanced-ternary carrier** — committed values are `-1 / 0 / +1` around real equilibrium, not Boolean false/true labels.
+- **64-state dyadic/triadic bridge** — executable witness pins the `2^6 = 4^3 = 64` closure codebook for bootstrap/runtime bridge design.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
-- **Executable free-energy (Lyapunov) witness** — global potential proven non-increasing under reduction; no full theorem prover required.
+- **Executable free-energy witnesses** — commits are guarded against Φ increase; continuous flow has explicit subset witnesses and formal obligations.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
-- **Zero-dependency reference implementation** — pure Python reducer + semantic spine ready for Lean/Coq/Kani port.
+- **Native kernel contract** — `kernel.cdc` starts the self-hosting path by declaring calculus terms, reducer rules, capabilities, and the shrinking bootloader boundary.
+- **Transitional executable host** — Python currently witnesses the calculus, but the native target is `.cdc` self-hosting.
 
-All five core metatheorems (preservation, soundness/Lyapunov, local confluence, time-determinism, strong normalization) are witnessed by executable code.
+Core metatheorems and bridge invariants are witnessed by executable code, with
+the finite discrete layer positioned as the first theorem-prover target.
 
 ## Verification Status (v0.1.2)
 
 The package passes 100%:
 
-- 16/16 law and metatheorem witnesses
-- 17/17 native `.cdc` expectations (`system.cdc`, `laws.cdc`)
+- 20/20 law, metatheorem, and bridge witnesses
+- 28/28 native `.cdc` expectations (`kernel.cdc`, `system.cdc`, `laws.cdc`)
 - 5/5 relational phase-channel witnesses plus native `relations.cdc`
-- 8/8 ternary trace/window witnesses
+- 12/12 ternary trace/window witnesses
 - 24/24 capability acceptance witnesses
 - Deadband propagation smoke test
 - Line projection validation
@@ -133,7 +170,9 @@ cd paper/arxiv && pdflatex main.tex && pdflatex main.tex
 
 Law checks are executable witnesses, not mechanized proofs. The formalization spine for the next pass (immutable runtime state tuple, small-step relations for flow/commit/nest, port to Lean/Coq/Kani) is in `FORMAL_SEMANTIC_SPINE.md`.
 
+Claim-to-witness-to-proof tracking is in `VERIFICATION_OBLIGATION_MATRIX.md`.
 The observer/measurement extension is documented in `TERNARY_TRACE_WINDOW_SEMANTICS.md`.
+The native self-hosting mandate is documented in `NATIVE_SELF_HOSTING_MANDATE.md`.
 
 Current work delivers a compact, verified substrate — not production scaling, biological completeness, or a finished physics theory.
 

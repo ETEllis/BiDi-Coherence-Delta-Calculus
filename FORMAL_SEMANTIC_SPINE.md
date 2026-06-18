@@ -1,8 +1,9 @@
 # Formal Semantic Spine
 
-This document pins the next formalization pass to one canonical object. The goal
-is to prevent the paper, `.cdc`, `bidi_calculus.py`, `cdc_boot.py`, and
-`calculus_laws.py` from drifting into parallel descriptions.
+This document pins the next formalization pass to one canonical object. CDC is
+the language; this spine is the semantic kernel that keeps `.cdc`, the paper,
+the transitional host reducer, the bridge, and the witnesses from drifting into
+parallel descriptions.
 
 ## Principle
 
@@ -41,6 +42,11 @@ The AST should represent only the canonical calculus primitives:
   the same field state.
 
 `cdc_semantics.py` now defines these as dataclasses.
+
+Those dataclasses are transitional host descriptions. The native target is for
+the same spine to be expressed as `.cdc` terms and transition rules, starting
+with `kernel.cdc` and continuing until the host loader is only mechanical
+bootstrap code. See `NATIVE_SELF_HOSTING_MANDATE.md`.
 
 ## Runtime State Tuple
 
@@ -97,10 +103,11 @@ event-time      ordered guarded commits
 trace-time      phase/event history through a window
 ```
 
-The discrete outcome space remains ternary: `+`, `0`, `-`. The middle value is a
-real crossing/aperture state, not a Boolean false. A committing measurement is a
-guarded ternary commit plus a `MeasurementRecord`; passive observation produces a
-`TraceSpan` and leaves field dynamics unchanged.
+The discrete outcome space is balanced ternary: `-1`, `0`, `+1`. The middle
+value is resting equilibrium and a real crossing/aperture state, not Boolean
+false. A committing measurement is a guarded balanced-ternary commit plus a
+`MeasurementRecord`; passive observation produces a `TraceSpan` and leaves field
+dynamics unchanged.
 
 ## Typed Invariant Table
 
@@ -117,6 +124,8 @@ Each invariant should have:
 - `interfere-monoid`;
 - `rotation-linear`;
 - `corefold-morphism`;
+- `balanced-ternary-carrier`;
+- `dyadic-triadic-closure`;
 - `preservation`;
 - `soundness`;
 - `local-confluence`;
@@ -133,6 +142,15 @@ by line. The current `cdc_boot.py` can then become:
 ```text
 parse .cdc -> ProgramTerm -> initialize RuntimeState -> reduce -> check expects
 ```
+
+The stronger self-hosting target is:
+
+```text
+parse .cdc -> native kernel terms -> native reducer transitions -> native expects
+```
+
+At that point a host language is no longer the semantic center; it is only one
+replaceable loader for a language that can describe itself.
 
 ### `bidi_calculus.py`
 
@@ -167,12 +185,16 @@ explicit Lipschitz/determinism assumptions.
 
 - `.cdc` parses into `ProgramTerm`.
 - `cdc_boot.py` executes from a parsed source AST rather than raw line commands.
+- `kernel.cdc` grows from contract declarations into executable native reducer
+  clauses.
 - relation witnesses cover angular phase, dimension projection, path endpoints,
   and `.cdc` nesting auto-cone installation.
 - trace/window witnesses cover passive observation, committing measurement,
-  trace additivity, causal windows, and projected higher-order boundaries.
+  trace additivity, causal windows, observer roles, incidence projections,
+  agency summaries, and projected higher-order boundaries.
 - every witness in `calculus_laws.py` references an `InvariantSpec`.
 - the paper's invariant table matches `cdc_semantics.py`.
+- native `.cdc` replacements are introduced before host files are removed.
 - `scripts/verify.sh` proves code, `.cdc`, witnesses, and semantic registry stay
   synchronized.
 

@@ -5,8 +5,9 @@ This is the formal heart of the system. It collapses the earlier "object model" 
 "dynamics" into one object: a **calculus** in the strict sense — a syntax of terms,
 a structural congruence (equational laws), a reduction relation over those terms, an
 operator algebra with executable law witnesses, and metatheorems. Every law and
-theorem below is checked by `calculus_laws.py` (**16/16**) against the reference
-reducer `bidi_calculus.py`.
+theorem below is currently checked by `calculus_laws.py` against the
+transitional host reducer `bidi_calculus.py`. That reducer is an executable
+witness, not the final substrate.
 
 Canonical engineering names are used throughout: **cell, channel, module, field,
 commit** (legacy formal names: Thread, Strand, Knot, Breathfield, breath). The
@@ -37,16 +38,17 @@ A **coherence algebra** is a structure `𝒞 = (C, ⊞, ⊥, ⟳, |·|, κ)`:
 Euclidean norm, `κ(x) = ⟨x, e₁⟩ / |x|`. (A cell value written in polar form `⟨a,θ⟩`
 is just `a·(cos θ, sin θ)`.) The calculus is model-independent; this is one model.
 
-**Derived predicates** (fix a deadband `δ ∈ (0,1)`, canonically `½`):
+**Derived balanced-ternary predicates** (fix a deadband `δ ∈ (0,1)`, canonically `½`):
 
 ```
-trit       τ(x) = +   if κ(x) > δ        openness   ϰ(x) = max(0, 1 − |κ(x)|/δ)
-                 −   if κ(x) < −δ
-                 0   otherwise
+trit       τ(x) = +1  if κ(x) > δ        openness   ϰ(x) = max(0, 1 − |κ(x)|/δ)
+                 −1  if κ(x) < −δ
+                  0  otherwise
 ```
 
 `τ` is the runtime symbol; `ϰ` is the boundary openness (maximal at the crossings
-`κ = 0`). These are *defined*, not primitive.
+`κ = 0`). These are *defined*, not primitive. The ternary carrier is balanced
+around equilibrium: `-1 + 0 + 1 = 0`.
 
 ---
 
@@ -68,7 +70,8 @@ name a finite target-cell subset such as `{0,2}`. Module names are distinct
 within each field. A module additionally carries static annotations
 (intrinsic frequency `ω̄`, prior `b̄⁰`, precision `π`, action gain) elided in the
 grammar. The canonical arity is `n = 6` with read cone `= v̄[1..3]`, write cone
-`= v̄[4..6]`.
+`= v̄[4..6]`. This is also the bootstrap bridge arity where the dyadic and
+triadic closure codebooks first meet: `2^6 = 4^3 = 64`.
 
 ---
 
@@ -131,9 +134,10 @@ where `commit(m, Â)` does, atomically:
 event time is located off the realization grid by interpolation, so commits are
 event-driven, not clocked.
 
-The committed runtime value remains ternary. The crossing state `0` is a real
-open aperture state, not a Boolean false. A committing measurement is therefore a
-windowed `commit` that records a ternary outcome vector.
+The committed runtime value remains balanced ternary. The crossing state `0` is
+resting equilibrium and a real open aperture state, not a Boolean false. A
+committing measurement is therefore a windowed `commit` that records a
+balanced-ternary outcome vector.
 
 ### 4.3 Cross-scale coupling `bidiγΔ`
 
@@ -175,8 +179,9 @@ The reducer also exposes derived observer records:
 
 These are not primitive constructors. They are executable summaries over the
 same flow/commit/nest substrate. Their witnesses check that passive observation
-does not alter dynamics, committing measurement does not increase `Φ`, and trace
-windows cannot read future state.
+does not alter dynamics, committing measurement does not increase `Φ`, trace
+windows cannot read future state, observer mode is role-relative, and projected
+incidence boundaries are first-class trace targets.
 
 ---
 
@@ -201,14 +206,15 @@ evidence shifts toward prior). The precision ratio selects which.
 **T1 — Preservation.** `F ⟶_β F'` ⟹ every committed module in `F'` is *admissible*
 (its trit walk never goes negative). *Proof:* the barrier rotates any rank-violating
 cell to its crossing (`τ̂=0`), which cannot lower the running rank; induct on cells.
-✔ witnessed over 2000 random commits.
+✔ witnessed over 2000 random commits and all `3^6 = 729` committed balanced-trit
+walks.
 
 **T2 — Soundness (Lyapunov).** Let `Φ(F)=Σ_m Φ_m`. Then `⟶_β` never increases `Φ`
 (unconditionally, by the guard's hold-clause); and `⟶_d` never increases `Φ` in its
 belief component (exact gradient descent), and in its coupling component under
 symmetric, delay-free, ungated, phase-balanced coupling. Under those stated regimes,
 `Φ` is a Lyapunov witness for the reduction: runs descend free energy. ✔ max
-`ΔΦ = 0` over 3000 commits.
+`ΔΦ = 0` over 3000 commits, plus a symmetric delay-free coupling witness.
 
 **T3 — Local confluence (diamond).** If modules `m, m'` share no channel and both
 guards are enabled, then `⟶_β(m); ⟶_β(m') ≡ ⟶_β(m'); ⟶_β(m)`. *Proof:* `commit(m)`
@@ -218,7 +224,8 @@ reads only `m`'s incident channels and writes only `m`; disjoint footprints comm
 **T4 — Time-determinism & additivity.** `𝔣` is globally Lipschitz, so by
 Picard–Lindelöf the flow is the unique solution and `⟶` is a deterministic monoid
 action of `(ℝ≥0, +)`: `⟶_0 = id_≡` and `⟶_{d₁}; ⟶_{d₂} = ⟶_{d₁+d₂}`. ✔ witnessed
-exactly on grid-aligned durations.
+over off-grid split durations within numerical realization tolerance after
+partial-step realization.
 
 **T5 — Normal forms / strong normalization.** A committed module is `⟶_β`-irreducible
 (a **value**) iff its trit walk is admissible and *localized* (returns to 0). The
@@ -251,11 +258,17 @@ the maximal-compression form.
 
 ## 9 · Conservativity & provenance
 
-`bidi_calculus.py` realizes this calculus (continuous flow by 4th-order integration,
+`bidi_calculus.py` currently realizes this calculus (continuous flow by 4th-order integration,
 commits by guarded discrete maps, off-grid event location, multirate nesting).
-`calculus_laws.py` executable-checks §5 and §7 (**16/16**); `acceptance.py` checks
+`calculus_laws.py` executable-checks §5 and §7 plus bridge invariants (**20/20**); `acceptance.py` checks
 the 24 capability behaviors (**24/24**). Computational universality is witnessed by
 a two-counter construction within the term syntax (`CounterField`).
+
+This is the transitional host realization. The native self-hosting target is for
+the same term syntax, reduction rules, and witnesses to be expressed in `.cdc`
+itself, with only a minimal loader remaining until even that loader can be
+replaced. The burn-down path is pinned in `NATIVE_SELF_HOSTING_MANDATE.md` and
+begins as executable source in `kernel.cdc`.
 
 The static census of §7 (267 admissible / 51 localized / 20 / 5 — directed-animal,
 Motzkin, central-binomial, Catalan) is inherited unchanged from the discrete

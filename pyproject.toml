@@ -1,7 +1,7 @@
 [project]
 name = "bidi-coherence-delta-calculus"
 version = "0.1.2"
-description = "Reference reducer, .cdc bootstrap bridge, executable law witnesses, and paper source for BiDi Coherence-Delta Calculus."
+description = "Native .cdc language sources, transitional host reducer/bridge, executable witnesses, and paper source for BiDi Coherence-Delta Calculus."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

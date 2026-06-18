@@ -18,13 +18,20 @@ Real = float
 Name = str
 Phase = float
 Trit = int
+BALANCED_TRITS: Tuple[Trit, Trit, Trit] = (-1, 0, 1)
+DYADIC_TRIADIC_CLOSURE_STATES = 64
 
 
 class SourceKind(str, Enum):
     DEADBAND = "deadband"
+    KERNEL = "kernel"
     FIELD = "field"
     NEST = "nest"
     COUNTER = "counter"
+    TERM = "term"
+    RULE = "rule"
+    PROVIDES = "provides"
+    BOOTLOADER = "bootloader"
     MODULE = "module"
     CHANNEL = "channel"
     GUARD = "guard"
@@ -36,7 +43,7 @@ class SourceKind(str, Enum):
     RUN = "run"
 
 
-BLOCK_KINDS = {SourceKind.FIELD, SourceKind.NEST, SourceKind.COUNTER}
+BLOCK_KINDS = {SourceKind.KERNEL, SourceKind.FIELD, SourceKind.NEST, SourceKind.COUNTER}
 
 
 @dataclass(frozen=True)
@@ -183,6 +190,16 @@ ProgramTerm = FieldTerm | CounterTerm
 
 
 @dataclass(frozen=True)
+class ClosureBridgeSpec:
+    """Dyadic machine substrate to balanced-ternary CDC kernel bridge."""
+    dyadic_bits: int = 6
+    quaternary_slots: int = 3
+    states: int = DYADIC_TRIADIC_CLOSURE_STATES
+    trits: Tuple[Trit, Trit, Trit] = BALANCED_TRITS
+    zero_mean: bool = True
+
+
+@dataclass(frozen=True)
 class CellState:
     theta: Phase
     amplitude: Real
@@ -317,6 +334,20 @@ class InvariantSpec:
 
 
 INVARIANTS: Tuple[InvariantSpec, ...] = (
+    InvariantSpec(
+        key="balanced-ternary-carrier",
+        statement="Committed outcomes are balanced ternary values -1, 0, +1 around a real equilibrium.",
+        witness_file="calculus_laws.py",
+        witness_name="balanced ternary carrier and commit outcomes",
+        future_formal_target="finite enumeration of the trit carrier and commit codomain",
+    ),
+    InvariantSpec(
+        key="dyadic-triadic-closure",
+        statement="The bridge codebook has 2^6 = 4^3 = 64 states with lossless dyadic/quaternary indexing.",
+        witness_file="calculus_laws.py",
+        witness_name="64-state dyadic/triadic closure bridge",
+        future_formal_target="finite bijection proof for the bootstrap codebook",
+    ),
     InvariantSpec(
         key="gate-abelian",
         statement="Gate composition is an abelian group action on saturated phase modules.",

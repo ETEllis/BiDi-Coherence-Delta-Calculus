@@ -16,7 +16,14 @@ observable reductions for the same source.
 """
 import sys, math, cmath, random
 from bidi_calculus import Thread, Knot, Breathfield, CounterField, census
-from cdc_semantics import SourceKind, SourceNode, parse_cdc, invariant_index
+from cdc_semantics import (
+    BALANCED_TRITS,
+    DYADIC_TRIADIC_CLOSURE_STATES,
+    SourceKind,
+    SourceNode,
+    parse_cdc,
+    invariant_index,
+)
 
 # ── carrier literals ───────────────────────────────────────────────────────── #
 def num(tok):
@@ -60,6 +67,38 @@ def _law(name):
     if name == "corefold-morphism":
         return (_close(fold(add(a, b)), add(fold(a), fold(b))) and _close(fold(rot(phi, a)), rot(phi, fold(a)))
                 and not _close(fold(fold(a)), fold(a)))
+    if name == "balanced-ternary-carrier":
+        vals = BALANCED_TRITS
+        return vals == (-1, 0, 1) and sum(vals) == 0 and {-x for x in vals} == set(vals)
+    if name == "dyadic-triadic-closure":
+        return 2 ** 6 == 4 ** 3 == DYADIC_TRIADIC_CLOSURE_STATES
+    if name == "local-confluence":
+        bf1 = Breathfield(dt=0.02)
+        bf1.add(Knot("A", threads=[Thread(theta=0.7 + 0.3 * i) for i in range(6)]))
+        bf1.add(Knot("B", threads=[Thread(theta=2.1 - 0.4 * i) for i in range(6)]))
+        bf2 = Breathfield(dt=0.02)
+        bf2.add(Knot("A", threads=[Thread(theta=0.7 + 0.3 * i) for i in range(6)]))
+        bf2.add(Knot("B", threads=[Thread(theta=2.1 - 0.4 * i) for i in range(6)]))
+        for bf, order in ((bf1, ("A", "B")), (bf2, ("B", "A"))):
+            for nm in order:
+                k = bf.knots[nm]
+                k.commit(bf.afferent(k, bf.t))
+        return bf1.knots["A"].trits() == bf2.knots["A"].trits() and bf1.knots["B"].trits() == bf2.knots["B"].trits()
+    if name == "flow-additivity":
+        def flow_field():
+            bf = Breathfield(dt=0.02, gain=1.4, kappa_gate=False)
+            bf.add(Knot("x", threads=[Thread(theta=0.0, omega=1.0)]))
+            bf.add(Knot("y", threads=[Thread(theta=2.0, omega=1.3)]))
+            bf.wire("x", "y")
+            bf.wire("y", "x")
+            return bf
+        g1 = flow_field()
+        g2 = flow_field()
+        g1.advance(0.37)
+        g1.advance(0.23)
+        g2.advance(0.60)
+        err = max(abs(g1.knots[n].threads[0].theta - g2.knots[n].threads[0].theta) for n in "xy")
+        return err < 1e-3
     if name == "preservation":
         for _ in range(500):
             k = Knot("k", threads=[Thread(theta=random.uniform(0, 6.28)) for _ in range(6)])
@@ -91,6 +130,16 @@ class Field:
 class Counter:
     def __init__(self, name): self.name = name; self.cf = CounterField(); self.start = None; self.result = None
 
+class Kernel:
+    def __init__(self, name, stage, target):
+        self.name = name
+        self.stage = stage
+        self.target = target
+        self.terms = set()
+        self.rules = set()
+        self.capabilities = set()
+        self.bootloader_scope = ""
+
 class CDC:
     def __init__(self):
         self.stack = []          # nested Field/Counter contexts
@@ -115,7 +164,7 @@ class CDC:
             self.exec_node(node)
 
     def exec_node(self, node: SourceNode):
-        if node.kind in (SourceKind.FIELD, SourceKind.NEST, SourceKind.COUNTER):
+        if node.kind in (SourceKind.KERNEL, SourceKind.FIELD, SourceKind.NEST, SourceKind.COUNTER):
             self.exec_statement(node)
             for child in node.children:
                 self.exec_node(child)
@@ -152,6 +201,12 @@ class CDC:
             self.deadband = value
             return
 
+        if kw == "kernel":
+            stage = int(kv.get("stage", "0"))
+            target = kv.get("target", "cdc")
+            self.stack.append(Kernel(flags[1], stage, target))
+            return
+
         if kw == "field":
             deadband = float(kv.get("deadband", self.deadband))
             f = Field(flags[1], float(kv.get("dt", 0.02)), float(kv.get("gain", 1.2)),
@@ -176,6 +231,20 @@ class CDC:
             raise SyntaxError(f"top-level expect: {line}")
 
         ctx = self.top()
+
+        # ----- native self-hosting declarations -----
+        if isinstance(ctx, Kernel):
+            if kw == "term":
+                ctx.terms.add(flags[1]); return
+            if kw == "rule":
+                ctx.rules.add(flags[1]); return
+            if kw == "provides":
+                ctx.capabilities.update(flags[1:]); return
+            if kw == "bootloader":
+                ctx.bootloader_scope = " ".join(flags[1:]); return
+            if kw == "expect":
+                self.results.append(self.eval_kernel_expect(ctx, flags[1:], line)); return
+            raise SyntaxError(f"kernel: {line}")
 
         # ----- counter sub-language -----
         if isinstance(ctx, Counter):
@@ -251,6 +320,30 @@ class CDC:
             self.results.append(self.eval_expect(bf, flags[1:], line)); return
 
         raise SyntaxError(f"unknown: {line}")
+
+    def eval_kernel_expect(self, kernel, a, line):
+        p = a[0]
+        if p == "native":
+            got = kernel.target
+            want = a[3]
+            return (got == want, f"{kernel.name}: native substrate == {want} (got {got})")
+        if p == "host-debt":
+            want = int(a[2])
+            debt = 1 if kernel.bootloader_scope else 0
+            ok = debt <= want if a[1] == "<=" else debt == want
+            return (ok, f"{kernel.name}: host-debt {a[1]} {want} (got {debt})")
+        if p == "terms":
+            want = int(a[2])
+            ok = len(kernel.terms) >= want if a[1] == ">=" else len(kernel.terms) == want
+            return (ok, f"{kernel.name}: terms {a[1]} {want} (got {len(kernel.terms)})")
+        if p == "rules":
+            want = int(a[2])
+            ok = len(kernel.rules) >= want if a[1] == ">=" else len(kernel.rules) == want
+            return (ok, f"{kernel.name}: rules {a[1]} {want} (got {len(kernel.rules)})")
+        if p == "provides":
+            missing = [x for x in a[1:] if x not in kernel.capabilities]
+            return (not missing, f"{kernel.name}: provides {' '.join(a[1:])}")
+        raise SyntaxError(f"kernel expect: {line}")
 
     # ----- expectation predicates -----
     def eval_expect(self, bf, a, line):

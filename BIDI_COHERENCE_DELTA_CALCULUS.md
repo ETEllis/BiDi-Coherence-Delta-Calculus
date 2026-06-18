@@ -4,11 +4,19 @@ Date: 2026-06-18
 
 Status: public engineering specification, v0.1.2.
 
-BiDi Coherence-Delta Calculus is a universal substrate for hybrid systems that need continuous dynamics, discrete commitments, delayed coupling, local invariants, nested reference frames, and coherence-preserving operators.
+BiDi Coherence-Delta Calculus is a native `.cdc` language with a formal
+coherence-calculus kernel for hybrid systems that need continuous dynamics,
+balanced-ternary commitments, delayed coupling, local invariants, nested
+reference frames, and coherence-preserving operators.
 
 ## One-Line Definition
 
-BiDi Coherence-Delta Calculus is a host-independent calculus for coupled bounded processes: phase-state cells are grouped into boundary modules, connected by delayed weighted channels that may carry angular phase bias and line projection, evolved continuously, and periodically committed through event-triggered invariant gates that preserve coherence and reduce variational prediction error.
+BiDi Coherence-Delta Calculus is a host-independent language/kernel pair for
+coupled bounded processes: phase-state cells are grouped into boundary modules,
+connected by delayed weighted channels that may carry angular phase bias and
+line projection, evolved continuously, and periodically committed through
+event-triggered balanced-ternary invariant gates that preserve coherence and
+reduce variational prediction error.
 
 ## What It Gives An Engineer
 
@@ -24,7 +32,7 @@ The calculus gives one compact substrate for:
 - reference-frame coupling across scales;
 - gated policy/invariant enforcement;
 - symbolic/discrete computation through configured instruction modules;
-- ternary trace/window measurement without Boolean observer primitives;
+- balanced-ternary trace/window measurement without Boolean observer primitives;
 - a small native surface notation for declaring fields, modules, channels, flow, and commits.
 
 The key value is not that it replaces every existing runtime. The value is that it gives a unified language for systems that are usually split across state machines, reactive runtimes, neural dynamics, simulations, control loops, and policy gates.
@@ -40,9 +48,10 @@ The canonical calculus primitives are:
 - commit
 - `bidi-gamma-delta` / `bidiγΔ`
 
-The current reference reducer, `bidi_calculus.py`, exposes implementation names
-retained for API stability: `Thread` = cell, `Strand` = channel, `Knot` = module,
-`Breathfield` = field, and `breath` = commit.
+The current transitional host reducer, `bidi_calculus.py`, exposes implementation
+names retained for API stability: `Thread` = cell, `Strand` = channel, `Knot` =
+module, `Breathfield` = field, and `breath` = commit. These names are executable
+witness anchors, not the final language surface.
 
 A conforming implementation must preserve these behaviors:
 
@@ -63,8 +72,27 @@ A conforming implementation must preserve these behaviors:
 - `parse_legacy_program`
 - acceptance witnesses for each major capability claim
 
-These implementation names are callable anchors. The canonical calculus vocabulary
-is the smaller cell/channel/module/field/commit set above.
+These implementation names are callable anchors. The canonical user-facing
+language vocabulary is the smaller cell/channel/module/field/commit set above.
+New docs and new `.cdc` language work should use canonical names and treat the
+legacy API names as deprecated internal compatibility labels.
+
+## Native Language Target
+
+CDC's center of gravity is the `.cdc` language. The calculus is its semantic
+kernel.
+
+The intended product form is a native `.cdc` language distribution: a developer
+installs a `cdc` runtime, writes `.cdc`, runs `.cdc`, tests `.cdc`, and ships
+`.cdc` packages. The temporary Python files are construction scaffolding for the
+current executable witness suite. They are not part of the desired user-facing
+programming model.
+
+`kernel.cdc` is the first native self-hosting contract. It declares the terms,
+rules, capability surface, balanced-ternary carrier, 64-state bridge invariant,
+and remaining bootloader boundary that future passes must burn down. The end
+state is not "Python runs `.cdc`"; it is "`.cdc` contains its own
+parser/reducer/witness semantics, with a minimal replaceable runtime beneath it."
 
 ## Implementation Alias Map
 
@@ -106,12 +134,12 @@ mu: memory
 omega: intrinsic angular velocity
 ```
 
-Its runtime value is ternary:
+Its runtime value is balanced ternary:
 
 ```text
-+  if cos(theta) > deadband
--  if cos(theta) < -deadband
-0  otherwise
++1 if cos(theta) > deadband
+-1 if cos(theta) < -deadband
+ 0 otherwise
 ```
 
 Its boundary openness is:
@@ -404,14 +432,15 @@ The `acceptance.py` witnesses cover:
 | D | emergent coherence, free-energy guarded commits, predictive belief tracking, action/perception split |
 | E | evented state machines, Minsky-counter computation, neural-style dynamics, native syntax |
 | F | Gate/interfere/Core-fold, scale-gated operators, multiscale coherence under load |
-| G | ternary trace/window measurement, causal observer windows, projected boundaries |
+| G | balanced-ternary trace/window measurement, causal observer windows, projected boundaries |
 
 Local run result on 2026-06-18:
 
 ```text
-16/16 law and metatheorem witnesses
+20/20 law, metatheorem, and bridge witnesses
+28/28 native .cdc expectations
 5/5 relational phase-channel witnesses
-8/8 ternary trace/window witnesses
+12/12 ternary trace/window witnesses
 24/24 boxes green
 ```
 
@@ -515,14 +544,25 @@ That is an integration hypothesis, not a merge instruction.
 
 ## Abstract
 
-BiDi Coherence-Delta Calculus is a formal substrate for hybrid systems that must behave continuously and commit discretely. It models computation as nested boundary modules made of phase-state cells, connected by delayed weighted channels that can rotate phase, project onto selected target dimensions, and cross nested paths. The field evolves through continuous dynamics, while event-triggered commits quantize state into ternary outcomes, enforce invariants, update belief, and reject incoherent transitions. Its derived trace/window layer lets any module, relation, or projected boundary serve as observer or measurement participant without adding a Boolean observer primitive. The result is a compact language for simulations, agents, adaptive UI, policy gates, predictive control, social fields, and mixed-reality world models.
+BiDi Coherence-Delta Calculus is a native `.cdc` language with a formal kernel
+for hybrid systems that must behave continuously and commit discretely. It
+models computation as nested boundary modules made of phase-state cells,
+connected by delayed weighted channels that can rotate phase, project onto
+selected target dimensions, and cross nested paths. The field evolves through
+continuous dynamics, while event-triggered commits quantize state into
+balanced-ternary outcomes, enforce invariants, update belief, and reject
+incoherent transitions. Its derived trace/window layer lets any module, relation,
+or projected boundary serve as observer or measurement participant without
+adding a Boolean observer primitive. The result is a compact language for
+simulations, agents, adaptive UI, policy gates, predictive control, social
+fields, and mixed-reality world models.
 
 ## Minimal Engineer Handoff
 
 If you are implementing or reviewing BiDi Coherence-Delta Calculus, preserve these invariants:
 
 1. A phase cell has continuous phase plus latched committed pole.
-2. Runtime ternary value is derived from phase by deadband quantization.
+2. Runtime balanced-ternary value is derived from phase by deadband quantization.
 3. Boundary openness gates influence.
 4. Channels are directed, weighted, continuously delayed, optionally angle-biased, and optionally projected onto target lines.
 5. A boundary module owns input/output cones, belief, prior, precision, and optional child field.
@@ -532,8 +572,8 @@ If you are implementing or reviewing BiDi Coherence-Delta Calculus, preserve the
 9. A commit is rejected if it increases local free energy.
 10. Nested fields exchange context downward and coherence/evidence upward through `bidi-gamma-delta`; this is the `alpha=0` case of the general path relation.
 11. Operators `gate`, `interfere`, and `corefold` remain primitive operations over boundary state.
-12. Observer windows and measurement records are derived; they preserve the ternary `+ / 0 / -` outcome space.
-13. The native notation must be able to declare modules, channels, guards, flow, and commits.
+12. Observer windows and measurement records are derived; they preserve the balanced-ternary `-1 / 0 / +1` outcome space.
+13. The native notation must be able to declare kernel contracts, modules, channels, guards, flow, and commits.
 14. Capability claims should be backed by small witness programs.
 15. Performance and scaling claims require separate benchmarks.
 

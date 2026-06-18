@@ -12,7 +12,7 @@ python3 calculus_laws.py
 
 echo
 echo "== Native .cdc execution =="
-python3 cdc_boot.py system.cdc laws.cdc
+python3 cdc_boot.py kernel.cdc system.cdc laws.cdc
 
 echo
 echo "== Relational phase-channel witnesses =="
@@ -20,7 +20,7 @@ python3 relation_witness.py
 python3 cdc_boot.py relations.cdc
 
 echo
-echo "== Ternary trace/window witnesses =="
+echo "== Balanced-ternary trace/window witnesses =="
 python3 trace_window_witness.py
 
 echo
@@ -69,6 +69,8 @@ from cdc_semantics import INVARIANTS, invariant_index
 
 idx = invariant_index()
 required = {
+    "balanced-ternary-carrier",
+    "dyadic-triadic-closure",
     "gate-abelian",
     "interfere-monoid",
     "rotation-linear",
