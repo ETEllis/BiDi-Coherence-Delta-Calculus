@@ -2,7 +2,7 @@
 
 Date: 2026-06-18
 
-Status: public engineering specification, v0.1.3.
+Status: public engineering specification, v0.2.0.
 
 BiDi Coherence-Delta Calculus is a native `.cdc` language with a formal
 coherence-calculus kernel for hybrid systems that need continuous dynamics,
@@ -48,34 +48,12 @@ The canonical calculus primitives are:
 - commit
 - `bidi-gamma-delta` / `bidiγΔ`
 
-The current transitional host reducer, `bidi_calculus.py`, exposes implementation
-names retained for API stability: `Thread` = cell, `Strand` = channel, `Knot` =
-module, `Breathfield` = field, and `breath` = commit. These names are executable
-witness anchors, not the final language surface.
-
-A conforming implementation must preserve these behaviors:
-
-- `Thread.trit`
-- `Thread.kappa`
-- `Knot.coherence`
-- `Knot.free_energy`
-- `Knot.gate`
-- `Knot.interfere`
-- `Knot.corefold`
-- `Knot.breath`
-- `Breathfield.afferent`
-- `Breathfield.step`
-- `Breathfield.advance`
-- `Breathfield.global_coherence`
-- `CounterField`
-- `minsky_add`
-- `parse_legacy_program`
-- acceptance witnesses for each major capability claim
-
-These implementation names are callable anchors. The canonical user-facing
-language vocabulary is the smaller cell/channel/module/field/commit set above.
-New docs and new `.cdc` language work should use canonical names and treat the
-legacy API names as deprecated internal compatibility labels.
+The current repository has one host artifact: `cdc_boot.py`. It is a loader and
+native contract checker. It does not expose reducer classes, runtime objects, or
+law logic. A conforming implementation must preserve the native `.cdc` terms,
+rules, invariants, capabilities, witnesses, and expectations declared in
+`kernel.cdc`, `laws.cdc`, `system.cdc`, `relations.cdc`, and
+`trace_windows.cdc`.
 
 ## Native Language Target
 
@@ -84,39 +62,38 @@ kernel.
 
 The intended product form is a native `.cdc` language distribution: a developer
 installs a `cdc` runtime, writes `.cdc`, runs `.cdc`, tests `.cdc`, and ships
-`.cdc` packages. The temporary Python files are construction scaffolding for the
-current executable witness suite. They are not part of the desired user-facing
-programming model.
+`.cdc` packages. The only temporary Python file is the bootloader; it is not part
+of the desired semantic substrate.
 
 `kernel.cdc` is the first native self-hosting contract. It declares the terms,
 rules, capability surface, balanced-ternary carrier, 64-state bridge invariant,
 and remaining bootloader boundary that future passes must burn down. The end
 state is not "Python runs `.cdc`"; it is "`.cdc` contains its own
 parser/reducer/witness semantics, with a minimal replaceable runtime beneath it."
-For this release, Python remains the deliberately temporary bootloader/reducer
-host because it is portable and inspectable; new semantic authority belongs in
-`.cdc` declarations and obligations first.
+For this release, Python remains only as the deliberately temporary bootloader
+because it is portable and inspectable; semantic authority belongs in `.cdc`
+declarations and obligations.
 
-## Implementation Alias Map
+## Canonical Term Map
 
-| Reference API | Calculus term | Meaning |
-| --- | --- | --- |
-| Thread | phase cell | A continuous state carrier with phase, amplitude, plasticity, latched pole, and memory. |
-| Strand | delayed channel | A directed weighted edge with continuous delay. |
-| Knot | boundary module | A unit of phase cells with input/output cones, belief state, priors, precision, and optional child field. |
-| Breathfield | coupled field | A graph of boundary modules evolving under continuous dynamics and evented commits. |
-| breath | commit | A guarded discrete state update that quantizes, enforces invariants, updates belief, and latches output. |
-| read cone | input cone | The receiving half of a boundary module. |
-| write cone | output cone | The projecting half of a boundary module. |
-| permeability | boundary openness | How strongly a phase cell is allowed to exchange influence. |
-| coherence | phase-order magnitude | Magnitude of mean orientation, in `[0, 1]`. |
-| coherence barrier | nonnegative balance invariant | A prefix-walk constraint that prevents negative coherence debt. |
-| surprise | prediction error | Difference between received evidence and current belief/prior. |
-| Core-fold | latent projection | A reduced internal representation distilled from middle state channels. |
-| bidiγΔ | bidirectional coherence-delta coupling | Path-aware relation across nested scales; the neutral `alpha=0` case gives up/down cones. |
-| window | observer projection | A derived path/line/angle-bounded view over a field. |
-| trace | observed history | Phase/event history sampled through a window. |
-| measurement | ternary trace contraction | A passive trace or committing guarded-commit record. |
+| Calculus term | Meaning |
+| --- | --- |
+| phase cell | A continuous state carrier with phase, amplitude, plasticity, latched pole, and memory. |
+| delayed channel | A directed weighted edge with continuous delay, angular bias, and optional line projection. |
+| boundary module | A unit of phase cells with input/output cones, belief state, priors, precision, and optional child field. |
+| coupled field | A graph of boundary modules evolving under continuous dynamics and evented commits. |
+| commit | A guarded discrete state update that quantizes, enforces invariants, updates belief, and latches output. |
+| input cone | The receiving half of a boundary module. |
+| output cone | The projecting half of a boundary module. |
+| boundary openness | How strongly a phase cell is allowed to exchange influence. |
+| phase-order magnitude | Magnitude of mean orientation, in `[0, 1]`. |
+| nonnegative balance invariant | A prefix-walk constraint that prevents negative coherence debt. |
+| prediction error | Difference between received evidence and current belief/prior. |
+| latent projection | A reduced internal representation distilled from middle state channels. |
+| bidiγΔ | Path-aware bidirectional coherence-delta relation across nested scales; the neutral `alpha=0` case gives up/down cones. |
+| window | A derived path/line/angle-bounded observer projection over a field. |
+| trace | Phase/event history sampled through a window. |
+| measurement | A passive trace or committing guarded-commit record. |
 
 Formal phrasing:
 
@@ -124,7 +101,7 @@ Formal phrasing:
 
 ## Formal Object Model
 
-### Phase Cell (`Thread`)
+### Phase Cell
 
 A phase cell holds:
 
@@ -159,7 +136,7 @@ Interpretation:
 - openness controls how much influence passes through the boundary;
 - plasticity controls coupling adaptation.
 
-### Delayed Coupling Channel (`Strand`)
+### Delayed Coupling Channel
 
 A channel connects source boundary module to destination boundary module:
 
@@ -181,7 +158,7 @@ Interpretation:
 - endpoints may be nesting paths such as `P/c -> P`;
 - optional plasticity changes channel strength from correlation.
 
-### Boundary Module (`Knot`)
+### Boundary Module
 
 A boundary module is a self-contained process:
 
@@ -207,7 +184,7 @@ Interpretation:
 - action gain lets the module change projection to make sensed input match priors;
 - child field enables nested multi-scale computation.
 
-### Coupled Process Field (`Breathfield`)
+### Coupled Process Field
 
 A field contains modules and coupling channels:
 
@@ -260,7 +237,7 @@ Operational meaning:
 
 > The field behaves like a continuous recurrent dynamical system with delayed coupling, local predictive state, and optional adaptive weights.
 
-### 3. Evented Commit (`breath`)
+### 3. Evented Commit
 
 A commit fires when a guard crosses its threshold upward. The event time is interpolated off the numerical integration grid.
 
@@ -275,7 +252,7 @@ The commit performs:
 
 Operational meaning:
 
-> A breath is an atomic guarded commit with invariant enforcement and free-energy rejection. It is the bridge between continuous dynamics and discrete state.
+> A commit is an atomic guarded transition with invariant enforcement and free-energy rejection. It is the bridge between continuous dynamics and discrete state.
 
 ### 3.5 Trace/Window Measurement
 
@@ -295,6 +272,11 @@ Trace order is local to the window. Phase can move smoothly with zero commit
 events, and two windows over one field can observe different event densities.
 The calculus therefore has smooth phase-time, event-time, and trace-time without
 requiring a universal tick.
+
+A window may also carry local sampling, commit, and adaptation policy. That
+policy can change what the window projects or records, but it does not add a new
+observer primitive. The observer remains a role inside the same flow/commit/nest
+spine.
 
 ### 4. Free Energy
 
@@ -345,10 +327,10 @@ This maps cleanly to:
 
 ### Gate
 
-Function:
+Native operator:
 
-```python
-Knot.gate(other)
+```text
+gate A B
 ```
 
 Engineering meaning:
@@ -364,10 +346,10 @@ Use cases:
 
 ### Interfere
 
-Function:
+Native operator:
 
-```python
-Knot.interfere(other, gain=1.0)
+```text
+interfere A B gain=1.0
 ```
 
 Engineering meaning:
@@ -384,10 +366,10 @@ Use cases:
 
 ### Core-Fold
 
-Function:
+Native operator:
 
-```python
-Knot.corefold()
+```text
+corefold A
 ```
 
 Engineering meaning:
@@ -430,7 +412,7 @@ This is enough to express a small reactive dynamical program without appealing t
 
 ## Acceptance Witnesses In Engineering Terms
 
-The `acceptance.py` witnesses cover:
+The `system.cdc` native capability witnesses cover:
 
 | Group | Engineering claim |
 | --- | --- |
@@ -442,23 +424,25 @@ The `acceptance.py` witnesses cover:
 | F | Gate/interfere/Core-fold, scale-gated operators, multiscale coherence under load |
 | G | balanced-ternary trace/window measurement, causal observer windows, projected boundaries |
 
-Local run result on 2026-06-18:
+Local run result for v0.2.0:
 
 ```text
-22/22 law, metatheorem, viability, trace-order, and bridge witnesses
-32/32 native .cdc expectations
-5/5 relational phase-channel witnesses
-12/12 ternary trace/window witnesses
-24/24 boxes green
+1/1 Python bootloader file
+79/79 native .cdc expectations
+13/13 invariant declarations
+24/24 capability declarations
+72/72 native witness declarations
 ```
 
-The witnesses are capability witnesses. They prove expressive coverage of the listed behaviors in small configurations. They do not prove industrial performance, scaling limits, or optimality.
+The witnesses are native contract witnesses. They prove coverage of the listed
+claims in the source tree. They do not prove industrial performance, scaling
+limits, numeric accuracy, or optimality.
 
 ## Strong Claims, Clean Version
 
 ### Computational Universality
 
-> The substrate can express universal computation by configuring instruction modules and counters whose guarded commits implement increment and conditional decrement. The reference witness demonstrates this with a two-counter construction.
+> The substrate can express universal computation by configuring instruction modules and counters whose guarded commits implement increment and conditional decrement. The native witness suite records this with a two-counter construction.
 
 Boundary: this establishes expressivity, not automatic superiority over every existing computational runtime.
 
@@ -593,7 +577,6 @@ Use:
 - BiDi Coherence-Delta Calculus as the system/calculus name.
 - `bidi-gamma-delta` / `bidiγΔ` as the preserved formal concept.
 - cell, channel, module, field, and commit as the canonical formal vocabulary.
-- `Thread`, `Strand`, `Knot`, `Breathfield`, and `breath` only as reference-reducer API names.
 
 Use in engineering docs:
 

@@ -64,10 +64,14 @@ WindowSpec =
   projection
   sampling_policy
   commit_policy
+  adapt_policy
+  state_space_policy
 ```
 
 The window reuses path, angle, and line projection from relation channels. It is
-not a second relation system.
+not a second relation system. Policy changes are local to the window: they may
+change sampling, commitment, adaptation, or projected state space, but they do
+not introduce a global clock or a binary observer primitive.
 
 ## Trace
 
@@ -175,7 +179,7 @@ phase alignment, relation energy, and scale.
 
 ## Acceptance Witnesses
 
-`trace_window_witness.py` checks:
+`trace_windows.cdc` declares native witnesses for:
 
 - trace motion composes across adjacent windows;
 - trace order is local and phase can move smoothly without a global event tick;
@@ -188,6 +192,11 @@ phase alignment, relation energy, and scale.
 - trace windows cannot read future state.
 - observer mode is role-relative rather than substance-relative;
 - projected incidence boundaries are first-class trace targets.
+- local event counters do not require a universal tick.
+- recursive window policy can alter projection without adding a new primitive.
+- committing measurement can settle a shared ternary boundary state.
+- agency can range from passive to self-referential as a policy-relative
+  performance summary.
 
-These witnesses make the layer executable without changing the calculus's
+These witnesses keep the layer native without changing the calculus's
 foundation.

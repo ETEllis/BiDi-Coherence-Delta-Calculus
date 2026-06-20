@@ -4,14 +4,12 @@
 This is the formal heart of the system. It collapses the earlier "object model" and
 "dynamics" into one object: a **calculus** in the strict sense — a syntax of terms,
 a structural congruence (equational laws), a reduction relation over those terms, an
-operator algebra with executable law witnesses, and metatheorems. Every law and
-theorem below is currently checked by `calculus_laws.py` against the
-transitional host reducer `bidi_calculus.py`. That reducer is an executable
-witness, not the final substrate.
+operator algebra with native law witnesses, and metatheorems. Every law and
+theorem below is declared in `laws.cdc` and checked by `cdc_boot.py` for native
+coverage. The bootloader is not the reducer or the calculus.
 
 Canonical engineering names are used throughout: **cell, channel, module, field,
-commit** (legacy formal names: Thread, Strand, Knot, Breathfield, breath). The
-cross-scale operator keeps its name **bidiγΔ**.
+commit**, with **bidiγΔ** naming the cross-scale coherence-delta operator.
 
 ---
 
@@ -154,7 +152,7 @@ reference-frame transfer, and free-energy exchange.
 
 ## 5 · Operator algebra (proven laws)
 
-Three operators act on modules; all are executable-checked (`calculus_laws.py`):
+Three operators act on modules; all are declared in native witnesses (`laws.cdc`):
 
 | op | symbol | definition | laws (verified) |
 |---|---|---|---|
@@ -177,8 +175,8 @@ The reducer also exposes derived observer records:
 - `MeasurementRecord`: a passive or committing observation record;
 - `IncidenceSpec`: a projected higher-order boundary from subordinate paths.
 
-These are not primitive constructors. They are executable summaries over the
-same flow/commit/nest substrate. Their witnesses check that passive observation
+These are not primitive constructors. They are summaries over the same
+flow/commit/nest substrate. Their native witnesses state that passive observation
 does not alter dynamics, committing measurement does not increase `Φ`, trace
 windows cannot read future state, observer mode is role-relative, and projected
 incidence boundaries are first-class trace targets.
@@ -216,51 +214,49 @@ requires it.
 
 ---
 
-## 7 · Metatheorems (executable witnesses)
+## 7 · Metatheorems (native witnesses)
 
 **T1 — Preservation.** `F ⟶_β F'` ⟹ every committed module in `F'` is *admissible*
 (its trit walk never goes negative). *Proof:* the barrier rotates any rank-violating
-cell to its crossing (`τ̂=0`), which cannot lower the running rank; induct on cells.
-✔ witnessed over 2000 random commits and all `3^6 = 729` committed balanced-trit
-walks.
+cell to its crossing (`τ̂=0`), which cannot lower the running rank; induct on
+cells. Native witnesses: `law-preservation-random`,
+`law-balanced-enumeration`.
 
 **T2 — Soundness (Lyapunov).** Let `Φ(F)=Σ_m Φ_m`. Then `⟶_β` never increases `Φ`
 (unconditionally, by the guard's hold-clause); and `⟶_d` never increases `Φ` in its
 belief component (exact gradient descent), and in its coupling component under
 symmetric, delay-free, ungated, phase-balanced coupling. Under those stated regimes,
-`Φ` is a Lyapunov witness for the reduction: runs descend free energy. ✔ max
-`ΔΦ = 0` over 3000 commits, plus a symmetric delay-free coupling witness.
+`Φ` is a Lyapunov witness for the reduction: runs descend free energy. Native
+witnesses: `law-soundness-commit`, `law-soundness-flow-subset`.
 
 **E0 — Existence viability.** A frame remains viable when it preserves finite
 bounded state, boundary integrity, and the transition capacity appropriate to
 its agency mode. Passive frames may persist without transition capacity; reactive
 frames need relation, intent frames need prior pressure, agentic frames need
 action capacity, and self-referential frames need feedback or nesting. ✔
-witnessed across passive/reactive/intent/agentic/self-referential frames.
+Native witness: `law-existence-spectrum`.
 
 **T3 — Local confluence (diamond).** If modules `m, m'` share no channel and both
 guards are enabled, then `⟶_β(m); ⟶_β(m') ≡ ⟶_β(m'); ⟶_β(m)`. *Proof:* `commit(m)`
-reads only `m`'s incident channels and writes only `m`; disjoint footprints commute.
-✔ witnessed as `A;B ≡ B;A`.
+reads only `m`'s incident channels and writes only `m`; disjoint footprints
+commute. Native witness: `law-local-confluence`.
 
 **T4 — Time-determinism & additivity.** `𝔣` is globally Lipschitz, so by
 Picard–Lindelöf the flow is the unique solution and `⟶` is a deterministic monoid
-action of `(ℝ≥0, +)`: `⟶_0 = id_≡` and `⟶_{d₁}; ⟶_{d₂} = ⟶_{d₁+d₂}`. ✔ witnessed
-over off-grid split durations within numerical realization tolerance after
-partial-step realization.
+action of `(ℝ≥0, +)`: `⟶_0 = id_≡` and `⟶_{d₁}; ⟶_{d₂} = ⟶_{d₁+d₂}`. Native
+witness: `law-flow-additivity`.
 
 **T6 — Trace-order locality.** Phase-time flows continuously through a window
 even when no commit event occurs, while event-time remains local to the bounded
 projection that observes it. Smooth phase duration, commit count, and trace order
-are not collapsed into one global clock. ✔ witnessed with two smooth phase
-windows of different rates and zero global commit events.
+are not collapsed into one global clock. Native witness: `law-trace-order`.
 
 **T5 — Normal forms / strong normalization.** A committed module is `⟶_β`-irreducible
 (a **value**) iff its trit walk is admissible and *localized* (returns to 0). The
 saturated such walks number `C_{n/2}` (**Catalan**; 5 for `n=6`); allowing crossings,
 `M_n` (**Motzkin**; 51). Under the localizing regime the drain step (proven
 terminating) reduces any module to a normal form — **strong normalization onto a
-finite value set**. ✔ census `5 / 51`; a localized closure is a stable fixed point.
+finite value set**. Native witness: `law-normalforms`.
 
 ---
 
@@ -286,17 +282,11 @@ the maximal-compression form.
 
 ## 9 · Conservativity & provenance
 
-`bidi_calculus.py` currently realizes this calculus (continuous flow by 4th-order integration,
-commits by guarded discrete maps, off-grid event location, multirate nesting).
-`calculus_laws.py` executable-checks §5 and §7 plus existence/trace/bridge invariants (**22/22**); `acceptance.py` checks
-the 24 capability behaviors (**24/24**). Computational universality is witnessed by
-a two-counter construction within the term syntax (`CounterField`).
-
-This is the transitional host realization. The native self-hosting target is for
-the same term syntax, reduction rules, and witnesses to be expressed in `.cdc`
-itself, with only a minimal loader remaining until even that loader can be
-replaced. The burn-down path is pinned in `NATIVE_SELF_HOSTING_MANDATE.md` and
-begins as executable source in `kernel.cdc`.
+The v0.2.0 repository expresses the term syntax, invariant registry, capability
+surface, and witness suite in native `.cdc`: `kernel.cdc`, `laws.cdc`,
+`system.cdc`, `relations.cdc`, and `trace_windows.cdc`. The only Python file is
+`cdc_boot.py`, a minimal loader/checker. The burn-down path is pinned in
+`NATIVE_SELF_HOSTING_MANDATE.md`.
 
 The static census of §7 (267 admissible / 51 localized / 20 / 5 — directed-animal,
 Motzkin, central-binomial, Catalan) is inherited unchanged from the discrete

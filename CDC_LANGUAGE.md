@@ -1,129 +1,83 @@
 # The `.cdc` Language
 ### Native source format for the Coherence-Delta Calculus
 
-`.cdc` is the native language surface for the calculus kernel. A `.cdc` file is
-a calculus term plus a schedule of reductions and proof obligations — nothing in
-it is borrowed from any other programming language. Its meaning is fixed by the
-kernel semantics
-(`BIDI_CALCULUS_CORE.md`): **`flow` is continuous reduction `⟶_d`, `commit` is
-guarded reduction `⟶_β`, `expect` is an assertion discharged against the term.**
+`.cdc` is the native language surface for the calculus kernel. In v0.2.0 the
+checked surface is a native declaration and witness format: terms, reducer
+rules, invariants, capabilities, witnesses, and expectations are expressed in
+`.cdc`; Python is limited to the small `cdc_boot.py` loader/checker.
 
-The supplied implementation has exactly one non-`.cdc` execution artifact:
-`cdc_boot.py`, the **transitional bootstrap bridge** that maps `.cdc` reduction
-onto host hardware. It delegates semantics to the calculus and transitional
-reducer, and is replaceable by any conforming bridge.
+The semantic target remains the full calculus:
 
-```
-python3 cdc_boot.py kernel.cdc system.cdc laws.cdc
+```text
+flow(d)       continuous reduction
+commit(m)     guarded balanced-ternary event reduction
+nest(m,F)     nested bidirectional coherence-delta coupling
+trace/window  derived observer projection
 ```
 
----
+The bootloader does not implement those reductions. It verifies that the native
+source tree declares them and that every claim has a native witness handle.
 
-## Grammar
+## Current Checked Grammar
 
 ```ebnf
-program     = { directive } ;
-directive   = deadband | kernel | field | counter | top-expect ;
+program      = { directive } ;
+directive    = kernel | term | rule | provides | bootloader
+             | invariant | law | capability | witness | expect | "end" ;
 
-deadband    = "deadband" real ;
+kernel       = "kernel" name { kwarg } ;
+term         = "term" name { name } ;
+rule         = "rule" name { name } ;
+provides     = "provides" name { name } ;
+bootloader   = "bootloader" name { name } ;
 
-kernel      = "kernel" name [ "stage" "=" int ] [ "target" "=" name ] newline
-                { kernel-stmt }
-              "end" ;
-kernel-stmt = "term" name
-            | "rule" name
-            | "provides" name { name }
-            | "bootloader" name { name }
-            | expect ;
+invariant    = "invariant" key { kwarg } ;
+law          = "law" key { kwarg } ;
+capability   = "capability" key { kwarg } ;
+witness      = "witness" key { kwarg } ;
 
-field       = "field" name { kwarg } newline
-                { field-stmt }
-              "end" ;
-field-stmt  = module | channel | nest | guard | flow | commit | expect ;
-
-module      = "module" name "theta" real { real } [ "omega" real { real } ]
-                                              [ "precision" real ]
-                                              [ "prior" real{6} ] [ "act" real ]
-            | "module" name "trits" pole pole pole pole pole pole ;
-pole        = "+" | "-" | "o" ;                 (* +1 expansion, -1 localization, o equilibrium crossing *)
-
-channel     = "channel" path "->" path { kwarg } [ "plastic" ] ;
-nest        = "nest" name { kwarg } newline { module | channel } "end" ;
-guard       = "guard" name "crossing" int ;
-flow        = "flow" real ;                     (* ⟶_d : evolve continuously *)
-commit      = "commit" ( name | "all" ) ;       (* ⟶_β : guarded discrete commit *)
-
-counter     = "counter" name newline { reg | instr | run | expect } "end" ;
-reg         = "reg" name int ;
-instr       = "instr" name "inc"   name "->" name
-            | "instr" name "jzdec" name "->" name "|" name
-            | "instr" name "halt" ;
-run         = "run" "from" name ;
-
-expect      = "expect" predicate ;
-top-expect  = "expect" "law" lawname ;
-
-kwarg       = key "=" value ;                   (* e.g. gain=2.5 delay=0.7 open=yes *)
-real        = number | "pi" | "pi/2" | "pi/4" | "3pi/2" | "tau" ;
-path        = name { "/" name } ;
+expect       = "expect" predicate ;
+kwarg        = key "=" value ;
 ```
 
-`#` begins a comment. Reals accept the circle literals `pi`, `pi/2`, … directly.
-`lines=` is a comma-separated list of nonnegative target cell indexes.
+`#` begins a comment. Values may be quoted with shell-style quoting.
 
----
+## Native Expectation Predicates
 
-## Constructs
+The minimal bootloader currently verifies:
 
-| construct | calculus meaning |
+```text
+expect native substrate == cdc
+expect host-debt <= 1
+expect python-files == 1
+expect bootloader minimal == true
+expect terms >= N
+expect rules >= N
+expect invariants >= N
+expect witnesses >= N
+expect capabilities >= N
+expect provides <capability...>
+expect law <invariant-key>
+expect capability <capability-key>
+expect witness <witness-id>
+```
+
+`expect law K` requires both an `invariant K` declaration and at least one native
+`witness ... invariant=K`. `expect capability C` requires both a
+`capability C` declaration and at least one native `witness ... capability=C`.
+
+## Native Files
+
+| file | content |
 |---|---|
-| `field … end` | a coupled field term; `open=yes` lifts boundary gating (plain coupling), `open=no` keeps it (gated coupling) |
-| `module m theta …` | a boundary module: the cell-vector by phase; `omega` sets intrinsic frequency, `precision`/`prior`/`act` arm predictive coding and active inference |
-| `module m trits + - o …` | a module by committed/crossing poles |
-| `channel a -> b` | a delayed weighted channel; `delay=τ`, `weight=w`, `angle=α`, `lines=0,2`, and `plastic` are supported |
-| `channel P/c -> P` | a path-aware relation crossing nesting boundaries; endpoint depth determines up/down/lateral/diagonal orientation |
-| `nest m … end` | attach a child field to module `m`; closing the block installs the `α=0` bidiγΔ up/down relation cone |
-| `guard m crossing i` | arm an event: a `commit` fires when cell `i` reaches its crossing |
-| `flow d` | continuous reduction `⟶_d` for real duration `d` |
-| `commit m` / `commit all` | guarded reduction `⟶_β` (snap, barrier, belief, free-energy guard, latch) |
-| `counter … end` | a universality term: registers + instruction modules executed by generic commits |
-| `kernel … end` | native self-hosting contract: names calculus terms, reducer rules, capabilities, and the shrinking host-loader boundary |
+| `kernel.cdc` | language terms, reducer rules, provided capabilities, bootloader boundary, and global expectations |
+| `laws.cdc` | invariant registry and 22 law/metatheorem witness declarations |
+| `system.cdc` | 24 capability declarations and native witness handles |
+| `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
+| `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
+| `cdc_boot.py` | minimal loader/checker; not the reducer or language semantics |
 
----
-
-## Assertions (`expect`)
-
-Discharged by the bridge against the running term:
-
-```
-expect coherence-global >= 0.85       expect admissible M
-expect coherence X >= 0.9             expect localized M
-expect address M == 27                expect delay W D 0.7
-expect belief G near 1.0 0.1          expect weight a b > 0.6
-expect events-offgrid                 expect multirate >= 4
-expect interference A B cos <= -0.9   expect interference P/c P gamma >= 0.5
-expect reg c1 == 7                     (inside a counter)
-expect law balanced-ternary-carrier | dyadic-triadic-closure | existence-viability | trace-order-locality
-expect law gate-abelian | interfere-monoid | rotation-linear | corefold-morphism
-expect law preservation | soundness | local-confluence | flow-additivity | normalforms
-```
-
----
-
-## Self-hosting
-
-`.cdc` is computationally universal in the standard two-counter sense: the
-`counter` form executes register-machine programs by generic commits
-(`system.cdc` runs addition and multiplication this way). This gives a precise path
-to self-hosting: a `.cdc` reducer can be encoded as `.cdc` data and execution rules.
-Until that reducer is written, `cdc_boot.py` remains the executable bridge rather
-than a semantic dependency.
-
-The project target is stronger than "a host bridge can run `.cdc`." The target
-is native `.cdc` self-hosting: parser state, reducer state, witness state, and
-trace/window measurement state must become representable as `.cdc` terms. The
-host bridge is transitional debt with an explicit removal plan in
-`NATIVE_SELF_HOSTING_MANDATE.md`.
+## Balanced Ternary Carrier
 
 The committed discrete carrier is balanced ternary, not binary:
 
@@ -133,20 +87,26 @@ The committed discrete carrier is balanced ternary, not binary:
 +1  outward expansion / dissipation
 ```
 
-`kernel.cdc` also pins the 64-state dyadic/triadic bridge constraint
-(`2^6 = 4^3 = 64`) as native source for future bootloader design.
+The middle value is a real equilibrium/crossing state. It is not false, null, or
+absence.
 
----
+## Full Semantic Syntax Target
 
-## The complete system, in `.cdc`
+The following forms remain the semantic target for the native reducer:
 
-| file | content |
-|---|---|
-| `system.cdc` | continuous dynamics, delay lines, hybrid events, multirate nesting, predictive coding, plasticity, normal-form commits, two-counter universality |
-| `laws.cdc` | the operator algebra (`⊙ ⊞ ⟳ ∂`) and metatheorems (T1 preservation, T2 soundness, T5 normal forms) as proof obligations |
-| `relations.cdc` | angular phase, dimension projection, and cross-scale path relation witnesses |
-| `kernel.cdc` | native self-hosting contract for terms, rules, capabilities, balanced ternary, and bootloader shrinkage |
-| `examples/*.cdc` | showcase programs |
-| `cdc_boot.py` | transitional bootstrap bridge (not the language; targeted for removal) |
+```text
+field <name> dt=<real> gain=<real>
+module <name> theta <theta...>
+module <name> trits <pole...>
+channel <path-a> -> <path-b> delay=<real> weight=<real> angle=<real> lines=<i,j>
+guard <name> crossing <i>
+flow <real>
+commit <name>
+counter <name>
+trace <window>
+measure <observer> <target>
+policy <window> sampling=<mode> commit=<mode> adapt=<mode>
+```
 
-`BIDI_CALCULUS_CORE.md` is the canonical semantics; this document is the source format that denotes it.
+Those forms are part of the calculus language design. They should be reintroduced
+as native reducer clauses in `.cdc`, not by growing Python back into a runtime.

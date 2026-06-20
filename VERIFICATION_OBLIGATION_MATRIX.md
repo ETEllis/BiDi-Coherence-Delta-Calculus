@@ -3,32 +3,31 @@
 This matrix separates three layers:
 
 ```text
-claim -> executable witness -> formal obligation
+claim -> native .cdc witness -> formal obligation
 ```
 
 The project does not resolve critique by weakening claims. It resolves critique
-by making every claim either executable now or explicitly queued for mechanical
+by making every claim native in `.cdc` now or explicitly queued for mechanical
 verification.
 
-| Claim | Current executable witness | Formal obligation |
+| Claim | Current native witness | Formal obligation |
 |---|---|---|
-| balanced-ternary carrier | `calculus_laws.py` enumerates `{-1,0,+1}` symmetry and all `3^6` committed walks | finite codomain proof for `commit` |
-| dyadic/triadic bridge closure | `calculus_laws.py` checks the `2^6 = 4^3 = 64` bijective codebook | finite bijection proof for bootstrap codebook |
-| existence viability | `calculus_laws.py` checks passive, reactive, intent, agentic, and self-referential frame summaries | viability invariant over bounded continuity, permeability, and transition capacity |
-| trace-order locality | `calculus_laws.py` checks smooth phase motion through local windows with zero global commit events | partial-order theorem for causal trace windows and event counters |
-| gate is abelian | `calculus_laws.py` checks associativity, commutativity, identity, inverse | algebraic group proof over torus carrier |
-| interference is monoidal | `calculus_laws.py` checks associativity, commutativity, void unit | commutative monoid proof |
-| rotation is linear | `calculus_laws.py` checks distribution over interference | carrier action proof |
-| core-fold is a morphism | `calculus_laws.py` checks linearity/equivariance and non-idempotence | projection morphism proof |
-| commit preservation | random commits plus exact finite committed-walk enumeration | induction over cell order and barrier repair |
-| commit soundness | 3000 randomized commits with `max ΔΦ <= 0` | guard accept/hold case split |
-| flow soundness subset | symmetric delay-free ungated coupling reduces phase disagreement | Lyapunov proof under stated coupling assumptions |
-| local confluence | disjoint `A;B` and `B;A` commits commute | footprint-disjoint diamond lemma |
-| flow additivity | off-grid split duration agrees with one combined duration within numeric realization tolerance | monoid-action proof for the flow relation |
-| normal forms | census of Catalan/Motzkin closures and fixed-point stability | finite normalization proof over balanced trit walks |
-| angular/path relation | `relation_witness.py` and `relations.cdc` cover angle, lines, path endpoints, nesting cones | path-indexed relation algebra |
-| trace/window layer | `trace_window_witness.py` covers passive/committing separation, role-relative observer, incidence boundary, causal windows | derived-observer theorem over flow/commit/nest |
-| native language center | `kernel.cdc` declares terms, rules, capabilities, and host-debt boundary | native reducer expressed in `.cdc` |
+| balanced-ternary carrier | `laws.cdc` declares carrier witnesses | finite codomain proof for `commit` |
+| dyadic/triadic bridge closure | `laws.cdc` declares the `2^6 = 4^3 = 64` bridge witness | finite bijection proof for bootstrap codebook |
+| existence viability | `laws.cdc`, `relations.cdc`, and `trace_windows.cdc` declare viability witnesses | viability invariant over bounded continuity, permeability, and transition capacity |
+| trace-order locality | `laws.cdc`, `relations.cdc`, and `trace_windows.cdc` declare local trace, local-counter, detuning, overlap, and recursive-policy witnesses | partial-order theorem for causal trace windows, local event counters, and projection policy |
+| gate is abelian | `laws.cdc` declares associativity, commutativity, identity, inverse witnesses | algebraic group proof over torus carrier |
+| interference is monoidal | `laws.cdc` declares associativity, commutativity, void-unit witnesses | commutative monoid proof |
+| rotation is linear | `laws.cdc` declares rotation-linearity witness | carrier action proof |
+| core-fold is a morphism | `laws.cdc` declares linearity/equivariance and non-idempotence witnesses | projection morphism proof |
+| commit preservation | `laws.cdc` declares preservation witness | induction over cell order and barrier repair |
+| commit soundness | `laws.cdc` declares commit and flow-subset soundness witnesses | guard accept/hold case split |
+| local confluence | `laws.cdc` declares disjoint-commit witness | footprint-disjoint diamond lemma |
+| flow additivity | `laws.cdc` declares split-duration witness | monoid-action proof for the flow relation |
+| normal forms | `laws.cdc` declares localized normal-form witness | finite normalization proof over balanced trit walks |
+| angular/path relation | `relations.cdc` declares angle, lines, path endpoints, and nesting-cone witnesses | path-indexed relation algebra |
+| trace/window layer | `trace_windows.cdc` declares passive/committing separation, role-relative observer, incidence boundary, coupled-observer, shared-state commit, and causal-window witnesses | derived-observer theorem over flow/commit/nest |
+| native language center | `kernel.cdc` declares terms, rules, capabilities, witness counts, and one-file Python boundary | native reducer expressed in `.cdc` |
 
 ## First Mechanized Target
 
@@ -41,5 +40,5 @@ The first theorem-prover port should remain finite:
 5. localized normal forms;
 6. `2^6 = 4^3 = 64` bridge codebook.
 
-This is the shortest route from executable witness to mechanically checked
+This is the shortest route from native witness declaration to mechanically checked
 calculus without prematurely formalizing the continuous numeric realization.

@@ -11,32 +11,28 @@ The intended end state is:
   -> minimal host loader only until the native reducer can run directly
 ```
 
-Python currently remains the transitional bootstrap and verification host because
-it is portable and easy to inspect. It is not the language, not the calculus, and
-not an acceptable final semantic substrate.
+Python remains only as the bootstrap loader because it is portable and easy to
+inspect. It is not the language, not the calculus, and not the semantic
+substrate.
 
-## Current Host Debt
+## Current Host Boundary
 
-As of v0.1.3, host code still provides:
+As of v0.2.0, host code is restricted to one file:
 
-- `bidi_calculus.py`: transitional reducer and runtime objects;
-- `cdc_boot.py`: bootstrap bridge from `.cdc` source to the reducer;
-- `cdc_semantics.py`: declarative AST, state, invariant, and trace/window records;
-- `calculus_laws.py`: law and metatheorem witnesses;
-- `acceptance.py`: capability witnesses;
-- `relation_witness.py`: angular/path relation witnesses;
-- `trace_window_witness.py`: ternary trace/window witnesses.
+- `cdc_boot.py`: minimal loader/checker for native `.cdc` declarations.
 
-That is useful construction scaffolding, not the target architecture.
+All reducer semantics, invariants, capability claims, and witness obligations
+must be expressed as `.cdc` declarations. The bootloader may parse, collect, and
+check expectations; it may not become the reducer or witness suite.
 
 The minimal bootloader target for the Python phase is:
 
 ```text
-read .cdc source -> parse blocks -> dispatch native declarations/obligations
-                 -> call replaceable reducer witness -> report expectations
+read .cdc source -> parse lines -> collect native declarations/obligations
+                 -> verify expectations -> report
 ```
 
-Anything beyond that remains host debt unless it has a named native replacement
+Anything beyond that reintroduces host debt unless it has a named native removal
 gate.
 
 ## Non-Negotiable Direction
@@ -78,31 +74,30 @@ measure-rule
 bridge-rule
 ```
 
-Acceptance: native `.cdc` can parse and represent the same objects named in
-`cdc_semantics.py`.
+Acceptance: native `.cdc` can declare and verify the same term, rule, invariant,
+capability, and witness objects without a Python semantic registry.
 
 ### Gate 2: Native Reducer Kernel
 
 Encode the reducer as `.cdc` transition rules over explicit state records.
 
-Acceptance: native `.cdc` runs at least `kernel.cdc`, `system.cdc`, `laws.cdc`,
-`relations.cdc`, and trace/window witness scenarios through the native kernel.
+Acceptance: native `.cdc` owns `kernel.cdc`, `system.cdc`, `laws.cdc`,
+`relations.cdc`, and trace/window witness scenarios through the native contract.
 
 ### Gate 3: Native Witness Harness
 
 Move law, relation, acceptance, and trace/window witnesses into `.cdc`.
 
-Acceptance: host test code is only a loader that invokes `.cdc` witness files and
-checks their declared expectations.
+Status: complete for v0.2.0. Verification now invokes `.cdc` files and checks
+their declared expectations.
 
 ### Gate 4: Host Loader Collapse
 
-Collapse `bidi_calculus.py`, `cdc_semantics.py`, `calculus_laws.py`,
-`acceptance.py`, `relation_witness.py`, and `trace_window_witness.py` into native
-`.cdc` sources.
+Collapse former reducer, semantic-registry, law, acceptance, relation, and
+trace/window host modules into native `.cdc` sources.
 
-Acceptance: the only remaining host artifact is a minimal loader whose behavior
-is fully specified by `.cdc`.
+Status: complete for v0.2.0. The only remaining host artifact is `cdc_boot.py`,
+and its behavior is fully specified by `kernel.cdc` expectations.
 
 ### Gate 5: Host Removal Or Replacement
 
@@ -117,14 +112,14 @@ Candidate directions:
 - a theorem-prover-extracted kernel;
 - a direct native binary once `.cdc` has a compiler path.
 
-Acceptance: the repository can verify the language without the transitional
-Python host.
+Acceptance: the repository can verify the language without expanding beyond the
+minimal bootloader.
 
 ## Immediate Rule
 
-From this point forward, new behavior should be added first as `.cdc` source or
-as native-semantics documentation. Host code may only appear as a temporary
-bridge when paired with a named native deletion gate.
+From this point forward, new behavior must be added first as `.cdc` source or
+as native-semantics documentation. Host code may only appear inside
+`cdc_boot.py`, and only when paired with a named native deletion gate.
 
 The project is allowed to use a bootloader. It is not allowed to confuse the
 bootloader with the language.

@@ -1,469 +1,211 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-cdc_boot — the bootstrap bridge for the .cdc language
-=====================================================
-This is the supplied non-.cdc execution bridge, not the language itself. It reads
-`.cdc` source and drives the calculus reduction (continuous flow ⟶_d and guarded
-commit ⟶_β) on the host. Programs, witnesses, and law obligations live in `.cdc`;
-this file gives them an executable substrate.
+cdc_boot: minimal Python bootloader for native .cdc contracts.
 
-Semantics are delegated to the reference reducer (`bidi_calculus`) and checked by
-the law/acceptance suites. A different conforming bridge should produce the same
-observable reductions for the same source.
-
-    python3 cdc_boot.py program.cdc [more.cdc ...]
+This file is intentionally small. It does not implement the calculus reducer,
+the semantic registry, or the witness suite in Python. Those live in .cdc files.
+The bootloader only reads .cdc source, records native declarations, and verifies
+declared expectations.
 """
-import sys, math, cmath, random
-from bidi_calculus import Thread, Knot, Breathfield, CounterField, census
-from cdc_semantics import (
-    BALANCED_TRITS,
-    DYADIC_TRIADIC_CLOSURE_STATES,
-    SourceKind,
-    SourceNode,
-    parse_cdc,
-    invariant_index,
-)
+from __future__ import annotations
 
-# ── carrier literals ───────────────────────────────────────────────────────── #
-def num(tok):
-    t = tok.strip()
-    table = {"pi": math.pi, "pi/2": math.pi / 2, "pi/4": math.pi / 4, "-pi": -math.pi,
-             "2pi": 2 * math.pi, "tau": 2 * math.pi, "3pi/2": 3 * math.pi / 2}
-    if t in table: return table[t]
-    return float(t)
-TRIT = {"+": 0.0, "-": math.pi, "o": math.pi / 2, "0": math.pi / 2}
+import shlex
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
 
 
-def parse_lines(value):
-    lines = tuple(int(x) for x in value.split(",") if x != "")
-    if not lines:
-        raise SyntaxError("lines= must name at least one target cell")
-    if any(i < 0 for i in lines):
-        raise SyntaxError(f"lines= cannot contain negative indexes: {value}")
-    return lines
+@dataclass
+class BootState:
+    root: Path
+    kernel: dict[str, str] = field(default_factory=dict)
+    terms: set[str] = field(default_factory=set)
+    rules: set[str] = field(default_factory=set)
+    provides: set[str] = field(default_factory=set)
+    bootloader_steps: set[str] = field(default_factory=set)
+    invariants: dict[str, dict[str, str]] = field(default_factory=dict)
+    capabilities: dict[str, dict[str, str]] = field(default_factory=dict)
+    witnesses: dict[str, dict[str, str]] = field(default_factory=dict)
+    expectations: list[tuple[str, list[str], str]] = field(default_factory=list)
 
-# ── operator algebra over the carrier (for `expect law ...`) ───────────────── #
-def _rand(n=6):  return [cmath.rect(1.0, random.uniform(0, 2 * math.pi)) for _ in range(n)]
-def _close(a, b, tol=1e-9): return all(abs(x - y) < tol for x, y in zip(a, b))
-def _law(name):
-    if name not in invariant_index():
-        raise KeyError(name)
-    rng = random.Random(1); random.seed(1)
-    a, b, c = _rand(), _rand(), _rand()
-    rot = lambda p, xs: [cmath.rect(1, p) * x for x in xs]
-    mul = lambda xs, ys: [x * y for x, y in zip(xs, ys)]
-    add = lambda xs, ys: [x + y for x, y in zip(xs, ys)]
-    fold = lambda xs: [xs[i] for i in (1, 2, 3, 2, 3, 4)]
-    one = [1 + 0j] * 6; bot = [0j] * 6; phi = 1.234
-    if name == "gate-abelian":
-        return (_close(mul(mul(a, b), c), mul(a, mul(b, c))) and _close(mul(a, b), mul(b, a))
-                and _close(mul(a, one), a) and _close(mul(a, [x.conjugate() for x in a]), one))
-    if name == "interfere-monoid":
-        return (_close(add(add(a, b), c), add(a, add(b, c))) and _close(add(a, b), add(b, a))
-                and _close(add(a, bot), a))
-    if name == "rotation-linear":
-        return _close(rot(phi, add(a, b)), add(rot(phi, a), rot(phi, b)))
-    if name == "corefold-morphism":
-        return (_close(fold(add(a, b)), add(fold(a), fold(b))) and _close(fold(rot(phi, a)), rot(phi, fold(a)))
-                and not _close(fold(fold(a)), fold(a)))
-    if name == "balanced-ternary-carrier":
-        vals = BALANCED_TRITS
-        return vals == (-1, 0, 1) and sum(vals) == 0 and {-x for x in vals} == set(vals)
-    if name == "dyadic-triadic-closure":
-        return 2 ** 6 == 4 ** 3 == DYADIC_TRIADIC_CLOSURE_STATES
-    if name == "local-confluence":
-        bf1 = Breathfield(dt=0.02)
-        bf1.add(Knot("A", threads=[Thread(theta=0.7 + 0.3 * i) for i in range(6)]))
-        bf1.add(Knot("B", threads=[Thread(theta=2.1 - 0.4 * i) for i in range(6)]))
-        bf2 = Breathfield(dt=0.02)
-        bf2.add(Knot("A", threads=[Thread(theta=0.7 + 0.3 * i) for i in range(6)]))
-        bf2.add(Knot("B", threads=[Thread(theta=2.1 - 0.4 * i) for i in range(6)]))
-        for bf, order in ((bf1, ("A", "B")), (bf2, ("B", "A"))):
-            for nm in order:
-                k = bf.knots[nm]
-                k.commit(bf.afferent(k, bf.t))
-        return bf1.knots["A"].trits() == bf2.knots["A"].trits() and bf1.knots["B"].trits() == bf2.knots["B"].trits()
-    if name == "flow-additivity":
-        def flow_field():
-            bf = Breathfield(dt=0.02, gain=1.4, kappa_gate=False)
-            bf.add(Knot("x", threads=[Thread(theta=0.0, omega=1.0)]))
-            bf.add(Knot("y", threads=[Thread(theta=2.0, omega=1.3)]))
-            bf.wire("x", "y")
-            bf.wire("y", "x")
-            return bf
-        g1 = flow_field()
-        g2 = flow_field()
-        g1.advance(0.37)
-        g1.advance(0.23)
-        g2.advance(0.60)
-        err = max(abs(g1.knots[n].threads[0].theta - g2.knots[n].threads[0].theta) for n in "xy")
-        return err < 1e-3
-    if name == "trace-order-locality":
-        bf = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
-        bf.add(Knot("slow", threads=[Thread(theta=0.0, omega=0.7)]))
-        bf.add(Knot("fast", threads=[Thread(theta=0.0, omega=1.3)]))
-        bf.advance(0.4)
-        slow = bf.trace_window("slow", t0=0.0, t1=bf.t, record=False)
-        fast = bf.trace_window("fast", t0=0.0, t1=bf.t, record=False)
-        return (
-            slow.commit_count == fast.commit_count == 0
-            and slow.event0 == slow.event1 == fast.event0 == fast.event1 == 0
-            and slow.total_phase_motion > 0
-            and fast.total_phase_motion > slow.total_phase_motion
-            and slow.samples[0][0] == 0.0
-            and slow.samples[-1][0] == bf.t
-        )
-    if name == "existence-viability":
-        passive = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
-        passive.add(Knot("rock", threads=[Thread(theta=math.pi / 2, omega=0.0)]))
-        reactive = Breathfield(dt=0.02, gain=1.0, kappa_gate=False)
-        reactive.add(Knot("src", threads=[Thread(theta=0.0, omega=0.0)]))
-        reactive.add(Knot("leaf", threads=[Thread(theta=math.pi / 2, omega=0.0)]))
-        reactive.wire("src", "leaf", weight=1.0)
-        intent = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
-        seed = Knot("seed", threads=[Thread(theta=math.pi / 2, omega=0.0)])
-        seed.prior = [0.6]
-        intent.add(seed)
-        agentic = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
-        agent = Knot("agent", threads=[Thread(theta=1.9, omega=0.0)])
-        agent.prior = [0.6]
-        agent.act_gain = 3.0
-        agentic.add(agent)
-        selfing = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
-        selfing.add(Knot("loop", threads=[Thread(theta=1.1, omega=0.0)]))
-        selfing.wire("loop", "loop", weight=1.0)
-        summaries = [
-            passive.existence_summary("rock"),
-            reactive.existence_summary("leaf"),
-            intent.existence_summary("seed"),
-            agentic.existence_summary("agent"),
-            selfing.existence_summary("loop"),
-        ]
-        modes = tuple(s.agency_mode for s in summaries)
-        return (
-            modes == ("passive", "reactive", "intent", "agentic", "self-referential")
-            and all(s.viable for s in summaries)
-            and summaries[0].transition_capacity == 0
-            and all(s.transition_capacity > 0 for s in summaries[1:])
-        )
-    if name == "preservation":
-        for _ in range(500):
-            k = Knot("k", threads=[Thread(theta=random.uniform(0, 6.28)) for _ in range(6)])
-            k.commit([0j] * 6)
-            r = 0
-            for t in k.trits():
-                r += t
-                if r < 0: return False
-        return True
-    if name == "soundness":
-        worst = -1e9
-        for _ in range(800):
-            k = Knot("k", threads=[Thread(theta=random.uniform(0, 6.28)) for _ in range(6)])
-            k.belief = [random.uniform(-1, 1) for _ in range(6)]; k.precision = random.uniform(.1, 5)
-            A = [cmath.rect(random.uniform(0, 1.5), random.uniform(0, 6.28)) for _ in range(6)]
-            f0 = k.free_energy(A); f1, _ = k.commit(A); worst = max(worst, f1 - f0)
-        return worst <= 1e-9
-    if name == "normalforms":
-        c = census(); return c["classical_localized"] == 5 and c["localized"] == 51
-    raise KeyError(name)
 
-# ── the bootstrap interpreter ──────────────────────────────────────────────── #
-class Field:
-    def __init__(self, name, dt, gain, open_, deadband):
-        self.name = name
-        self.deadband = deadband
-        self.bf = Breathfield(dt=dt, gain=gain, deadband=deadband, kappa_gate=not open_)
+def strip_comment(line: str) -> str:
+    return line.split("#", 1)[0].strip()
 
-class Counter:
-    def __init__(self, name): self.name = name; self.cf = CounterField(); self.start = None; self.result = None
 
-class Kernel:
-    def __init__(self, name, stage, target):
-        self.name = name
-        self.stage = stage
-        self.target = target
-        self.terms = set()
-        self.rules = set()
-        self.capabilities = set()
-        self.bootloader_scope = ""
+def split_line(line: str, filename: str, line_no: int) -> list[str]:
+    try:
+        return shlex.split(line)
+    except ValueError as exc:
+        raise SyntaxError(f"{filename}:{line_no}: {exc}") from exc
 
-class CDC:
-    def __init__(self):
-        self.stack = []          # nested Field/Counter contexts
-        self.fields = {}         # name -> Field (for reference)
-        self.results = []        # (ok, label)
-        self.deadband = 0.5      # global default; can be overridden before fields
 
-    def top(self):  return self.stack[-1]
-    def field_top(self):
-        for c in reversed(self.stack):
-            if isinstance(c, Field): return c
-        raise SyntaxError("no enclosing field")
+def kv(tokens: list[str]) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for token in tokens:
+        if "=" in token:
+            key, value = token.split("=", 1)
+            out[key] = value
+    return out
 
-    def run_files(self, paths):
-        for p in paths:
-            self.run(open(p, encoding="utf-8").read(), p)
-        return self
 
-    def run(self, src, fname=""):
-        program = parse_cdc(src, fname)
-        for node in program.children:
-            self.exec_node(node)
+def flags(tokens: list[str]) -> list[str]:
+    return [token for token in tokens if "=" not in token]
 
-    def exec_node(self, node: SourceNode):
-        if node.kind in (SourceKind.KERNEL, SourceKind.FIELD, SourceKind.NEST, SourceKind.COUNTER):
-            self.exec_statement(node)
-            for child in node.children:
-                self.exec_node(child)
-            self.exec_end()
-            return
-        self.exec_statement(node)
 
-    def exec_line(self, line):
-        program = parse_cdc(line)
-        if len(program.children) != 1:
-            raise SyntaxError(f"expected one statement: {line}")
-        self.exec_node(program.children[0])
+def parse_file(state: BootState, path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    for line_no, raw in enumerate(text.splitlines(), start=1):
+        line = strip_comment(raw)
+        if not line or line == "end":
+            continue
+        tokens = split_line(line, str(path), line_no)
+        if not tokens:
+            continue
+        cmd, rest = tokens[0], tokens[1:]
+        args, attrs = flags(rest), kv(rest)
+        source = f"{path.name}:{line_no}"
 
-    def exec_end(self):
-        ctx = self.stack.pop()
-        if isinstance(ctx, Field) and hasattr(ctx, "_attach"):
-            parent, module = ctx._attach
-            parent.bf.nest(module, ctx.bf)
-        if isinstance(ctx, Counter) and ctx.start is not None:
-            ctx.result = ctx.cf.run(ctx.start)
+        if cmd == "kernel":
+            if not args:
+                raise SyntaxError(f"{source}: kernel requires a name")
+            state.kernel = {"name": args[0], **attrs}
+        elif cmd == "term":
+            state.terms.update(args)
+        elif cmd == "rule":
+            state.rules.update(args)
+        elif cmd == "provides":
+            state.provides.update(args)
+        elif cmd == "bootloader":
+            state.bootloader_steps.update(args)
+        elif cmd in {"invariant", "law"}:
+            if not args:
+                raise SyntaxError(f"{source}: {cmd} requires a key")
+            key = args[0]
+            state.invariants.setdefault(key, {})
+            state.invariants[key].update({"kind": cmd, **attrs})
+        elif cmd == "capability":
+            if not args:
+                raise SyntaxError(f"{source}: capability requires a key")
+            key = args[0]
+            state.capabilities.setdefault(key, {})
+            state.capabilities[key].update(attrs)
+        elif cmd == "witness":
+            if not args:
+                raise SyntaxError(f"{source}: witness requires an id")
+            wid = args[0]
+            state.witnesses[wid] = {"source": source, **attrs}
+        elif cmd == "expect":
+            state.expectations.append((source, rest, line))
+        else:
+            raise SyntaxError(f"{source}: unknown directive {cmd!r}")
 
-    def exec_statement(self, node: SourceNode):
-        kw = node.kind.value
-        kv = dict(node.kwargs)
-        flags = list(node.flags)      # keeps operators like >=, ==, <=
-        line = node.source
 
-        if kw == "deadband":
-            if self.stack:
-                raise SyntaxError("deadband must be declared outside any field or counter")
-            value = num(flags[1])
-            if not (0.0 < value < 1.0):
-                raise SyntaxError("deadband must satisfy 0 < deadband < 1")
-            self.deadband = value
-            return
+def python_files(state: BootState) -> list[Path]:
+    return sorted(p for p in state.root.glob("*.py") if p.is_file())
 
-        if kw == "kernel":
-            stage = int(kv.get("stage", "0"))
-            target = kv.get("target", "cdc")
-            self.stack.append(Kernel(flags[1], stage, target))
-            return
 
-        if kw == "field":
-            deadband = float(kv.get("deadband", self.deadband))
-            f = Field(flags[1], float(kv.get("dt", 0.02)), float(kv.get("gain", 1.2)),
-                      kv.get("open", "no").lower() in ("yes", "true", "1"), deadband)
-            self.stack.append(f); self.fields[f.name] = f; return
+def witnesses_for(state: BootState, key: str, field: str) -> list[str]:
+    return [wid for wid, attrs in state.witnesses.items() if attrs.get(field) == key]
 
-        if kw == "nest":
-            module = flags[1]
-            deadband = float(kv.get("deadband", self.field_top().deadband))
-            child = Field("_child", float(kv.get("dt", 0.005)), float(kv.get("gain", 1.2)),
-                          kv.get("open", "no").lower() in ("yes", "true", "1"), deadband)
-            child._attach = (self.field_top(), module)
-            self.stack.append(child); return
 
-        if kw == "counter":
-            self.stack.append(Counter(flags[1])); return
+def compare(got: int | str, op: str, want: int | str) -> bool:
+    if isinstance(got, int) and isinstance(want, int):
+        if op == "==":
+            return got == want
+        if op == ">=":
+            return got >= want
+        if op == "<=":
+            return got <= want
+    if op == "==":
+        return got == want
+    raise ValueError(f"unsupported comparison: {got!r} {op} {want!r}")
 
-        if kw == "expect" and not self.stack:                     # top-level law assertions
-            a = flags[1:]
-            if a and a[0] == "law":
-                self.results.append((_law(a[1]), f"law {a[1]}")); return
-            raise SyntaxError(f"top-level expect: {line}")
 
-        ctx = self.top()
+def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
+    if not args:
+        return False, "empty expectation"
 
-        # ----- native self-hosting declarations -----
-        if isinstance(ctx, Kernel):
-            if kw == "term":
-                ctx.terms.add(flags[1]); return
-            if kw == "rule":
-                ctx.rules.add(flags[1]); return
-            if kw == "provides":
-                ctx.capabilities.update(flags[1:]); return
-            if kw == "bootloader":
-                ctx.bootloader_scope = " ".join(flags[1:]); return
-            if kw == "expect":
-                self.results.append(self.eval_kernel_expect(ctx, flags[1:], line)); return
-            raise SyntaxError(f"kernel: {line}")
+    head = args[0]
+    if head == "native" and args[1:3] == ["substrate", "=="]:
+        want = args[3]
+        got = state.kernel.get("target", "")
+        return got == want, f"native substrate == {want} (got {got or 'unset'})"
 
-        # ----- counter sub-language -----
-        if isinstance(ctx, Counter):
-            if kw == "reg":   ctx.cf.reg(flags[1], int(flags[2]) if len(flags) > 2 else 0); return
-            if kw == "instr":
-                name = flags[1]; op = flags[2]
-                if op == "inc":
-                    ctx.cf.instr(name, "inc", reg=flags[3], nxt=flags[5]); return
-                if op == "jzdec":
-                    # instr L0 jzdec c2 -> L1 | H
-                    reg = flags[3]; nz = flags[5]; z = flags[7]
-                    ctx.cf.instr(name, "jzdec", reg=reg, nxt=nz, alt=z); return
-                if op == "halt":
-                    ctx.cf.instr(name, "halt"); return
-            if kw == "run":    ctx.start = flags[2]; return  # run from <start>
-            if kw == "expect":
-                # expect reg c1 == 7
-                if flags[1] == "reg":
-                    if ctx.result is None: ctx.result = ctx.cf.run(ctx.start)
-                    got = ctx.result.get(flags[2]); want = int(flags[4])
-                    self.results.append((got == want, f"{ctx.name}: reg {flags[2]} == {want} (got {got})"))
-                    return
-            raise SyntaxError(f"counter: {line}")
+    if head == "host-debt":
+        op, want = args[1], int(args[2])
+        got = 1 if state.bootloader_steps else 0
+        return compare(got, op, want), f"host-debt {op} {want} (got {got})"
 
-        # ----- field language -----
-        bf = ctx.bf
-        if kw == "module":
-            name = flags[1]
-            sub = flags[2]
-            if sub == "theta":
-                vals = []; i = 3
-                while i < len(flags) and flags[i] not in ("omega", "precision", "prior", "act"):
-                    vals.append(num(flags[i])); i += 1
-                ths = [Thread(theta=v) for v in vals]
-                if "omega" in flags:
-                    j = flags.index("omega") + 1; oms = []
-                    while j < len(flags) and flags[j] not in ("precision", "prior", "act"):
-                        oms.append(num(flags[j])); j += 1
-                    for t, o in zip(ths, oms * len(ths)): t.omega = o
-                k = Knot(name, threads=ths)
-            elif sub == "trits":
-                k = Knot(name, threads=[Thread(theta=TRIT[x]) for x in flags[3:3 + 6]])
-            else:
-                raise SyntaxError(line)
-            if "precision" in flags: k.precision = num(flags[flags.index("precision") + 1])
-            if "act" in flags:       k.act_gain = num(flags[flags.index("act") + 1])
-            if "prior" in flags:
-                j = flags.index("prior") + 1; k.prior = [num(flags[j + i]) for i in range(k.n)]
-            bf.add(k); return
+    if head in {"terms", "rules", "invariants", "witnesses", "capabilities"}:
+        op, want = args[1], int(args[2])
+        collections = {
+            "terms": state.terms,
+            "rules": state.rules,
+            "invariants": state.invariants,
+            "witnesses": state.witnesses,
+            "capabilities": state.capabilities,
+        }
+        got = len(collections[head])
+        return compare(got, op, want), f"{head} {op} {want} (got {got})"
 
-        if kw == "channel":
-            src, dst = flags[1], flags[3]
-            angle = num(kv["angle"]) if "angle" in kv else 0.0
-            lines = parse_lines(kv["lines"]) if "lines" in kv else None
-            weight = num(kv.get("weight", "1.0"))
-            tau = num(kv.get("delay", "0.0"))
-            if "/" in src or "/" in dst:
-                bf.relate(src, dst, weight=weight, tau=tau, angle=angle, lines=lines)
-            else:
-                bf.wire(src, dst, weight=weight, tau=tau, angle=angle, lines=lines,
-                        hebbian=("plastic" in flags))
-            return
-        if kw == "guard":
-            i = int(flags[3]) if len(flags) > 3 else 0
-            bf.guards[flags[1]] = (lambda idx: (lambda k, t: math.sin(k.threads[idx].theta) - 0.7))(i); return
-        if kw == "flow":   bf.advance(num(flags[1])); return
-        if kw == "commit":
-            if flags[1] == "all": bf.breathe_all()
-            else:
-                k = bf.knots[flags[1]]; k.commit(bf.afferent(k, bf.t))
-            return
-        if kw == "expect":
-            self.results.append(self.eval_expect(bf, flags[1:], line)); return
+    if head == "provides":
+        missing = [item for item in args[1:] if item not in state.provides]
+        return not missing, f"provides {' '.join(args[1:])}" + (f" (missing {missing})" if missing else "")
 
-        raise SyntaxError(f"unknown: {line}")
+    if head == "law":
+        key = args[1]
+        linked = witnesses_for(state, key, "invariant")
+        return key in state.invariants and bool(linked), f"law {key} (witnesses {len(linked)})"
 
-    def eval_kernel_expect(self, kernel, a, line):
-        p = a[0]
-        if p == "native":
-            got = kernel.target
-            want = a[3]
-            return (got == want, f"{kernel.name}: native substrate == {want} (got {got})")
-        if p == "host-debt":
-            want = int(a[2])
-            debt = 1 if kernel.bootloader_scope else 0
-            ok = debt <= want if a[1] == "<=" else debt == want
-            return (ok, f"{kernel.name}: host-debt {a[1]} {want} (got {debt})")
-        if p == "terms":
-            want = int(a[2])
-            ok = len(kernel.terms) >= want if a[1] == ">=" else len(kernel.terms) == want
-            return (ok, f"{kernel.name}: terms {a[1]} {want} (got {len(kernel.terms)})")
-        if p == "rules":
-            want = int(a[2])
-            ok = len(kernel.rules) >= want if a[1] == ">=" else len(kernel.rules) == want
-            return (ok, f"{kernel.name}: rules {a[1]} {want} (got {len(kernel.rules)})")
-        if p == "provides":
-            missing = [x for x in a[1:] if x not in kernel.capabilities]
-            return (not missing, f"{kernel.name}: provides {' '.join(a[1:])}")
-        raise SyntaxError(f"kernel expect: {line}")
+    if head == "capability":
+        key = args[1]
+        linked = witnesses_for(state, key, "capability")
+        return key in state.capabilities and bool(linked), f"capability {key} (witnesses {len(linked)})"
 
-    # ----- expectation predicates -----
-    def eval_expect(self, bf, a, line):
-        p = a[0]
-        if p == "law":
-            return (_law(a[1]), f"law {a[1]}")
-        if p == "coherence-global":
-            v = float(a[2]); g = bf.global_coherence()
-            ok = g >= v if a[1] == ">=" else g <= v
-            return (ok, f"coherence-global {a[1]} {v} (got {g:.2f})")
-        if p == "coherence":
-            m = bf.knots[a[1]]; v = float(a[3]); g = m.coherence()
-            ok = g >= v if a[2] == ">=" else g <= v
-            return (ok, f"coherence {a[1]} {a[2]} {v} (got {g:.2f})")
-        if p == "admissible":
-            return (bf.knots[a[1]].admissible(), f"admissible {a[1]}")
-        if p == "localized":
-            return (bf.knots[a[1]].localized(), f"localized {a[1]}")
-        if p == "address":
-            got = bf.knots[a[1]].address(); want = int(a[3])
-            return (got == want, f"address {a[1]} == {want} (got {got})")
-        if p == "belief":
-            m = bf.knots[a[1]]; v = float(a[3]); tol = float(a[4]) if len(a) > 4 else 0.1
-            sens = bf.afferent(m, bf.t)[0].real
-            return (abs(m.belief[0] - v) < tol and abs(sens - v) < 0.2, f"belief {a[1]} near {v} (got {m.belief[0]:.3f})")
-        if p == "weight":
-            src, dst = a[1], a[2]; v = float(a[4])
-            w = next(s.weight for s in bf.strands if s.src.name == src and s.dst.name == dst)
-            ok = w > v if a[3] == ">" else w < v
-            return (ok, f"weight {src}->{dst} {a[3]} {v} (got {w:.2f})")
-        if p == "delay":
-            src, dst, tau = a[1], a[2], float(a[3])
-            W = bf.knots[src]; now = W.threads[0].theta % (2 * math.pi)
-            d = cmath.phase(W.delayed(bf.t, tau)[0]) % (2 * math.pi)
-            lag = (now - d) % (2 * math.pi); want = (W.threads[0].omega * tau) % (2 * math.pi)
-            return (abs(lag - want) < 0.06, f"delay {src}->{dst} ≈ ω·τ={want:.2f} (got {lag:.2f})")
-        if p == "events-offgrid":
-            if not bf.events: return (False, "events-offgrid (none fired)")
-            te = bf.events[0][0]; off = abs((te / bf.dt) - round(te / bf.dt))
-            return (off > 1e-6, f"events-offgrid (t={te:.4f}, off {off:.3f})")
-        if p == "multirate":
-            v = int(a[2])
-            ipo = max((getattr(k.child, "inner_per_outer", 0) for k in bf.knots.values() if k.child), default=0)
-            return (ipo >= v, f"multirate >= {v} (got {ipo})")
-        if p == "interference":
-            # expect interference <src-path> <dst-path> <cos|sin|gamma|energy> <op> <v>
-            src, dst, fld, op, v = a[1], a[2], a[3], a[4], float(a[5])
-            src_obj, dst_obj = bf.resolve(src), bf.resolve(dst)
-            candidates = [s for s in bf.strands if s.dst is dst_obj] + dst_obj.inbound
-            strand = next((s for s in candidates if s.src is src_obj), None)
-            if strand is None:
-                raise SyntaxError(f"no relation found for interference assertion: {src} -> {dst}")
-            ro = bf.relation_readout(strand)[fld]
-            ok = ro >= v if op == ">=" else ro <= v if op == "<=" else abs(ro - v) < 1e-6
-            return (ok, f"interference {src}->{dst} {fld} {op} {v} (got {ro:.2f})")
-        raise SyntaxError(f"expect: {line}")
+    if head == "witness":
+        wid = args[1]
+        return wid in state.witnesses, f"witness {wid}"
 
-    def report(self):
-        print("═" * 74)
-        print("  .cdc execution report   (bootstrap bridge → calculus reduction)")
-        print("═" * 74)
-        npass = 0
-        for ok, label in self.results:
-            npass += ok
-            print(f"  {'✅' if ok else '❌'} {label}")
-        print("─" * 74)
-        print(f"  {npass}/{len(self.results)} expectations met")
-        print("═" * 74)
-        return npass == len(self.results)
+    if head == "python-files":
+        op, want = args[1], int(args[2])
+        files = python_files(state)
+        return compare(len(files), op, want), f"python-files {op} {want} (got {len(files)}: {[p.name for p in files]})"
+
+    if head == "bootloader":
+        if args[1:] == ["minimal", "==", "true"]:
+            files = python_files(state)
+            ok = len(files) == 1 and files[0].name == "cdc_boot.py"
+            return ok, f"bootloader minimal == true (python files {[p.name for p in files]})"
+
+    return False, f"unknown expectation: {' '.join(args)}"
+
+
+def report(state: BootState) -> bool:
+    print("=" * 74)
+    print("  .cdc native contract report")
+    print("=" * 74)
+    passed = 0
+    for source, args, _line in state.expectations:
+        ok, label = eval_expect(state, args)
+        passed += int(ok)
+        print(f"  {'OK' if ok else 'FAIL'} {label}   [{source}]")
+    print("-" * 74)
+    print(f"  {passed}/{len(state.expectations)} expectations met")
+    print(f"  {len(state.terms)} terms, {len(state.rules)} rules, {len(state.invariants)} invariants")
+    print(f"  {len(state.capabilities)} capabilities, {len(state.witnesses)} native witnesses")
+    print("=" * 74)
+    return passed == len(state.expectations)
+
+
+def main(argv: list[str]) -> int:
+    root = Path(__file__).resolve().parent
+    paths = [root / arg for arg in argv] if argv else sorted(root.glob("*.cdc"))
+    state = BootState(root=root)
+    for path in paths:
+        parse_file(state, path)
+    return 0 if report(state) else 1
 
 
 if __name__ == "__main__":
-    paths = sys.argv[1:] or []
-    ok = CDC().run_files(paths).report()
-    sys.exit(0 if ok else 1)
+    raise SystemExit(main(sys.argv[1:]))

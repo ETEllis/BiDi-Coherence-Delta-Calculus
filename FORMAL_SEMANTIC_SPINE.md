@@ -2,8 +2,7 @@
 
 This document pins the next formalization pass to one canonical object. CDC is
 the language; this spine is the semantic kernel that keeps `.cdc`, the paper,
-the transitional host reducer, the bridge, and the witnesses from drifting into
-parallel descriptions.
+the bootloader, and the witnesses from drifting into parallel descriptions.
 
 ## Principle
 
@@ -15,13 +14,14 @@ Every artifact should become a projection of the same semantic spine:
   -> runtime state tuple
   -> small-step relation
   -> invariant table
-  -> executable witnesses
+  -> native witnesses
   -> theorem-prover obligations
 ```
 
-The current repository already has working reducer behavior and passing witness
-suites. The refinement is to make the formal spine explicit enough that future
-code and proofs can be generated from, or audited against, the same source.
+The current repository has a native `.cdc` contract/witness suite and one minimal
+Python bootloader. The refinement is to make the formal spine explicit enough
+that future reducer code and proofs can be generated from, or audited against,
+the same native source.
 
 Trace/window semantics are derived from this spine. They do not add a fourth
 foundational step kind. They name causal observer windows, trace spans, and
@@ -38,15 +38,13 @@ The AST should represent only the canonical calculus primitives:
 - `FieldTerm`: modules, channels, child fields, timestep, gain, deadband, gating.
 - `CounterTerm`: register-machine witness term for universality.
 - `WindowSpec`, `TraceSpan`, `ObserverSpec`, `MeasurementRecord`,
-  `AgencySummary`, and `IncidenceSpec`: derived observer/measurement records over
-  the same field state.
+  `WindowPolicy`, `AgencySummary`, and `IncidenceSpec`: derived observer,
+  measurement, local-counter, and policy records over the same field state.
 
-`cdc_semantics.py` now defines these as dataclasses.
-
-Those dataclasses are transitional host descriptions. The native target is for
-the same spine to be expressed as `.cdc` terms and transition rules, starting
-with `kernel.cdc` and continuing until the host loader is only mechanical
-bootstrap code. See `NATIVE_SELF_HOSTING_MANDATE.md`.
+`kernel.cdc` now declares the canonical term surface. The native target is for
+the same spine to continue growing as `.cdc` terms and transition rules while
+`cdc_boot.py` remains only mechanical bootstrap code. See
+`NATIVE_SELF_HOSTING_MANDATE.md`.
 
 ## Runtime State Tuple
 
@@ -68,10 +66,9 @@ Each cell state carries:
 x = (theta, amplitude, plasticity, omega, sigma, memory)
 ```
 
-This tuple is the intended bridge between mathematical notation and executable
-code. `bidi_calculus.py` currently realizes the same structure through mutable
-Python objects; the semantic spine names the immutable shape those objects
-instantiate.
+This tuple is the intended bridge between mathematical notation and future
+native reducer code. The semantic spine names the immutable shape the native
+runtime must instantiate.
 
 ## Small-Step Relation
 
@@ -89,8 +86,8 @@ up-cone and one aggregate parent-to-child down-cone for each child module.
 General channels may use nonzero `alpha` and projected `lines`, so the original
 parent/child cone is the neutral case of the same relation operator.
 
-The reference reducer may integrate flow numerically, but the semantic relation
-is the source of truth. Numerical choices should be recorded as realization
+A future reducer may integrate flow numerically, but the semantic relation is
+the source of truth. Numerical choices should be recorded as realization
 parameters, not confused with the calculus definition.
 
 ## Derived Trace/Window Layer
@@ -113,6 +110,10 @@ false. A committing measurement is a guarded balanced-ternary commit plus a
 `MeasurementRecord`; passive observation produces a `TraceSpan` and leaves field
 dynamics unchanged.
 
+Window policy is recursive but not foundational. It can update the sampling,
+commit, adaptation, or projected-state policy for a bounded window while still
+reducing through `flow`, `commit`, and `nest`.
+
 ## Typed Invariant Table
 
 Each invariant should have:
@@ -122,7 +123,7 @@ Each invariant should have:
 - the witness file and witness name;
 - a future theorem-prover target.
 
-`cdc_semantics.py` now defines `InvariantSpec` and `INVARIANTS` for:
+`laws.cdc` now declares invariant keys and witness links for:
 
 - `gate-abelian`;
 - `interfere-monoid`;
@@ -158,22 +159,23 @@ parse .cdc -> native kernel terms -> native reducer transitions -> native expect
 At that point a host language is no longer the semantic center; it is only one
 replaceable loader for a language that can describe itself.
 
-### `bidi_calculus.py`
+### `cdc_boot.py`
 
-The reducer should be audited as an implementation of the small-step relation.
-The current class names can remain stable API names while internal transitions
-move toward explicit `ReductionStep` records.
+The bootloader must remain a loader/checker only: read `.cdc`, collect
+declarations, verify expectations, and report. It must not grow reducer
+semantics back into Python.
 
-### `calculus_laws.py`
+### Native Witness Files
 
-Law checks should iterate over `INVARIANTS`, not manually duplicate the invariant
-registry. Each executable witness should declare which invariant it discharges.
+`laws.cdc`, `system.cdc`, `relations.cdc`, and `trace_windows.cdc` should remain
+the native witness surface. Each witness declares the invariant or capability it
+discharges.
 
 ### Paper
 
-The paper should present the same AST/state/reduction/invariant table, then state
-which parts are currently executable witnesses and which parts are future formal
-proof obligations.
+The paper should present the same AST/state/reduction/invariant table, then
+state which parts are currently native witness declarations and which parts are
+future formal proof obligations.
 
 ### Lean/Coq/Kani
 
@@ -189,20 +191,21 @@ explicit Lipschitz/determinism assumptions.
 
 ## Acceptance Criteria For The Next Pass
 
-- `.cdc` parses into `ProgramTerm`.
-- `cdc_boot.py` executes from a parsed source AST rather than raw line commands.
-- `kernel.cdc` grows from contract declarations into executable native reducer
+- `.cdc` grows from declaration parsing into `ProgramTerm`.
+- `cdc_boot.py` remains a minimal loader/checker and does not accumulate reducer semantics.
+- `kernel.cdc` grows from contract declarations into native reducer
   clauses.
 - relation witnesses cover angular phase, dimension projection, path endpoints,
   and `.cdc` nesting auto-cone installation.
 - trace/window witnesses cover passive observation, committing measurement,
   trace additivity, causal windows, observer roles, incidence projections,
-  agency summaries, trace-order locality, and projected higher-order boundaries.
-- every witness in `calculus_laws.py` references an `InvariantSpec`.
-- the paper's invariant table matches `cdc_semantics.py`.
-- native `.cdc` replacements are introduced before host files are removed.
+  local counters, recursive window policy, coupled observation, agency summaries,
+  trace-order locality, and projected higher-order boundaries.
+- every witness in `.cdc` references an invariant or capability key.
+- the paper's invariant table matches `laws.cdc`.
+- deleted host files stay deleted; replacements live in `.cdc`.
 - `scripts/verify.sh` proves code, `.cdc`, witnesses, and semantic registry stay
   synchronized.
 
-This is the path from executable calculus to theorem-prover-ready calculus
+This is the path from native contract calculus to theorem-prover-ready calculus
 without losing the working system.

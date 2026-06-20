@@ -1,7 +1,7 @@
 [project]
 name = "bidi-coherence-delta-calculus"
-version = "0.1.3"
-description = "Native .cdc language sources, transitional host reducer/bridge, executable witnesses, and paper source for BiDi Coherence-Delta Calculus."
+version = "0.2.0"
+description = "Native .cdc language sources, a minimal Python bootloader, native witness declarations, and paper source for BiDi Coherence-Delta Calculus."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -29,4 +29,4 @@ Homepage = "https://github.com/ETEllis/bidi-coherence-delta-calculus"
 Repository = "https://github.com/ETEllis/bidi-coherence-delta-calculus"
 
 [tool.setuptools]
-py-modules = ["bidi_calculus", "cdc_boot", "cdc_semantics", "calculus_laws", "acceptance", "relation_witness", "trace_window_witness"]
+py-modules = ["cdc_boot"]

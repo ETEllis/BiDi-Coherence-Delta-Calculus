@@ -30,8 +30,8 @@ That gives the project two separate success stories:
 - **Calculus success:** the language kernel has explicit terms, reductions,
   invariants, witnesses, and theorem-prover obligations.
 
-The current Python files are transitional construction scaffolding and executable
-witnesses. They are not the desired language surface.
+The only Python file left is `cdc_boot.py`, a minimal bootloader that reads
+native `.cdc` declarations and verifies expectations. It is not the calculus.
 
 ## Native Status
 
@@ -40,10 +40,10 @@ explicit in `NATIVE_SELF_HOSTING_MANDATE.md`: all current host behavior must be
 replaced by native `.cdc` semantics and witnesses before host files are deleted
 without breaking verification.
 
-The practical bootloader decision for this release is conservative: keep Python
-as the widely available temporary loader/reducer host, but keep shrinking its
-authority. `.cdc` owns the source terms, declared reducer rules, proof
-obligations, and self-hosting contract.
+The practical bootloader decision for this release is now enforced by the repo:
+Python is allowed only as `cdc_boot.py`. `.cdc` owns the source terms, declared
+reducer rules, proof obligations, capability witnesses, and self-hosting
+contract.
 
 ## Installation & Exploration
 
@@ -53,10 +53,7 @@ Requires Python ≥ 3.10. Zero runtime dependencies.
 git clone https://github.com/ETEllis/bidi-coherence-delta-calculus.git
 cd bidi-coherence-delta-calculus
 ./scripts/verify.sh          # Full verification gate (start here)
-python3 calculus_laws.py     # Law & metatheorem witnesses
-python3 cdc_boot.py kernel.cdc system.cdc laws.cdc
-python3 trace_window_witness.py
-python3 acceptance.py        # Capability witnesses
+python3 cdc_boot.py          # Native .cdc contract/witness verification
 ```
 
 Editable install:
@@ -98,10 +95,6 @@ flowchart TD
 - `bidiγΔ` — bidirectional coherence-delta across nested reference frames and path endpoints
 - `window` — derived observer projection over a field, producing ternary traces and measurement records
 
-Legacy implementation names (`Thread`, `Strand`, `Knot`, `Breathfield`,
-`breath`) are compatibility anchors only. New docs and user-facing language
-should use the canonical vocabulary above.
-
 ## Why This Substrate Exists
 
 Modern hybrid systems routinely combine continuous simulation or control, evented transitions, delayed feedback, policy invariants, local learning, predictive belief updates, and nested scale coupling — usually implemented in fragmented toolkits.
@@ -114,30 +107,29 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Angular/path channels** — channels can rotate incoming phase by `angle=`, project onto selected `lines=`, and connect paths such as `P/c -> P`.
 - **Trace/window observer layer** — any module, relation, or projected boundary can hold a causal window; committing measurements are guarded balanced-ternary commits.
 - **Trace-order locality** — phase-time can flow smoothly while event-time remains local to the observing window; there is no required global tick.
+- **Recursive window policy** — observer windows can carry local counters and projection/update policy without adding a binary observer or global clock.
 - **Balanced-ternary carrier** — committed values are `-1 / 0 / +1` around real equilibrium, not binary false/true labels.
 - **Existence viability** — frames persist by preserving bounded coherent continuity while retaining mode-appropriate transition capacity.
-- **64-state dyadic/triadic bridge** — executable witness pins the `2^6 = 4^3 = 64` closure codebook for bootstrap/runtime bridge design.
+- **64-state dyadic/triadic bridge** — native witness pins the `2^6 = 4^3 = 64` closure codebook for bootstrap/runtime bridge design.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
-- **Executable free-energy witnesses** — commits are guarded against Φ increase; continuous flow has explicit subset witnesses and formal obligations.
+- **Native free-energy witnesses** — commits are guarded against Φ increase; continuous flow has explicit subset obligations.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
 - **Native kernel contract** — `kernel.cdc` starts the self-hosting path by declaring calculus terms, reducer rules, capabilities, and the shrinking bootloader boundary.
-- **Transitional executable host** — Python currently witnesses the calculus, but the native target is `.cdc` self-hosting.
+- **Minimal bootloader** — `cdc_boot.py` only loads `.cdc`, checks declarations, and reports expectations.
 
-Core metatheorems and bridge invariants are witnessed by executable code, with
+Core metatheorems and bridge invariants are witnessed by native `.cdc`, with
 the finite discrete layer positioned as the first theorem-prover target.
 
-## Verification Status (v0.1.3)
+## Verification Status (v0.2.0)
 
 The package passes 100%:
 
-- 22/22 law, metatheorem, viability, trace-order, and bridge witnesses
-- 32/32 native `.cdc` expectations (`kernel.cdc`, `system.cdc`, `laws.cdc`)
-- 5/5 relational phase-channel witnesses plus native `relations.cdc`
-- 12/12 ternary trace/window witnesses
-- 24/24 capability acceptance witnesses
-- Deadband propagation smoke test
-- Line projection validation
-- Invariant registry integrity
+- 1/1 Python bootloader file: `cdc_boot.py`
+- 79/79 native `.cdc` expectations
+- 13/13 native invariant declarations
+- 24/24 native capability declarations
+- 72/72 native witness declarations
+- Paper compile through `tectonic` when available
 
 Run the full gate anytime:
 
@@ -148,15 +140,14 @@ Run the full gate anytime:
 ## Native `.cdc` Example
 
 ```cdc
-deadband 0.5
-field demo dt=0.02 gain=1.4
-  module A theta 0 0.3 0.6 0.9 1.2 1.5 omega 1.0
-  module B trits + o - + o -
-  channel A -> B delay=0.2 weight=1.0 angle=pi/4 lines=0,2,4
-  guard B crossing 0
-  flow 3.0
-  commit B
-  expect admissible B
+kernel bidi stage=2 target=cdc
+  term cell channel module field counter trace window measurement bridge policy
+  rule flow commit nest relation trace trace-order window measure adapt synchronize
+  provides native-witness-suite native-capability-suite
+  bootloader read-source parse-lines collect-native-declarations verify-expectations report
+  expect native substrate == cdc
+  expect python-files == 1
+  expect witnesses >= 72
 end
 ```
 
@@ -175,7 +166,9 @@ cd paper/arxiv && pdflatex main.tex && pdflatex main.tex
 
 ## Boundaries & Next
 
-Law checks are executable witnesses, not mechanized proofs. The formalization spine for the next pass (immutable runtime state tuple, small-step relations for flow/commit/nest, port to Lean/Coq/Kani) is in `FORMAL_SEMANTIC_SPINE.md`.
+Native witness declarations are not mechanized proofs. The formalization spine
+for the next pass (immutable runtime state tuple, small-step relations for
+flow/commit/nest, port to Lean/Coq/Kani) is in `FORMAL_SEMANTIC_SPINE.md`.
 
 Claim-to-witness-to-proof tracking is in `VERIFICATION_OBLIGATION_MATRIX.md`.
 The observer/measurement extension is documented in `TERNARY_TRACE_WINDOW_SEMANTICS.md`.

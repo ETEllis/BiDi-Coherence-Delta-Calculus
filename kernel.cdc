@@ -1,43 +1,36 @@
 # kernel.cdc -- native self-hosting contract for BiDi Coherence-Delta Calculus.
-# This file is intentionally .cdc, not Python. It pins the language's own
-# semantic kernel as native source that the temporary host bridge must obey.
+# Python may load and check this file, but the language/kernel contract lives here.
 
-kernel bidi stage=1 target=cdc
-  term cell
-  term channel
-  term module
-  term field
-  term counter
-  term trace
-  term window
-  term measurement
-  term bridge
+kernel bidi stage=2 target=cdc
+  term cell channel module field counter trace window measurement bridge policy
 
-  rule flow
-  rule commit
-  rule nest
-  rule relation
-  rule trace
-  rule trace-order
-  rule window
-  rule measure
-  rule existence-viability
-  rule dyadic-triadic-closure
+  rule flow commit nest relation trace trace-order window measure adapt synchronize
+  rule existence-viability dyadic-triadic-closure invariant-check witness-check
 
   provides parser-state reducer-state witness-state trace-window-state
   provides balanced-ternary-carrier angular-phase path-relation invariant-gate
   provides dyadic-triadic-bridge closure-64
-  provides trace-order-locality local-time
+  provides trace-order-locality local-time local-counter-synchrony
+  provides observer-window-coupling recursive-window-policy shared-state-commit
   provides existence-viability agency-spectrum
-  bootloader read-source parse-blocks dispatch-kernel
+  provides native-witness-suite native-capability-suite native-self-hosting-contract
+
+  bootloader read-source parse-lines collect-native-declarations verify-expectations report
 
   expect native substrate == cdc
   expect host-debt <= 1
-  expect terms >= 9
-  expect rules >= 9
+  expect python-files == 1
+  expect bootloader minimal == true
+  expect terms >= 10
+  expect rules >= 14
+  expect invariants >= 13
+  expect witnesses >= 72
+  expect capabilities >= 24
   expect provides parser-state reducer-state witness-state trace-window-state
   expect provides balanced-ternary-carrier angular-phase path-relation invariant-gate
   expect provides dyadic-triadic-bridge closure-64
-  expect provides trace-order-locality local-time
+  expect provides trace-order-locality local-time local-counter-synchrony
+  expect provides observer-window-coupling recursive-window-policy shared-state-commit
   expect provides existence-viability agency-spectrum
+  expect provides native-witness-suite native-capability-suite native-self-hosting-contract
 end

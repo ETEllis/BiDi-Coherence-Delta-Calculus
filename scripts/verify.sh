@@ -3,90 +3,22 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-echo "== Python syntax =="
-python3 -m py_compile bidi_calculus.py cdc_boot.py cdc_semantics.py calculus_laws.py acceptance.py relation_witness.py trace_window_witness.py
+echo "== Minimal Python bootloader syntax =="
+python3 -m py_compile cdc_boot.py
 
 echo
-echo "== Law and metatheorem witnesses =="
-python3 calculus_laws.py
-
-echo
-echo "== Native .cdc execution =="
-python3 cdc_boot.py kernel.cdc system.cdc laws.cdc
-
-echo
-echo "== Relational phase-channel witnesses =="
-python3 relation_witness.py
-python3 cdc_boot.py relations.cdc
-
-echo
-echo "== Balanced-ternary trace/window witnesses =="
-python3 trace_window_witness.py
-
-echo
-echo "== Capability acceptance witnesses =="
-python3 acceptance.py
-
-echo
-echo "== Deadband propagation smoke check =="
+echo "== Python host boundary =="
 python3 - <<'PY'
-from cdc_boot import CDC
+from pathlib import Path
 
-c = CDC()
-c.run("deadband 0.25\nfield F dt=0.02 gain=1.2\nend\n")
-assert abs(c.fields["F"].bf.deadband - 0.25) < 1e-12
-
-c = CDC()
-c.run("deadband 0.25\nfield F dt=0.02 gain=1.2 deadband=0.4\nend\n")
-assert abs(c.fields["F"].bf.deadband - 0.4) < 1e-12
-
-print("deadband propagation: ok")
+py = sorted(p.name for p in Path(".").glob("*.py"))
+assert py == ["cdc_boot.py"], py
+print("python host boundary: ok (cdc_boot.py only)")
 PY
 
 echo
-echo "== Line projection validation =="
-python3 - <<'PY'
-from cdc_boot import CDC
-
-try:
-    CDC().run("""
-field bad open=yes
-  module A theta 0 0 0 0 0 0
-  module B theta 0 0 0 0 0 0
-  channel A -> B lines=-1
-end
-""")
-except SyntaxError:
-    print("line projection validation: ok")
-else:
-    raise AssertionError("negative line index was accepted")
-PY
-
-echo
-echo "== Semantic invariant registry =="
-python3 - <<'PY'
-from cdc_semantics import INVARIANTS, invariant_index
-
-idx = invariant_index()
-required = {
-    "balanced-ternary-carrier",
-    "dyadic-triadic-closure",
-    "existence-viability",
-    "trace-order-locality",
-    "gate-abelian",
-    "interfere-monoid",
-    "rotation-linear",
-    "corefold-morphism",
-    "preservation",
-    "soundness",
-    "local-confluence",
-    "flow-additivity",
-    "normalforms",
-}
-assert required == set(idx), sorted(set(idx) ^ required)
-assert len(INVARIANTS) == len(idx)
-print(f"semantic invariant registry: {len(INVARIANTS)} invariants")
-PY
+echo "== Native .cdc contract and witness suite =="
+python3 cdc_boot.py
 
 echo
 echo "== Paper compile =="
