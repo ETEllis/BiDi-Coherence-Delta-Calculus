@@ -161,6 +161,21 @@ run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_native_runtime.c \
   -o build/cdc_native_runtime \
   -lm
+echo
+echo "== Native WASM replay export surface =="
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 -Wno-unused-function \
+  -c runtime/cdc_wasm_exports.c \
+  -o build/cdc_wasm_exports.o
+if command -v emcc >/dev/null 2>&1; then
+  run_step emcc -O2 runtime/cdc_wasm_exports.c \
+    -sEXPORTED_FUNCTIONS='["_cdc_wasm_replay_json"]' \
+    -sEXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+    -o build/cdc_wasm_replay.js
+  test -s build/cdc_wasm_replay.js
+  test -s build/cdc_wasm_replay.wasm
+else
+  echo "emcc not found; skipping live WASM link"
+fi
 native_reducer="$(build/cdc_native_runtime run native_reducer.cdc)"
 echo "$native_reducer"
 grep -q "flow=reducer-flow .*theta council.b=0.250000" <<<"$native_reducer" || {
@@ -239,12 +254,20 @@ grep -q "native surface ok guards=1 traces=1 measures=1 policies=1 bridges=1 cou
   echo "native surface summary check failed" >&2
   exit 1
 }
+native_replay="$(build/cdc_native_runtime replay native_reducer.cdc native_surface.cdc)"
+echo "$native_replay"
+echo "$native_replay" > build/demo-replay.json
+assert_fresh_file \
+  build/demo-replay.json \
+  demo/replay.json \
+  "build/cdc_native_runtime replay native_reducer.cdc native_surface.cdc > demo/replay.json"
 
 echo
 echo "== Runtime replay demo contract =="
 export NATIVE_REDUCER_OUTPUT="$native_reducer"
 export NATIVE_SURFACE_OUTPUT="$native_surface"
 export TRACE_PROJECTION_OUTPUT="$trace_projection"
+export NATIVE_REPLAY_OUTPUT="$native_replay"
 python3 - <<'PY'
 import json
 import os
@@ -268,6 +291,9 @@ payload = re.search(
 if not payload:
     raise SystemExit("demo replay data block missing")
 replay = json.loads(payload.group(1))
+native_replay = json.loads(os.environ["NATIVE_REPLAY_OUTPUT"])
+if replay != native_replay:
+    raise SystemExit("demo replay data does not match native replay JSON")
 
 native = os.environ["NATIVE_REDUCER_OUTPUT"]
 surface = os.environ["NATIVE_SURFACE_OUTPUT"]

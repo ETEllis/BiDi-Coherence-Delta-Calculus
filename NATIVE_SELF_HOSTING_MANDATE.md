@@ -38,7 +38,11 @@ The first reducer path also has a non-Python operational consumer:
   walk spectrum from source-declared compile/proof jobs, consumes
   `native_surface.cdc` for guard, trace, measure, policy, bridge, and counter
   jobs, and consumes `council_bridge.cdc` for council deliberation plus
-  bridge-coordinate source evolution.
+  bridge-coordinate source evolution. It also emits native replay JSON for the
+  Flow -> Commit -> Nest -> Trace -> Bridge demo.
+- `runtime/cdc_wasm_exports.c`: exposes the native replay JSON path through a C
+  ABI suitable for Emscripten. The gate compile-checks this surface and links it
+  when `emcc` is available.
 
 All reducer semantics, invariants, capability claims, and witness obligations
 must be expressed as `.cdc` declarations. The bootloader may parse, collect, and
@@ -110,7 +114,8 @@ field/module/cell/channel state plus flow, commit, nest, compile, interpret,
 and finite proof jobs, and `runtime/cdc_native_runtime.c` consumes that source
 directly. `native_surface.cdc` adds source-declared guard, trace, measure,
 policy, bridge, and counter exercises. `council_bridge.cdc` adds a
-source-declared council and source-evolution exercise. Lean and Coq
+source-declared council and source-evolution exercise. The native runtime also
+emits checked replay JSON for the demo path. Lean and Coq
 finite-carrier and finite-algebra mirrors live under `formal/`. The remaining
 work is to express the reducer itself in `.cdc` and remove the neutral host
 runtime boundary.
@@ -156,8 +161,11 @@ and executes flow, commit, nest, guard, trace, measure, policy, bridge, counter,
 compile, interpret, proof, council, and source-evolution jobs. This does not yet
 replace the full declaration bootloader or make `.cdc` self-compiled, but it
 moves reducer execution, full-surface checking, IR interpretation, finite proof
-checking, council deliberation, and source evolution out of Python and into
-source-declared native jobs.
+checking, council deliberation, source evolution, and demo replay JSON out of
+Python and into source-declared native jobs. `runtime/cdc_wasm_exports.c`
+compile-checks the C ABI for the replay path and links a live WASM module when
+Emscripten is available. Live browser WASM execution and full `cdc_boot.py`
+parity remain separate deletion gates.
 
 ## Immediate Rule
 

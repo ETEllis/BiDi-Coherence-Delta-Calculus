@@ -6,7 +6,7 @@ checked surface includes native declarations, witnesses, and the first
 source-declared reducer jobs: terms, reducer rules, field/module/cell/channel
 state, flow/commit/nest jobs, guard/trace/measure/policy/bridge/counter jobs,
 IR interpretation, council deliberation, bridge-coordinate source evolution,
-invariants, capabilities, witnesses, and expectations are expressed in `.cdc`;
+native replay JSON, invariants, capabilities, witnesses, and expectations are expressed in `.cdc`;
 Python is limited to the small `cdc_boot.py` loader/checker.
 
 The semantic target remains the full calculus:
@@ -23,7 +23,9 @@ source tree declares them and that every claim has a native witness handle. The
 non-Python runtime `runtime/cdc_native_runtime.c` consumes `native_reducer.cdc`,
 `native_surface.cdc`, and `council_bridge.cdc`; executes the checked `flow`,
 `commit`, `nest`, `guard`, `trace`, `measure`, `policy`, `bridge`, `counter`,
-`interpret`, `council`, and `evolve` jobs; and verifies their expectations.
+`interpret`, `council`, `evolve`, and `replay` jobs; and verifies their expectations.
+`runtime/cdc_wasm_exports.c` exposes the replay path through a compile-checked
+C ABI for an eventual Emscripten build.
 
 ## Current Checked Grammar
 
@@ -135,7 +137,8 @@ finite-proof, council, and source-evolution jobs.
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
 | `cdc_boot.py` | minimal loader/checker; not the reducer or language semantics |
 | `runtime/cdc_bridge_runtime.c` | non-Python bridge consumer for lookup, trace projection, generated codebook verification, interactive grid/SVG output, and finite validation |
-| `runtime/cdc_native_runtime.c` | non-Python reducer, full-surface, compile-IR, IR interpreter, finite-proof, council, and source-evolution consumer for source-declared jobs |
+| `runtime/cdc_native_runtime.c` | non-Python reducer, full-surface, compile-IR, IR interpreter, finite-proof, council, source-evolution, and replay consumer for source-declared jobs |
+| `runtime/cdc_wasm_exports.c` | compile-checked C ABI wrapper for the native replay JSON path |
 | `formal/lean/CDCFinite.lean` | Lean mirror of the finite n=6 balanced-ternary carrier and algebraic law proofs |
 | `formal/coq/CDCFinite.v` | Coq mirror of the finite n=6 balanced-ternary carrier and algebraic law proofs |
 

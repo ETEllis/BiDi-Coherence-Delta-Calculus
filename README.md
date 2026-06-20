@@ -38,7 +38,7 @@ The 64-state bridge has a separate non-Python runtime in
 the interactive bridge SVG. The native reducer runtime lives in
 `runtime/cdc_native_runtime.c` and executes source-declared `.cdc` `flow`,
 `commit`, `nest`, `guard`, `trace`, `measure`, `policy`, `bridge`, `counter`,
-`interpret`, `council`, and `evolve` jobs from `native_reducer.cdc`,
+`interpret`, `council`, `evolve`, and `replay` jobs from `native_reducer.cdc`,
 `native_surface.cdc`, and `council_bridge.cdc`.
 
 ## Native Status
@@ -148,7 +148,9 @@ The package passes 100% through `./scripts/verify.sh`. CI runs the stricter
 - 32/32 native capability declarations
 - 4766/4766 native witness declarations
 - C bridge runtime compile, lookup, trace-coordinate, generated higher-arity codebook, and interactive grid/SVG checks
-- C native reducer runtime run/compile/interpret/proof/surface/council/evolve checks, including explicit accepted and held commit statuses
+- C native reducer runtime run/compile/interpret/proof/surface/council/evolve/replay checks, including explicit accepted and held commit statuses
+- Native replay JSON freshness for `demo/replay.json` and the one-screen demo embed
+- WASM replay export surface compile check, with live `emcc` link when Emscripten is available
 - Lean and Rocq/Coq finite carrier and algebraic law proof checks
 - Paper compile through `tectonic`
 - CI installs Lean 4.31.0, Rocq/Coq 9.1.1, and Tectonic 0.16.9 and treats the native contract, C runtimes, generated artifact freshness, finite proof mirrors, and paper compile as one required gate
@@ -165,7 +167,7 @@ Run the full gate anytime:
 - **Language layer:** `.cdc` is the source of record for fields, modules, channels, reducers, witnesses, and expectations.
 - **Runtime layer:** C runtimes execute the bridge, reducer, surface, council, and source-evolution jobs directly from `.cdc`.
 - **Formal layer:** Lean, Rocq/Coq, and native finite checkers cover the `n=6` carrier/algebra bootstrap while larger continuous proofs remain explicitly queued.
-- **Product layer:** generated bridge assets and the replay demo expose the runtime trace as an inspectable interface without claiming live WASM parity yet.
+- **Product layer:** generated bridge assets and native replay JSON expose the runtime trace as an inspectable demo without claiming live WASM or `cdc_boot.py` parity yet.
 
 ## Native `.cdc` Example
 
@@ -220,6 +222,7 @@ build/cdc_native_runtime prove native_reducer.cdc
 build/cdc_native_runtime surface native_surface.cdc
 build/cdc_native_runtime council council_bridge.cdc
 build/cdc_native_runtime evolve council_bridge.cdc
+build/cdc_native_runtime replay native_reducer.cdc native_surface.cdc
 ```
 
 The C runtime consumes that source and executes:
@@ -233,6 +236,13 @@ The C runtime consumes that source and executes:
 - `surface`: guard, trace, measurement, policy, bridge-coordinate, and counter clauses;
 - `council`: deliberate across source-declared council members into a bridge coordinate;
 - `evolve`: write a bridge-coordinate witness into a copied `.cdc` source.
+- `replay`: emit the Flow -> Commit -> Nest -> Trace -> Bridge JSON used by `demo/replay.json` and `demo/index.html`.
+
+`runtime/cdc_wasm_exports.c` wraps the replay path with a C ABI suitable for an
+Emscripten build. The verification gate always compiles that export surface as
+C, and links a live WASM replay module when `emcc` is installed. Full browser
+WASM execution and repo-wide `cdc_boot.py` parity remain queued rather than
+claimed.
 
 `cdc_boot.py` only indexes those declarations and verifies their witness links;
 it does not execute the reducer.

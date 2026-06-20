@@ -1,0 +1,33 @@
+{
+  "flow": {
+    "thetaCouncilB": "0.25",
+    "thetaCouncilBRaw": "0.250000",
+    "channelWeight": "0.25"
+  },
+  "commit": {
+    "trits": "0+-",
+    "balance": "admissible",
+    "status": "accepted",
+    "reason": "none"
+  },
+  "hold": {
+    "trits": "-+0",
+    "balance": "violated",
+    "status": "held",
+    "reason": "balance-violation"
+  },
+  "nest": {
+    "up": "0.666667",
+    "parentBelief": "0.666667",
+    "childPrior": "0.666667"
+  },
+  "trace": {
+    "trits": "+0-+0-",
+    "events": "4"
+  },
+  "bridge": {
+    "dyadic": "101101",
+    "triadic": "231",
+    "index": "45"
+  }
+}

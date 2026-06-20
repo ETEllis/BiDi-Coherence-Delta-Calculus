@@ -89,6 +89,47 @@ typedef struct {
 
 typedef struct {
     char id[64];
+    char field[64];
+    double duration;
+    int has_theta;
+    char theta_cell[64];
+    double theta;
+} FlowResult;
+
+typedef struct {
+    char id[64];
+    char module[64];
+    char trits[128];
+    char balance[32];
+    char status[32];
+    char reason[32];
+} CommitResult;
+
+typedef struct {
+    char id[64];
+    char parent[64];
+    char child[64];
+    double up;
+    double parent_belief;
+    double child_prior;
+} NestResult;
+
+typedef struct {
+    char theta_display[32];
+    char theta_raw[32];
+    char channel_weight[32];
+    CommitResult accepted;
+    CommitResult held;
+    NestResult nest;
+    char trace_trits[128];
+    int trace_events;
+    char bridge_dyadic[32];
+    char bridge_triadic[32];
+    int bridge_index;
+} ReplayData;
+
+typedef struct {
+    char id[64];
     char source[128];
     int expect_ops;
     int expect_flow;
@@ -730,13 +771,17 @@ static void parse_source(Runtime *rt, const char *path) {
     fclose(fp);
 }
 
-static void run_flow(Runtime *rt, Step *step) {
+static void execute_flow(Runtime *rt, Step *step, FlowResult *result) {
     Field *field = find_field(rt, step->field);
     double next_theta[MAX_CELLS];
     Cell *expected;
+    memset(result, 0, sizeof(*result));
     if (!field) {
         fail("flow references unknown field");
     }
+    snprintf(result->id, sizeof(result->id), "%s", step->id);
+    snprintf(result->field, sizeof(result->field), "%s", field->name);
+    result->duration = step->duration;
     for (int i = 0; i < rt->cell_count; i++) {
         next_theta[i] = rt->cells[i].theta;
         if (cell_in_field(rt, &rt->cells[i], field->name)) {
@@ -774,14 +819,24 @@ static void run_flow(Runtime *rt, Step *step) {
         if (!close_enough(expected->theta, step->expect_theta, step->tolerance)) {
             fail("flow expectation mismatch");
         }
-        printf("flow=%s field=%s duration=%.6f theta %s=%.6f\n",
-               step->id, field->name, step->duration, expected->name, expected->theta);
-    } else {
-        printf("flow=%s field=%s duration=%.6f\n", step->id, field->name, step->duration);
+        result->has_theta = 1;
+        snprintf(result->theta_cell, sizeof(result->theta_cell), "%s", expected->name);
+        result->theta = expected->theta;
     }
 }
 
-static void run_commit(Runtime *rt, Step *step) {
+static void run_flow(Runtime *rt, Step *step) {
+    FlowResult result;
+    execute_flow(rt, step, &result);
+    if (result.has_theta) {
+        printf("flow=%s field=%s duration=%.6f theta %s=%.6f\n",
+               result.id, result.field, result.duration, result.theta_cell, result.theta);
+    } else {
+        printf("flow=%s field=%s duration=%.6f\n", result.id, result.field, result.duration);
+    }
+}
+
+static void execute_commit(Runtime *rt, Step *step, CommitResult *result) {
     Module *module = find_module(rt, step->module);
     Field *field;
     char trits[128];
@@ -792,6 +847,7 @@ static void run_commit(Runtime *rt, Step *step) {
     int admissible = 1;
     const char *status;
     const char *reason;
+    memset(result, 0, sizeof(*result));
     if (!module) {
         fail("commit references unknown module");
     }
@@ -867,8 +923,19 @@ static void run_commit(Runtime *rt, Step *step) {
             fail("commit reason expectation mismatch");
         }
     }
+    snprintf(result->id, sizeof(result->id), "%s", step->id);
+    snprintf(result->module, sizeof(result->module), "%s", module->name);
+    snprintf(result->trits, sizeof(result->trits), "%s", trits);
+    snprintf(result->balance, sizeof(result->balance), "%s", admissible ? "admissible" : "violated");
+    snprintf(result->status, sizeof(result->status), "%s", status);
+    snprintf(result->reason, sizeof(result->reason), "%s", reason);
+}
+
+static void run_commit(Runtime *rt, Step *step) {
+    CommitResult result;
+    execute_commit(rt, step, &result);
     printf("commit=%s module=%s trits=%s balance=%s status=%s reason=%s\n",
-           step->id, module->name, trits, admissible ? "admissible" : "violated", status, reason);
+           result.id, result.module, result.trits, result.balance, result.status, result.reason);
 }
 
 static double module_mean_trit(Runtime *rt, Module *module) {
@@ -894,11 +961,12 @@ static double module_mean_trit(Runtime *rt, Module *module) {
     return total / (double)count;
 }
 
-static void run_nest(Runtime *rt, Step *step) {
+static void execute_nest(Runtime *rt, Step *step, NestResult *result) {
     Module *parent = find_module(rt, step->parent);
     Module *child = find_module(rt, step->child);
     Field *field;
     double up;
+    memset(result, 0, sizeof(*result));
     if (!parent || !child) {
         fail("nest references unknown parent or child");
     }
@@ -917,8 +985,19 @@ static void run_nest(Runtime *rt, Step *step) {
         !close_enough(child->prior, step->expect_child_prior, step->tolerance)) {
         fail("nest child prior expectation mismatch");
     }
+    snprintf(result->id, sizeof(result->id), "%s", step->id);
+    snprintf(result->parent, sizeof(result->parent), "%s", parent->name);
+    snprintf(result->child, sizeof(result->child), "%s", child->name);
+    result->up = up;
+    result->parent_belief = parent->belief;
+    result->child_prior = child->prior;
+}
+
+static void run_nest(Runtime *rt, Step *step) {
+    NestResult result;
+    execute_nest(rt, step, &result);
     printf("nest=%s parent=%s child=%s up=%.6f parent-belief=%.6f child-prior=%.6f\n",
-           step->id, parent->name, child->name, up, parent->belief, child->prior);
+           result.id, result.parent, result.child, result.up, result.parent_belief, result.child_prior);
 }
 
 static void run_steps(Runtime *rt, const char *path) {
@@ -1464,6 +1543,173 @@ static void run_evolution(Runtime *rt, const char *path) {
     printf("native evolution ok jobs=%d source=%s\n", rt->evolution_count, path);
 }
 
+static void collect_replay_data(const char *reducer_path, const char *surface_path, ReplayData *data) {
+    Runtime reducer;
+    Runtime surface;
+    int has_flow = 0;
+    int has_accepted = 0;
+    int has_held = 0;
+    int has_nest = 0;
+    TraceJob *trace;
+    SurfaceBridgeJob *bridge;
+    char trits[128];
+    char dyadic[7];
+    char triadic[4];
+    int index;
+
+    memset(data, 0, sizeof(*data));
+    parse_source(&reducer, reducer_path);
+    if (reducer.channel_count == 0) {
+        fail("replay reducer source has no channel");
+    }
+    snprintf(data->channel_weight, sizeof(data->channel_weight), "%g", reducer.channels[0].weight);
+    for (int i = 0; i < reducer.step_count; i++) {
+        Step *step = &reducer.steps[i];
+        if (step->kind == STEP_FLOW) {
+            FlowResult flow;
+            execute_flow(&reducer, step, &flow);
+            if (!has_flow && flow.has_theta) {
+                snprintf(data->theta_raw, sizeof(data->theta_raw), "%.6f", flow.theta);
+                snprintf(data->theta_display, sizeof(data->theta_display), "%g", flow.theta);
+                has_flow = 1;
+            }
+        } else if (step->kind == STEP_COMMIT) {
+            CommitResult commit;
+            execute_commit(&reducer, step, &commit);
+            if (!has_accepted && strcmp(commit.status, "accepted") == 0) {
+                data->accepted = commit;
+                has_accepted = 1;
+            } else if (!has_held && strcmp(commit.status, "held") == 0) {
+                data->held = commit;
+                has_held = 1;
+            }
+        } else if (step->kind == STEP_NEST) {
+            NestResult nest;
+            execute_nest(&reducer, step, &nest);
+            if (!has_nest) {
+                data->nest = nest;
+                has_nest = 1;
+            }
+        }
+    }
+    if (!has_flow || !has_accepted || !has_held || !has_nest) {
+        fail("replay reducer source missing flow, accepted commit, held commit, or nest result");
+    }
+
+    parse_source(&surface, surface_path);
+    if (surface.trace_count == 0 || surface.bridge_count == 0) {
+        fail("replay surface source missing trace or bridge");
+    }
+    trace = &surface.traces[0];
+    trace_trits(&surface, trace, trits, sizeof(trits));
+    data->trace_events = count_occupied_trits(trits);
+    if (trace->expect_trits[0] && strcmp(trits, trace->expect_trits) != 0) {
+        fail("replay trace trit expectation mismatch");
+    }
+    if (trace->expect_events >= 0 && trace->expect_events != data->trace_events) {
+        fail("replay trace event-count expectation mismatch");
+    }
+    snprintf(data->trace_trits, sizeof(data->trace_trits), "%s", trits);
+
+    bridge = &surface.bridges[0];
+    trace = find_trace(&surface, bridge->trace);
+    if (!trace) {
+        fail("replay surface bridge references unknown trace");
+    }
+    if (bridge->via[0] && strcmp(bridge->via, "bridge64") != 0) {
+        fail("replay surface bridge currently supports bridge64");
+    }
+    trace_trits(&surface, trace, trits, sizeof(trits));
+    trits_to_occupancy6(trits, dyadic);
+    index = dyadic6_to_index(dyadic);
+    triadic_from_index64(index, triadic);
+    if (bridge->expect_dyadic[0] && strcmp(dyadic, bridge->expect_dyadic) != 0) {
+        fail("replay bridge dyadic expectation mismatch");
+    }
+    if (bridge->expect_triadic[0] && strcmp(triadic, bridge->expect_triadic) != 0) {
+        fail("replay bridge triadic expectation mismatch");
+    }
+    snprintf(data->bridge_dyadic, sizeof(data->bridge_dyadic), "%s", dyadic);
+    snprintf(data->bridge_triadic, sizeof(data->bridge_triadic), "%s", triadic);
+    data->bridge_index = index;
+}
+
+int cdc_native_replay_json(const char *reducer_path, const char *surface_path, char *out, size_t out_size) {
+    ReplayData data;
+    int written;
+    if (!out || out_size == 0) {
+        return -1;
+    }
+    collect_replay_data(reducer_path, surface_path, &data);
+    written = snprintf(
+        out,
+        out_size,
+        "{\n"
+        "  \"flow\": {\n"
+        "    \"thetaCouncilB\": \"%s\",\n"
+        "    \"thetaCouncilBRaw\": \"%s\",\n"
+        "    \"channelWeight\": \"%s\"\n"
+        "  },\n"
+        "  \"commit\": {\n"
+        "    \"trits\": \"%s\",\n"
+        "    \"balance\": \"%s\",\n"
+        "    \"status\": \"%s\",\n"
+        "    \"reason\": \"%s\"\n"
+        "  },\n"
+        "  \"hold\": {\n"
+        "    \"trits\": \"%s\",\n"
+        "    \"balance\": \"%s\",\n"
+        "    \"status\": \"%s\",\n"
+        "    \"reason\": \"%s\"\n"
+        "  },\n"
+        "  \"nest\": {\n"
+        "    \"up\": \"%.6f\",\n"
+        "    \"parentBelief\": \"%.6f\",\n"
+        "    \"childPrior\": \"%.6f\"\n"
+        "  },\n"
+        "  \"trace\": {\n"
+        "    \"trits\": \"%s\",\n"
+        "    \"events\": \"%d\"\n"
+        "  },\n"
+        "  \"bridge\": {\n"
+        "    \"dyadic\": \"%s\",\n"
+        "    \"triadic\": \"%s\",\n"
+        "    \"index\": \"%d\"\n"
+        "  }\n"
+        "}",
+        data.theta_display,
+        data.theta_raw,
+        data.channel_weight,
+        data.accepted.trits,
+        data.accepted.balance,
+        data.accepted.status,
+        data.accepted.reason,
+        data.held.trits,
+        data.held.balance,
+        data.held.status,
+        data.held.reason,
+        data.nest.up,
+        data.nest.parent_belief,
+        data.nest.child_prior,
+        data.trace_trits,
+        data.trace_events,
+        data.bridge_dyadic,
+        data.bridge_triadic,
+        data.bridge_index);
+    if (written < 0 || (size_t)written >= out_size) {
+        return -1;
+    }
+    return written;
+}
+
+static void run_replay(const char *reducer_path, const char *surface_path) {
+    char json[4096];
+    if (cdc_native_replay_json(reducer_path, surface_path, json, sizeof(json)) < 0) {
+        fail("replay JSON buffer too small");
+    }
+    printf("%s\n", json);
+}
+
 static void usage(void) {
     fprintf(stderr, "usage:\n");
     fprintf(stderr, "  cdc_native_runtime run native_reducer.cdc\n");
@@ -1473,11 +1719,17 @@ static void usage(void) {
     fprintf(stderr, "  cdc_native_runtime surface native_surface.cdc\n");
     fprintf(stderr, "  cdc_native_runtime council council_bridge.cdc\n");
     fprintf(stderr, "  cdc_native_runtime evolve council_bridge.cdc\n");
+    fprintf(stderr, "  cdc_native_runtime replay native_reducer.cdc native_surface.cdc\n");
     exit(2);
 }
 
+#ifndef CDC_NATIVE_NO_MAIN
 int main(int argc, char **argv) {
     Runtime runtime;
+    if (argc == 4 && strcmp(argv[1], "replay") == 0) {
+        run_replay(argv[2], argv[3]);
+        return 0;
+    }
     if (argc != 3) {
         usage();
     }
@@ -1501,3 +1753,4 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
+#endif
