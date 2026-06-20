@@ -2,7 +2,7 @@
 
 Date: 2026-06-18
 
-Status: public engineering specification, v0.2.2.
+Status: public engineering specification, v0.2.3.
 
 BiDi Coherence-Delta Calculus is a native `.cdc` language with a formal
 coherence-calculus kernel for hybrid systems that need continuous dynamics,
@@ -427,22 +427,25 @@ The `system.cdc` native capability witnesses cover:
 | D | emergent coherence, free-energy guarded commits, predictive belief tracking, action/perception split |
 | E | evented state machines, Minsky-counter computation, neural-style dynamics, native syntax |
 | F | Gate/interfere/Core-fold, scale-gated operators, multiscale coherence under load |
-| G | balanced-ternary trace/window measurement, causal observer windows, projected boundaries |
+| G | bridge runtime, native reducer runtime, native compile IR, finite proof checking |
 
-Local run result for v0.2.2:
+Local run result for v0.2.3:
 
 ```text
 1/1 Python bootloader file
-150/150 native .cdc expectations
+158/158 native .cdc expectations
 13/13 invariant declarations
-25/25 capability declarations
-142/142 native witness declarations
+28/28 capability declarations
+148/148 native witness declarations
 operational bridge runtime: lookup/projection/codebook/grid checks pass
+native reducer runtime: flow/commit/nest/compile/proof checks pass
+Lean/Coq finite proofs: source artifacts present and conditionally checked when toolchains are installed
 ```
 
-The witnesses are native contract witnesses. They prove coverage of the listed
-claims in the source tree. They do not prove industrial performance, scaling
-limits, numeric accuracy, or optimality.
+The witnesses are native contract witnesses. The finite n=6 balanced-ternary
+carrier layer is now also checked by the C native proof path and mirrored in
+Lean/Coq source. These checks do not prove industrial performance, scaling
+limits, continuous numeric accuracy, or optimality.
 
 ## Strong Claims, Clean Version
 

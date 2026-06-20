@@ -1,10 +1,12 @@
 # The `.cdc` Language
 ### Native source format for the Coherence-Delta Calculus
 
-`.cdc` is the native language surface for the calculus kernel. In v0.2.2 the
-checked surface is a native declaration and witness format: terms, reducer
-rules, invariants, capabilities, witnesses, and expectations are expressed in
-`.cdc`; Python is limited to the small `cdc_boot.py` loader/checker.
+`.cdc` is the native language surface for the calculus kernel. In v0.2.3 the
+checked surface includes native declarations, witnesses, and the first
+source-declared reducer jobs: terms, reducer rules, field/module/cell/channel
+state, flow/commit/nest jobs, invariants, capabilities, witnesses, and
+expectations are expressed in `.cdc`; Python is limited to the small
+`cdc_boot.py` loader/checker.
 
 The semantic target remains the full calculus:
 
@@ -16,14 +18,19 @@ trace/window  derived observer projection
 ```
 
 The bootloader does not implement those reductions. It verifies that the native
-source tree declares them and that every claim has a native witness handle.
+source tree declares them and that every claim has a native witness handle. The
+non-Python runtime `runtime/cdc_native_runtime.c` consumes `native_reducer.cdc`
+and executes the first checked `flow`, `commit`, and `nest` reducer jobs.
 
 ## Current Checked Grammar
 
 ```ebnf
 program      = { directive } ;
 directive    = kernel | term | rule | provides | bootloader
-             | invariant | law | capability | witness | expect | "end" ;
+             | invariant | law | capability | witness
+             | field | module | cell | channel | guard
+             | flow | commit | nest | trace | measure | policy | bridge
+             | expect | "end" ;
 
 kernel       = "kernel" name { kwarg } ;
 term         = "term" name { name } ;
@@ -35,6 +42,19 @@ invariant    = "invariant" key { kwarg } ;
 law          = "law" key { kwarg } ;
 capability   = "capability" key { kwarg } ;
 witness      = "witness" key { kwarg } ;
+
+field        = "field" key { kwarg } ;
+module       = "module" key { kwarg } ;
+cell         = "cell" key { kwarg } ;
+channel      = "channel" path "->" path { kwarg } ;
+guard        = "guard" key { kwarg } ;
+flow         = "flow" key { kwarg } ;
+commit       = "commit" key { kwarg } ;
+nest         = "nest" key { kwarg } ;
+trace        = "trace" key { kwarg } ;
+measure      = "measure" key { kwarg } ;
+policy       = "policy" key { kwarg } ;
+bridge       = "bridge" key { kwarg } ;
 
 expect       = "expect" predicate ;
 kwarg        = key "=" value ;
@@ -60,11 +80,18 @@ expect provides <capability...>
 expect law <invariant-key>
 expect capability <capability-key>
 expect witness <witness-id>
+expect reducer <witness-id>
+expect compile <witness-id>
+expect proof <witness-id>
 ```
 
 `expect law K` requires both an `invariant K` declaration and at least one native
 `witness ... invariant=K`. `expect capability C` requires both a
 `capability C` declaration and at least one native `witness ... capability=C`.
+`expect reducer W` requires witness `W` to link to a declared native reducer
+step through `witness ... reducer=<flow-or-commit-or-nest-id>`.
+`expect compile W` and `expect proof W` use the same linkage pattern for
+source-declared compile and finite-proof jobs.
 
 ## Native Files
 
@@ -75,11 +102,15 @@ expect witness <witness-id>
 | `bridge64.cdc` | explicit 64-row `2^6 = 4^3` dyadic/triadic bootstrap codebook |
 | `bridge_codebooks.cdc` | higher-arity bridge declarations for `n=9` and `n=12` |
 | `bridge_jobs.cdc` | source-declared bridge-coordinate jobs consumed by the C runtime |
-| `system.cdc` | 25 capability declarations and native witness handles |
+| `native_reducer.cdc` | source-declared field/module/cell/channel state plus reducer, compile, and finite-proof jobs consumed by the C native runtime |
+| `system.cdc` | 26 capability declarations and native witness handles |
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
 | `cdc_boot.py` | minimal loader/checker; not the reducer or language semantics |
 | `runtime/cdc_bridge_runtime.c` | non-Python bridge consumer for lookup, trace projection, grid output, and finite validation |
+| `runtime/cdc_native_runtime.c` | non-Python reducer, compile-IR, and finite-proof consumer for source-declared jobs |
+| `formal/lean/CDCFinite.lean` | Lean mirror of the finite n=6 balanced-ternary carrier proof |
+| `formal/coq/CDCFinite.v` | Coq mirror of the finite n=6 balanced-ternary carrier proof |
 
 ## Balanced Ternary Carrier
 
@@ -96,22 +127,26 @@ absence.
 
 ## Full Semantic Syntax Target
 
-The following forms remain the semantic target for the native reducer:
+The following forms are now part of the checked reducer surface, with trace,
+measure, policy, and bridge still expanding toward the full semantic target:
 
 ```text
-field <name> dt=<real> gain=<real>
-module <name> theta <theta...>
-module <name> trits <pole...>
+field <name> dt=<real> gain=<real> deadband=<real>
+module <name> field=<field> belief=<real> prior=<real>
+cell <path> module=<module> theta=<real> amplitude=<real> omega=<real>
 channel <path-a> -> <path-b> delay=<real> weight=<real> angle=<real> lines=<i,j>
 guard <name> crossing <i>
-flow <real>
-commit <name>
+flow <name> field=<field> duration=<real>
+commit <name> module=<module>
+nest <name> parent=<module> child=<module>
 counter <name>
 trace <window>
 measure <observer> <target>
 policy <window> sampling=<mode> commit=<mode> adapt=<mode>
 bridge <field-or-trace> via=<codebook>
+compile <name> source=<path> expect-ops=<int>
+proof <name> carrier=balanced-ternary arity=<int>
 ```
 
-Those forms are part of the calculus language design. They should be reintroduced
-as native reducer clauses in `.cdc`, not by growing Python back into a runtime.
+Those forms must continue to grow as native reducer clauses in `.cdc`, not by
+growing Python back into a runtime.

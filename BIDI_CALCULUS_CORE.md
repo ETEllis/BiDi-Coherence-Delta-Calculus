@@ -284,13 +284,16 @@ the maximal-compression form.
 
 ## 9 · Conservativity & provenance
 
-The v0.2.2 repository expresses the term syntax, invariant registry, capability
+The v0.2.3 repository expresses the term syntax, invariant registry, capability
 surface, and witness suite in native `.cdc`: `kernel.cdc`, `laws.cdc`,
-`bridge64.cdc`, `bridge_codebooks.cdc`, `bridge_jobs.cdc`, `system.cdc`, `relations.cdc`, and
-`trace_windows.cdc`. The only Python file is `cdc_boot.py`, a minimal
-loader/checker. The bridge has a separate C runtime that consumes `bridge64.cdc`
-for lookup, trace-coordinate projection, and grid generation. The burn-down path
-is pinned in `NATIVE_SELF_HOSTING_MANDATE.md`.
+`bridge64.cdc`, `bridge_codebooks.cdc`, `bridge_jobs.cdc`, `native_reducer.cdc`,
+`system.cdc`, `relations.cdc`, and `trace_windows.cdc`. The only Python file is
+`cdc_boot.py`, a minimal loader/checker. The bridge has a separate C runtime
+that consumes `bridge64.cdc` for lookup, trace-coordinate projection, and grid
+generation. The native reducer has a separate C runtime that consumes
+`native_reducer.cdc` for flow, commit, nest, compile-IR, and finite proof jobs.
+Lean and Coq finite-carrier mirrors live under `formal/`. The burn-down path is
+pinned in `NATIVE_SELF_HOSTING_MANDATE.md`.
 
 The static census of §7 (267 admissible / 51 localized / 20 / 5 — directed-animal,
 Motzkin, central-binomial, Catalan) is inherited unchanged from the discrete

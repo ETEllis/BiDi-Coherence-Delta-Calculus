@@ -67,13 +67,15 @@ n=9:  2^9  = 8^3  = 512
 n=12: 2^12 = 16^3 = 4096
 ```
 
-The C runtime exposes the same rule with `codebook 9` and `codebook 12`. The
-next implementation step is to add generated `.cdc` rows for those larger
-codebooks or a native reducer clause that can derive them from the arity rule.
+The C runtime exposes the same rule with `codebook 9` and `codebook 12`. Larger
+generated `.cdc` rows can follow, but the finite bridge rule is already checked
+by the runtime.
 
 ## Gate 5 Status
 
 This is a concrete Gate 5 pilot, not full host removal. The repo still uses
 `cdc_boot.py` as the minimal declaration checker, but bridge execution no longer
 depends on Python. The bridge has an operational consumer, a verified lookup
-job, a trace-coordinate projection, and generated grid output.
+job, a trace-coordinate projection, and generated grid output. The companion
+native runtime now handles source-declared reducer execution, compile-IR output,
+and finite proof checking from `native_reducer.cdc`.

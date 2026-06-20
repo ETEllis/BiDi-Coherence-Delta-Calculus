@@ -10,7 +10,7 @@ kernel bidi stage=2 target=cdc
   provides parser-state reducer-state witness-state trace-window-state
   provides balanced-ternary-carrier angular-phase path-relation invariant-gate
   provides dyadic-triadic-bridge closure-64
-  provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid
+  provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid native-reducer-runtime native-compiler-ir finite-proof-checker
   provides trace-order-locality local-time local-counter-synchrony
   provides observer-window-coupling recursive-window-policy shared-state-commit
   provides existence-viability agency-spectrum
@@ -25,12 +25,12 @@ kernel bidi stage=2 target=cdc
   expect terms >= 10
   expect rules >= 14
   expect invariants >= 13
-  expect witnesses >= 142
-  expect capabilities >= 25
+  expect witnesses >= 148
+  expect capabilities >= 28
   expect provides parser-state reducer-state witness-state trace-window-state
   expect provides balanced-ternary-carrier angular-phase path-relation invariant-gate
   expect provides dyadic-triadic-bridge closure-64
-  expect provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid
+  expect provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid native-reducer-runtime native-compiler-ir finite-proof-checker
   expect provides trace-order-locality local-time local-counter-synchrony
   expect provides observer-window-coupling recursive-window-policy shared-state-commit
   expect provides existence-viability agency-spectrum

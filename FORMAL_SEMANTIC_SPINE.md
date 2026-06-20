@@ -15,6 +15,7 @@ Every artifact should become a projection of the same semantic spine:
   -> small-step relation
   -> invariant table
   -> native witnesses
+  -> finite proof artifacts
   -> theorem-prover obligations
 ```
 
@@ -121,7 +122,8 @@ Each invariant should have:
 - a stable key;
 - a mathematical statement;
 - the witness file and witness name;
-- a future theorem-prover target.
+- a finite proof artifact where one exists and a theorem-prover target where it
+  remains open.
 
 `laws.cdc` now declares invariant keys and witness links for:
 
@@ -143,8 +145,10 @@ Each invariant should have:
 
 ### `.cdc`
 
-The parser should eventually produce the AST directly rather than executing line
-by line. The current `cdc_boot.py` can then become:
+The native reducer pilot now parses `native_reducer.cdc` into an executable
+runtime state and emits a small reducer IR for source-declared `flow`, `commit`,
+and `nest` jobs. The broader parser should eventually produce the AST directly
+rather than executing line by line. The current `cdc_boot.py` can then become:
 
 ```text
 parse .cdc -> ProgramTerm -> initialize RuntimeState -> reduce -> check expects
@@ -167,14 +171,20 @@ semantics back into Python.
 
 ### Native Witness Files
 
-`laws.cdc`, `bridge64.cdc`, `bridge_codebooks.cdc`, `bridge_jobs.cdc`, `system.cdc`,
-`relations.cdc`, and `trace_windows.cdc` should remain the native witness
-surface. Each witness declares the invariant or capability it discharges.
+`laws.cdc`, `bridge64.cdc`, `bridge_codebooks.cdc`, `bridge_jobs.cdc`,
+`native_reducer.cdc`, `system.cdc`, `relations.cdc`, and `trace_windows.cdc`
+should remain the native witness surface. Each witness declares the invariant or
+capability it discharges.
 
 `runtime/cdc_bridge_runtime.c` is the first operational consumer outside Python:
 it reads `bridge64.cdc`, validates the finite table, performs lookup, projects
 trace occupancy into bridge coordinates, executes source-declared jobs from
 `bridge_jobs.cdc`, and emits the visible 64-cell grid.
+
+`runtime/cdc_native_runtime.c` is the first operational reducer consumer outside
+Python: it reads `native_reducer.cdc`, executes source-declared flow, commit,
+and nest jobs, emits reducer IR, and checks the finite n=6 balanced-ternary walk
+spectrum.
 
 ### Paper
 
@@ -184,22 +194,25 @@ future formal proof obligations.
 
 ### Lean/Coq/Kani
 
-The first formal target should be the finite discrete layer:
+The first formal target is now represented three ways: native C proof checking,
+Lean source, and Coq source for the finite n=6 balanced-ternary carrier layer.
+The checked finite layer covers:
 
 1. trit quantization;
 2. prefix-walk admissibility;
 3. commit barrier preservation;
 4. localized normal forms.
 
-After that, formalize the algebraic carrier laws, then the flow relation under
-explicit Lipschitz/determinism assumptions.
+The next formal step is to extend those artifacts from finite carrier counts
+into commit-barrier preservation, then the algebraic carrier laws, then the flow
+relation under explicit Lipschitz/determinism assumptions.
 
 ## Acceptance Criteria For The Next Pass
 
 - `.cdc` grows from declaration parsing into `ProgramTerm`.
 - `cdc_boot.py` remains a minimal loader/checker and does not accumulate reducer semantics.
-- `kernel.cdc` grows from contract declarations into native reducer
-  clauses.
+- `native_reducer.cdc` continues expanding from executable flow/commit/nest
+  jobs into complete native reducer clauses.
 - `bridge64.cdc` stays as the explicit finite bootstrap codebook and the C
   bridge runtime stays a verified consumer of that source.
 - `bridge_codebooks.cdc` records the higher-arity growth rule for `n=9` and
@@ -213,8 +226,8 @@ explicit Lipschitz/determinism assumptions.
 - every witness in `.cdc` references an invariant or capability key.
 - the paper's invariant table matches `laws.cdc`.
 - deleted host files stay deleted; replacements live in `.cdc`.
-- `scripts/verify.sh` proves code, `.cdc`, witnesses, and semantic registry stay
-  synchronized.
+- `scripts/verify.sh` proves code, `.cdc`, witnesses, native reducer execution,
+  finite proof checks, and semantic registry stay synchronized.
 
 This is the path from native contract calculus to theorem-prover-ready calculus
 without losing the working system.

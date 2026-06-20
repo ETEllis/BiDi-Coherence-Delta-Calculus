@@ -34,6 +34,9 @@ The only Python file left is `cdc_boot.py`, a minimal bootloader that reads
 native `.cdc` declarations and verifies expectations. It is not the calculus.
 The 64-state bridge has a separate non-Python runtime in
 `runtime/cdc_bridge_runtime.c` that consumes `bridge64.cdc` as a lookup table.
+The first native reducer runtime lives in `runtime/cdc_native_runtime.c` and
+executes source-declared `.cdc` `flow`, `commit`, and `nest` jobs from
+`native_reducer.cdc`.
 
 ## Native Status
 
@@ -115,25 +118,30 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Existence viability** — frames persist by preserving bounded coherent continuity while retaining mode-appropriate transition capacity.
 - **64-state dyadic/triadic bridge** — `bridge64.cdc` declares every `2^6 = 4^3 = 64` codebook row for bootstrap/runtime bridge design.
 - **Operational bridge runtime** — `runtime/cdc_bridge_runtime.c` parses `bridge64.cdc`, verifies bijection, performs dyadic/triadic lookup, projects trace trits into bridge coordinates, and emits a 64-cell grid/SVG.
+- **Operational native reducer** — `runtime/cdc_native_runtime.c` parses `native_reducer.cdc` and executes source-declared flow, commit, and nest transitions.
+- **Native compile/proof path** — the same runtime emits reducer IR and exhaustively checks the finite n=6 balanced-ternary walk spectrum.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Native free-energy witnesses** — commits are guarded against Φ increase; continuous flow has explicit subset obligations.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
 - **Native kernel contract** — `kernel.cdc` starts the self-hosting path by declaring calculus terms, reducer rules, capabilities, and the shrinking bootloader boundary.
 - **Minimal bootloader** — `cdc_boot.py` only loads `.cdc`, checks declarations, and reports expectations.
 
-Core metatheorems and bridge invariants are witnessed by native `.cdc`, with
-the finite discrete layer positioned as the first theorem-prover target.
+Core metatheorems and bridge invariants are witnessed by native `.cdc`. The
+finite discrete layer now has an executable C proof check plus Lean and Coq
+source mirrors for the same n=6 carrier spectrum.
 
-## Verification Status (v0.2.2)
+## Verification Status (v0.2.3)
 
 The package passes 100%:
 
 - 1/1 Python bootloader file: `cdc_boot.py`
-- 150/150 native `.cdc` expectations
+- 158/158 native `.cdc` expectations
 - 13/13 native invariant declarations
-- 25/25 native capability declarations
-- 142/142 native witness declarations
+- 28/28 native capability declarations
+- 148/148 native witness declarations
 - C bridge runtime compile, lookup, trace-coordinate, higher-arity, and grid/SVG checks
+- C native reducer runtime run/compile/proof checks
+- Lean and Coq finite carrier proof checks when `lean` or `coqc` are installed
 - Paper compile through `tectonic` when available
 
 Run the full gate anytime:
@@ -152,7 +160,7 @@ kernel bidi stage=2 target=cdc
   bootloader read-source parse-lines collect-native-declarations verify-expectations report
   expect native substrate == cdc
   expect python-files == 1
-  expect witnesses >= 142
+  expect witnesses >= 148
 end
 ```
 
@@ -178,6 +186,33 @@ build/cdc_bridge_runtime codebook 12
 the tracked 64-cell SVG matches runtime output. Details are in
 `BRIDGE_RUNTIME.md`.
 
+## Native Reducer Runtime
+
+The reducer is no longer only a target described in prose. `native_reducer.cdc`
+declares a small field with modules, cells, an angular channel, and three
+source-level reducer jobs:
+
+```bash
+build/cdc_native_runtime run native_reducer.cdc
+build/cdc_native_runtime compile native_reducer.cdc
+build/cdc_native_runtime prove native_reducer.cdc
+```
+
+The C runtime consumes that source and executes:
+
+- `flow`: continuous phase evolution plus angular channel coupling;
+- `commit`: balanced-ternary quantization with nonnegative prefix-balance repair;
+- `nest`: child coherence upward and parent context downward.
+- `compile`: reducer source to a small IR listing;
+- `prove`: exhaustive n=6 trit-walk counts: `729 / 267 / 51 / 20 / 5`.
+
+`cdc_boot.py` only indexes those declarations and verifies their witness links;
+it does not execute the reducer.
+
+Lean and Coq mirrors of the finite carrier proof live in
+`formal/lean/CDCFinite.lean` and `formal/coq/CDCFinite.v`. `./scripts/verify.sh`
+runs them automatically when the corresponding toolchain is installed.
+
 ## Paper
 
 Knuth-inspired, dependency-light literate paper:
@@ -193,9 +228,10 @@ cd paper/arxiv && pdflatex main.tex && pdflatex main.tex
 
 ## Boundaries & Next
 
-Native witness declarations are not mechanized proofs. The formalization spine
-for the next pass (immutable runtime state tuple, small-step relations for
-flow/commit/nest, port to Lean/Coq/Kani) is in `FORMAL_SEMANTIC_SPINE.md`.
+The finite carrier layer now has executable proof checks. The broader
+formalization spine (immutable runtime state tuple, small-step relations for
+flow/commit/nest, and expanded Lean/Coq/Kani proofs) is in
+`FORMAL_SEMANTIC_SPINE.md`.
 
 Claim-to-witness-to-proof tracking is in `VERIFICATION_OBLIGATION_MATRIX.md`.
 The observer/measurement extension is documented in `TERNARY_TRACE_WINDOW_SEMANTICS.md`.

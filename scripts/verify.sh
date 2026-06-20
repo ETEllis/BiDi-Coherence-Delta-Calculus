@@ -67,6 +67,64 @@ cmp -s build/bridge64-grid.svg assets/bridge64-grid.svg || {
 }
 
 echo
+echo "== Native reducer runtime =="
+cc -std=c99 -Wall -Wextra -pedantic -O2 \
+  runtime/cdc_native_runtime.c \
+  -o build/cdc_native_runtime \
+  -lm
+native_reducer="$(build/cdc_native_runtime run native_reducer.cdc)"
+echo "$native_reducer"
+grep -q "flow=reducer-flow .*theta council.b=0.250000" <<<"$native_reducer" || {
+  echo "native reducer flow check failed" >&2
+  exit 1
+}
+grep -q "commit=reducer-commit .*trits=0+- .*balance=admissible" <<<"$native_reducer" || {
+  echo "native reducer commit check failed" >&2
+  exit 1
+}
+grep -q "nest=reducer-nest .*parent-belief=0.666667 .*child-prior=0.666667" <<<"$native_reducer" || {
+  echo "native reducer nest check failed" >&2
+  exit 1
+}
+grep -q "native reducer ok steps=3 flow=1 commit=1 nest=1" <<<"$native_reducer" || {
+  echo "native reducer summary check failed" >&2
+  exit 1
+}
+native_compile="$(build/cdc_native_runtime compile native_reducer.cdc)"
+echo "$native_compile"
+grep -q "native compile ok jobs=1 ops=3" <<<"$native_compile" || {
+  echo "native compile check failed" >&2
+  exit 1
+}
+native_proof="$(build/cdc_native_runtime prove native_reducer.cdc)"
+echo "$native_proof"
+grep -q "proof=trit-walk-n6 .*total=729 .*admissible=267 .*localized=51 .*saturated=20 .*catalan=5" <<<"$native_proof" || {
+  echo "native proof finite trit-walk check failed" >&2
+  exit 1
+}
+grep -q "native proof ok jobs=1" <<<"$native_proof" || {
+  echo "native proof summary check failed" >&2
+  exit 1
+}
+
+echo
+echo "== Lean/Coq finite proofs =="
+if command -v lean >/dev/null 2>&1; then
+  lean formal/lean/CDCFinite.lean
+  echo "lean finite proof: ok"
+else
+  echo "lean not found; skipping Lean finite proof check"
+fi
+
+if command -v coqc >/dev/null 2>&1; then
+  coqc -q formal/coq/CDCFinite.v
+  rm -f formal/coq/CDCFinite.vo formal/coq/CDCFinite.vos formal/coq/CDCFinite.vok formal/coq/CDCFinite.glob formal/coq/.CDCFinite.aux
+  echo "coq finite proof: ok"
+else
+  echo "coqc not found; skipping Coq finite proof check"
+fi
+
+echo
 echo "== Paper compile =="
 if command -v tectonic >/dev/null 2>&1; then
   (cd paper/arxiv && tectonic main.tex)

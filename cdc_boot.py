@@ -26,6 +26,10 @@ class BootState:
     invariants: dict[str, dict[str, str]] = field(default_factory=dict)
     capabilities: dict[str, dict[str, str]] = field(default_factory=dict)
     witnesses: dict[str, dict[str, str]] = field(default_factory=dict)
+    reducer_forms: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
+    reducer_steps: set[str] = field(default_factory=set)
+    compile_steps: set[str] = field(default_factory=set)
+    proof_steps: set[str] = field(default_factory=set)
     expectations: list[tuple[str, list[str], str]] = field(default_factory=list)
 
 
@@ -95,6 +99,33 @@ def parse_file(state: BootState, path: Path) -> None:
                 raise SyntaxError(f"{source}: witness requires an id")
             wid = args[0]
             state.witnesses[wid] = {"source": source, **attrs}
+        elif cmd in {
+            "field",
+            "module",
+            "cell",
+            "channel",
+            "guard",
+            "flow",
+            "commit",
+            "nest",
+            "trace",
+            "measure",
+            "policy",
+            "bridge",
+            "compile",
+            "proof",
+        }:
+            if not args:
+                raise SyntaxError(f"{source}: {cmd} requires an id")
+            key = args[0]
+            state.reducer_forms.setdefault(cmd, {})
+            state.reducer_forms[cmd][key] = {"source": source, "args": " ".join(args), **attrs}
+            if cmd in {"flow", "commit", "nest"}:
+                state.reducer_steps.add(key)
+            if cmd == "compile":
+                state.compile_steps.add(key)
+            if cmd == "proof":
+                state.proof_steps.add(key)
         elif cmd == "expect":
             state.expectations.append((source, rest, line))
         else:
@@ -166,6 +197,36 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
     if head == "witness":
         wid = args[1]
         return wid in state.witnesses, f"witness {wid}"
+
+    if head == "reducer":
+        wid = args[1]
+        witness = state.witnesses.get(wid)
+        if not witness:
+            return False, f"reducer {wid} (missing witness)"
+        step = witness.get("reducer")
+        ok = bool(step and step in state.reducer_steps)
+        detail = f"step {step}" if step else "missing reducer link"
+        return ok, f"reducer {wid} ({detail})"
+
+    if head == "compile":
+        wid = args[1]
+        witness = state.witnesses.get(wid)
+        if not witness:
+            return False, f"compile {wid} (missing witness)"
+        step = witness.get("compile")
+        ok = bool(step and step in state.compile_steps)
+        detail = f"job {step}" if step else "missing compile link"
+        return ok, f"compile {wid} ({detail})"
+
+    if head == "proof":
+        wid = args[1]
+        witness = state.witnesses.get(wid)
+        if not witness:
+            return False, f"proof {wid} (missing witness)"
+        step = witness.get("proof")
+        ok = bool(step and step in state.proof_steps)
+        detail = f"job {step}" if step else "missing proof link"
+        return ok, f"proof {wid} ({detail})"
 
     if head == "python-files":
         op, want = args[1], int(args[2])

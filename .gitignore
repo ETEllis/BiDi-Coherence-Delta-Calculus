@@ -22,3 +22,13 @@ paper/**/*.pdf
 paper/**/*.synctex.gz
 paper/**/*.toc
 paper/**/*.tar.gz
+
+# Theorem prover build outputs
+formal/**/*.olean
+formal/**/*.ilean
+formal/**/*.vo
+formal/**/*.vos
+formal/**/*.vok
+formal/**/*.glob
+formal/**/*.aux
+formal/**/.*.aux

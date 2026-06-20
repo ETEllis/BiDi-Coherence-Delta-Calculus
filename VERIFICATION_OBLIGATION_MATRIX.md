@@ -24,15 +24,19 @@ verification.
 | commit soundness | `laws.cdc` declares commit and flow-subset soundness witnesses | guard accept/hold case split |
 | local confluence | `laws.cdc` declares disjoint-commit witness | footprint-disjoint diamond lemma |
 | flow additivity | `laws.cdc` declares split-duration witness | monoid-action proof for the flow relation |
-| normal forms | `laws.cdc` declares localized normal-form witness | finite normalization proof over balanced trit walks |
+| normal forms | `laws.cdc` declares localized normal-form witnesses; `native_reducer.cdc` declares `proof trit-walk-n6`; `runtime/cdc_native_runtime.c` checks `729 / 267 / 51 / 20 / 5`; Lean and Coq mirrors live in `formal/` | extend finite normalization from checked counts into commit-barrier preservation theorem |
 | angular/path relation | `relations.cdc` declares angle, lines, path endpoints, and nesting-cone witnesses | path-indexed relation algebra |
 | trace/window layer | `trace_windows.cdc` declares passive/committing separation, role-relative observer, incidence boundary, coupled-observer, shared-state commit, and causal-window witnesses | derived-observer theorem over flow/commit/nest |
 | bridge coordinate runtime | `system.cdc` declares `G1`; `bridge_jobs.cdc` declares coordinate jobs; `scripts/verify.sh` compiles the C runtime and checks lookup, source-declared jobs, higher arity, and grid generation | native `.cdc` reducer or extracted kernel replacing the C bridge pilot |
-| native language center | `kernel.cdc` declares terms, rules, capabilities, witness counts, and one-file Python boundary | native reducer expressed in `.cdc` |
+| native reducer runtime | `native_reducer.cdc` declares field/module/cell/channel state and flow/commit/nest jobs; `runtime/cdc_native_runtime.c` executes them | broaden source-declared reducer to the full trace/window/measure surface |
+| native compile/proof path | `native_reducer.cdc` declares compile/proof jobs; `runtime/cdc_native_runtime.c` emits reducer IR and exhaustively checks finite carrier counts | self-host the compiler/reducer in `.cdc`; extract or port proof obligations to Lean/Coq/Kani |
+| native language center | `kernel.cdc` declares terms, rules, capabilities, witness counts, and one-file Python boundary | native reducer and proof checker expressed in `.cdc` |
 
 ## First Mechanized Target
 
-The first theorem-prover port should remain finite:
+The first theorem-prover port is now seeded by `formal/lean/CDCFinite.lean` and
+`formal/coq/CDCFinite.v`, and mirrored by the native C proof checker. It remains
+finite:
 
 1. balanced-ternary carrier;
 2. `3^6` committed-walk codomain;
@@ -41,5 +45,7 @@ The first theorem-prover port should remain finite:
 5. localized normal forms;
 6. `2^6 = 4^3 = 64` bridge codebook uniqueness and totality.
 
-This is the shortest route from native witness declaration to mechanically checked
-calculus without prematurely formalizing the continuous numeric realization.
+This is the shortest route from native witness declaration to mechanically
+checked calculus without prematurely formalizing the continuous numeric
+realization. The next proof increment is commit-barrier preservation over the
+same finite carrier.
