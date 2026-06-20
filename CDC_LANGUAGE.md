@@ -24,6 +24,9 @@ non-Python runtime `runtime/cdc_native_runtime.c` consumes `native_reducer.cdc`,
 `native_surface.cdc`, and `council_bridge.cdc`; executes the checked `flow`,
 `commit`, `nest`, `guard`, `trace`, `measure`, `policy`, `bridge`, `counter`,
 `interpret`, `council`, `evolve`, and `replay` jobs; and verifies their expectations.
+Both C runtimes share `runtime/cdc_source.c` / `runtime/cdc_source.h` for
+native `.cdc` line parsing, attribute extraction, typed attributes, and
+primitive expectation assertions.
 `runtime/cdc_wasm_exports.c` exposes the replay path through a compile-checked
 C ABI for an eventual Emscripten build.
 
@@ -136,6 +139,7 @@ finite-proof, council, and source-evolution jobs.
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
 | `cdc_boot.py` | minimal loader/checker; not the reducer or language semantics |
+| `runtime/cdc_source.c` / `runtime/cdc_source.h` | shared native `.cdc` line parser, attribute reader, typed attribute accessors, and primitive expectation checks for C consumers |
 | `runtime/cdc_bridge_runtime.c` | non-Python bridge consumer for lookup, trace projection, generated codebook verification, interactive grid/SVG output, and finite validation |
 | `runtime/cdc_native_runtime.c` | non-Python reducer, full-surface, compile-IR, IR interpreter, finite-proof, council, source-evolution, and replay consumer for source-declared jobs |
 | `runtime/cdc_wasm_exports.c` | compile-checked C ABI wrapper for the native replay JSON path |

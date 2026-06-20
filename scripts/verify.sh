@@ -104,6 +104,7 @@ command -v cc >/dev/null 2>&1 || {
 rm -f build/cdc_bridge_runtime
 run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_bridge_runtime.c \
+  runtime/cdc_source.c \
   -o build/cdc_bridge_runtime
 run_step build/cdc_bridge_runtime verify bridge64.cdc
 
@@ -159,6 +160,7 @@ echo "== Native reducer runtime =="
 rm -f build/cdc_native_runtime
 run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_native_runtime.c \
+  runtime/cdc_source.c \
   -o build/cdc_native_runtime \
   -lm
 echo
@@ -166,8 +168,11 @@ echo "== Native WASM replay export surface =="
 run_step cc -std=c99 -Wall -Wextra -pedantic -O2 -Wno-unused-function \
   -c runtime/cdc_wasm_exports.c \
   -o build/cdc_wasm_exports.o
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
+  -c runtime/cdc_source.c \
+  -o build/cdc_source.o
 if command -v emcc >/dev/null 2>&1; then
-  run_step emcc -O2 runtime/cdc_wasm_exports.c \
+  run_step emcc -O2 runtime/cdc_wasm_exports.c runtime/cdc_source.c \
     -sEXPORTED_FUNCTIONS='["_cdc_wasm_replay_json"]' \
     -sEXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
     -o build/cdc_wasm_replay.js

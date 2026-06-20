@@ -431,7 +431,7 @@ The `system.cdc` native capability witnesses cover:
 | D | emergent coherence, free-energy guarded commits, predictive belief tracking, action/perception split |
 | E | evented state machines, Minsky-counter computation, neural-style dynamics, native syntax |
 | F | Gate/interfere/Core-fold, scale-gated operators, multiscale coherence under load |
-| G | bridge runtime, native reducer runtime, native full-surface runtime, native compile/interpreter IR, finite proof checking, council deliberation, source evolution, native replay JSON |
+| G | bridge runtime, shared native parser/expectation core, native reducer runtime, native full-surface runtime, native compile/interpreter IR, finite proof checking, council deliberation, source evolution, native replay JSON |
 
 Local run result for v0.2.4:
 
@@ -442,6 +442,7 @@ Local run result for v0.2.4:
 32/32 capability declarations
 4766/4766 native witness declarations
 operational bridge runtime: lookup/projection/generated-codebook/interactive-grid checks pass
+shared native parser/expectation core: linked into bridge and reducer runtimes; compile-checked beside WASM export
 native reducer runtime: flow/commit/nest/guard/trace/measure/policy/bridge/counter/compile/interpret/proof/council/evolve/replay checks pass
 WASM replay export surface: C compile-checked; live WASM link runs when Emscripten is available
 Lean/Rocq finite and algebraic proofs: checked by the required formal gate

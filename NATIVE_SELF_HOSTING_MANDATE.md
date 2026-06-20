@@ -23,6 +23,11 @@ As of v0.2.4, host code is restricted to one Python file:
 
 The bridge also has a non-Python operational consumer:
 
+- `runtime/cdc_source.c` / `runtime/cdc_source.h`: shared native `.cdc`
+  line/attribute parser and primitive expectation core used by the bridge and
+  reducer runtimes. This removes parser/checker drift between C consumers but
+  does not yet replace the whole declaration bootloader.
+
 - `runtime/cdc_bridge_runtime.c`: reads `bridge64.cdc`, validates the finite
   codebook, performs dyadic/triadic lookup, projects six-trit trace occupancy
   into bridge coordinates, executes `bridge_jobs.cdc`, emits interactive
@@ -162,10 +167,12 @@ compile, interpret, proof, council, and source-evolution jobs. This does not yet
 replace the full declaration bootloader or make `.cdc` self-compiled, but it
 moves reducer execution, full-surface checking, IR interpretation, finite proof
 checking, council deliberation, source evolution, and demo replay JSON out of
-Python and into source-declared native jobs. `runtime/cdc_wasm_exports.c`
-compile-checks the C ABI for the replay path and links a live WASM module when
-Emscripten is available. Live browser WASM execution and full `cdc_boot.py`
-parity remain separate deletion gates.
+Python and into source-declared native jobs. `runtime/cdc_source.c` now factors
+the shared native `.cdc` line parser, typed attribute reader, and primitive
+expectation checks used by the bridge, reducer, replay, and WASM export paths.
+`runtime/cdc_wasm_exports.c` compile-checks the C ABI for the replay path and
+links a live WASM module when Emscripten is available. Live browser WASM
+execution and full `cdc_boot.py` parity remain separate deletion gates.
 
 ## Immediate Rule
 

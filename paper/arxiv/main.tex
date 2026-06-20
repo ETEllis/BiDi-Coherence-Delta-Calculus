@@ -291,6 +291,9 @@ consumes \nolinkurl{native_surface.cdc} for guard, trace, measure, policy,
 bridge, and counter jobs,
 and consumes \nolinkurl{council_bridge.cdc} for council deliberation plus
 bridge-coordinate source evolution.
+\texttt{runtime/cdc\_source.c} factors the shared native \texttt{.cdc}
+line parser, typed attribute reader, and primitive expectation checks used by
+the bridge and reducer runtimes; this is not yet full bootloader parity.
 \texttt{runtime/cdc\_wasm\_exports.c} compile-checks a C ABI for the native
 replay JSON path and links a live WASM module when Emscripten is available; live
 browser WASM execution and full bootloader parity remain queued.
@@ -354,6 +357,7 @@ The repository contains:
 \item \texttt{native\_reducer.cdc}: source-declared reducer, compile, interpret, and finite proof jobs;
 \item \texttt{native\_surface.cdc}: source-declared guard, trace, measure, policy, bridge, and counter jobs;
 \item \texttt{council\_bridge.cdc}: source-declared council deliberation and bridge-coordinate source-evolution jobs;
+\item shared native source core: common \texttt{.cdc} line/attribute parser and primitive expectation assertions;
 \item bridge runtime: verifies codebooks and emits the interactive SVG;
 \item native runtime: runs reducer, IR, proof, council, evolution, and replay jobs;
 \item WASM export surface: compile-checked C ABI for native replay JSON;

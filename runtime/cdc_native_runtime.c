@@ -1,4 +1,5 @@
-#include <ctype.h>
+#include "cdc_source.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -261,88 +262,6 @@ static void fail(const char *message) {
     exit(1);
 }
 
-static int starts_with(const char *s, const char *prefix) {
-    return strncmp(s, prefix, strlen(prefix)) == 0;
-}
-
-static void trim(char *s) {
-    size_t n;
-    char *p = s;
-    while (*p && isspace((unsigned char)*p)) {
-        p++;
-    }
-    if (p != s) {
-        memmove(s, p, strlen(p) + 1);
-    }
-    n = strlen(s);
-    while (n > 0 && isspace((unsigned char)s[n - 1])) {
-        s[n - 1] = '\0';
-        n--;
-    }
-}
-
-static void strip_comment(char *s) {
-    char *hash = strchr(s, '#');
-    if (hash) {
-        *hash = '\0';
-    }
-    trim(s);
-}
-
-static void first_token_after(const char *line, const char *prefix, char *out, size_t out_size) {
-    const char *p = line + strlen(prefix);
-    size_t i = 0;
-    while (*p && !isspace((unsigned char)*p)) {
-        if (i + 1 >= out_size) {
-            fail("token too long");
-        }
-        out[i++] = *p++;
-    }
-    out[i] = '\0';
-}
-
-static int read_attr(const char *line, const char *key, char *out, size_t out_size) {
-    char needle[64];
-    const char *p;
-    size_t i = 0;
-    snprintf(needle, sizeof(needle), "%s=", key);
-    p = strstr(line, needle);
-    if (!p) {
-        return 0;
-    }
-    p += strlen(needle);
-    while (*p && !isspace((unsigned char)*p)) {
-        if (i + 1 >= out_size) {
-            fail("attribute too long");
-        }
-        out[i++] = *p++;
-    }
-    out[i] = '\0';
-    return 1;
-}
-
-static double read_double_attr(const char *line, const char *key, double fallback) {
-    char value[64];
-    if (!read_attr(line, key, value, sizeof(value))) {
-        return fallback;
-    }
-    return atof(value);
-}
-
-static int read_int_attr(const char *line, const char *key, int fallback) {
-    char value[64];
-    if (!read_attr(line, key, value, sizeof(value))) {
-        return fallback;
-    }
-    return atoi(value);
-}
-
-static void copy_attr(const char *line, const char *key, char *out, size_t out_size, const char *fallback) {
-    if (!read_attr(line, key, out, out_size)) {
-        snprintf(out, out_size, "%s", fallback);
-    }
-}
-
 static Field *find_field(Runtime *rt, const char *name) {
     for (int i = 0; i < rt->field_count; i++) {
         if (strcmp(rt->fields[i].name, name) == 0) {
@@ -440,20 +359,16 @@ static int is_hold_reason(const char *reason) {
            strcmp(reason, "deadband-jitter") == 0;
 }
 
-static int close_enough(double a, double b, double tolerance) {
-    return fabs(a - b) <= tolerance;
-}
-
 static void add_field(Runtime *rt, const char *line) {
     Field *field;
     if (rt->field_count >= MAX_FIELDS) {
         fail("too many fields");
     }
     field = &rt->fields[rt->field_count++];
-    first_token_after(line, "field ", field->name, sizeof(field->name));
-    field->dt = read_double_attr(line, "dt", 0.01);
-    field->gain = read_double_attr(line, "gain", 1.0);
-    field->deadband = read_double_attr(line, "deadband", 0.5);
+    cdc_first_token_after(line, "field ", field->name, sizeof(field->name));
+    field->dt = cdc_read_double_attr(line, "dt", 0.01);
+    field->gain = cdc_read_double_attr(line, "gain", 1.0);
+    field->deadband = cdc_read_double_attr(line, "deadband", 0.5);
 }
 
 static void add_module(Runtime *rt, const char *line) {
@@ -462,13 +377,13 @@ static void add_module(Runtime *rt, const char *line) {
         fail("too many modules");
     }
     module = &rt->modules[rt->module_count++];
-    first_token_after(line, "module ", module->name, sizeof(module->name));
-    copy_attr(line, "field", module->field, sizeof(module->field), "");
-    copy_attr(line, "parent", module->parent, sizeof(module->parent), "");
-    module->belief = read_double_attr(line, "belief", 0.0);
-    module->prior = read_double_attr(line, "prior", 0.0);
-    module->precision = read_double_attr(line, "precision", 1.0);
-    module->action_gain = read_double_attr(line, "action-gain", 1.0);
+    cdc_first_token_after(line, "module ", module->name, sizeof(module->name));
+    cdc_copy_attr(line, "field", module->field, sizeof(module->field), "");
+    cdc_copy_attr(line, "parent", module->parent, sizeof(module->parent), "");
+    module->belief = cdc_read_double_attr(line, "belief", 0.0);
+    module->prior = cdc_read_double_attr(line, "prior", 0.0);
+    module->precision = cdc_read_double_attr(line, "precision", 1.0);
+    module->action_gain = cdc_read_double_attr(line, "action-gain", 1.0);
     if (!find_field(rt, module->field)) {
         fail("module references unknown field");
     }
@@ -480,11 +395,11 @@ static void add_cell(Runtime *rt, const char *line) {
         fail("too many cells");
     }
     cell = &rt->cells[rt->cell_count++];
-    first_token_after(line, "cell ", cell->name, sizeof(cell->name));
-    copy_attr(line, "module", cell->module, sizeof(cell->module), "");
-    cell->theta = read_double_attr(line, "theta", 0.0);
-    cell->amplitude = read_double_attr(line, "amplitude", 1.0);
-    cell->omega = read_double_attr(line, "omega", 0.0);
+    cdc_first_token_after(line, "cell ", cell->name, sizeof(cell->name));
+    cdc_copy_attr(line, "module", cell->module, sizeof(cell->module), "");
+    cell->theta = cdc_read_double_attr(line, "theta", 0.0);
+    cell->amplitude = cdc_read_double_attr(line, "amplitude", 1.0);
+    cell->omega = cdc_read_double_attr(line, "omega", 0.0);
     cell->latch = '0';
     cell->has_latch = 0;
     if (!find_module(rt, cell->module)) {
@@ -503,10 +418,10 @@ static void add_channel(Runtime *rt, const char *line) {
         strcmp(arrow, "->") != 0) {
         fail("channel syntax must be: channel source -> target");
     }
-    channel->weight = read_double_attr(line, "weight", 1.0);
-    channel->delay = read_double_attr(line, "delay", 0.0);
-    channel->angle = read_double_attr(line, "angle", 0.0);
-    copy_attr(line, "lines", channel->lines, sizeof(channel->lines), "*");
+    channel->weight = cdc_read_double_attr(line, "weight", 1.0);
+    channel->delay = cdc_read_double_attr(line, "delay", 0.0);
+    channel->angle = cdc_read_double_attr(line, "angle", 0.0);
+    cdc_copy_attr(line, "lines", channel->lines, sizeof(channel->lines), "*");
     if (!find_cell(rt, channel->source) || !find_cell(rt, channel->target)) {
         fail("channel references unknown source or target cell");
     }
@@ -515,7 +430,7 @@ static void add_channel(Runtime *rt, const char *line) {
 static void parse_expect_theta(Step *step, const char *line) {
     char value[128];
     char *colon;
-    if (!read_attr(line, "expect-theta", value, sizeof(value))) {
+    if (!cdc_read_attr(line, "expect-theta", value, sizeof(value))) {
         return;
     }
     colon = strchr(value, ':');
@@ -537,23 +452,23 @@ static void add_step(Runtime *rt, const char *line, StepKind kind, const char *p
     step = &rt->steps[rt->step_count++];
     memset(step, 0, sizeof(*step));
     step->kind = kind;
-    first_token_after(line, prefix, step->id, sizeof(step->id));
-    step->duration = read_double_attr(line, "duration", 0.0);
-    step->tolerance = read_double_attr(line, "tolerance", 0.000001);
-    copy_attr(line, "field", step->field, sizeof(step->field), "");
-    copy_attr(line, "module", step->module, sizeof(step->module), "");
-    copy_attr(line, "parent", step->parent, sizeof(step->parent), "");
-    copy_attr(line, "child", step->child, sizeof(step->child), "");
-    copy_attr(line, "expect-trits", step->expect_trits, sizeof(step->expect_trits), "");
-    copy_attr(line, "expect-balance", step->expect_balance, sizeof(step->expect_balance), "");
-    copy_attr(line, "expect-status", step->expect_status, sizeof(step->expect_status), "");
-    copy_attr(line, "expect-reason", step->expect_reason, sizeof(step->expect_reason), "");
+    cdc_first_token_after(line, prefix, step->id, sizeof(step->id));
+    step->duration = cdc_read_double_attr(line, "duration", 0.0);
+    step->tolerance = cdc_read_double_attr(line, "tolerance", 0.000001);
+    cdc_copy_attr(line, "field", step->field, sizeof(step->field), "");
+    cdc_copy_attr(line, "module", step->module, sizeof(step->module), "");
+    cdc_copy_attr(line, "parent", step->parent, sizeof(step->parent), "");
+    cdc_copy_attr(line, "child", step->child, sizeof(step->child), "");
+    cdc_copy_attr(line, "expect-trits", step->expect_trits, sizeof(step->expect_trits), "");
+    cdc_copy_attr(line, "expect-balance", step->expect_balance, sizeof(step->expect_balance), "");
+    cdc_copy_attr(line, "expect-status", step->expect_status, sizeof(step->expect_status), "");
+    cdc_copy_attr(line, "expect-reason", step->expect_reason, sizeof(step->expect_reason), "");
     parse_expect_theta(step, line);
-    if (read_attr(line, "expect-parent-belief", value, sizeof(value))) {
+    if (cdc_read_attr(line, "expect-parent-belief", value, sizeof(value))) {
         step->expect_parent_belief = atof(value);
         step->has_expect_parent_belief = 1;
     }
-    if (read_attr(line, "expect-child-prior", value, sizeof(value))) {
+    if (cdc_read_attr(line, "expect-child-prior", value, sizeof(value))) {
         step->expect_child_prior = atof(value);
         step->has_expect_child_prior = 1;
     }
@@ -566,12 +481,12 @@ static void add_compile_job(Runtime *rt, const char *line) {
     }
     job = &rt->compile_jobs[rt->compile_job_count++];
     memset(job, 0, sizeof(*job));
-    first_token_after(line, "compile ", job->id, sizeof(job->id));
-    copy_attr(line, "source", job->source, sizeof(job->source), "");
-    job->expect_ops = read_int_attr(line, "expect-ops", -1);
-    job->expect_flow = read_int_attr(line, "expect-flow", -1);
-    job->expect_commit = read_int_attr(line, "expect-commit", -1);
-    job->expect_nest = read_int_attr(line, "expect-nest", -1);
+    cdc_first_token_after(line, "compile ", job->id, sizeof(job->id));
+    cdc_copy_attr(line, "source", job->source, sizeof(job->source), "");
+    job->expect_ops = cdc_read_int_attr(line, "expect-ops", -1);
+    job->expect_flow = cdc_read_int_attr(line, "expect-flow", -1);
+    job->expect_commit = cdc_read_int_attr(line, "expect-commit", -1);
+    job->expect_nest = cdc_read_int_attr(line, "expect-nest", -1);
 }
 
 static void add_proof_job(Runtime *rt, const char *line) {
@@ -581,14 +496,14 @@ static void add_proof_job(Runtime *rt, const char *line) {
     }
     job = &rt->proof_jobs[rt->proof_job_count++];
     memset(job, 0, sizeof(*job));
-    first_token_after(line, "proof ", job->id, sizeof(job->id));
-    copy_attr(line, "carrier", job->carrier, sizeof(job->carrier), "");
-    job->arity = read_int_attr(line, "arity", 0);
-    job->expect_total = read_int_attr(line, "expect-total", -1);
-    job->expect_admissible = read_int_attr(line, "expect-admissible", -1);
-    job->expect_localized = read_int_attr(line, "expect-localized", -1);
-    job->expect_saturated = read_int_attr(line, "expect-saturated", -1);
-    job->expect_catalan = read_int_attr(line, "expect-catalan", -1);
+    cdc_first_token_after(line, "proof ", job->id, sizeof(job->id));
+    cdc_copy_attr(line, "carrier", job->carrier, sizeof(job->carrier), "");
+    job->arity = cdc_read_int_attr(line, "arity", 0);
+    job->expect_total = cdc_read_int_attr(line, "expect-total", -1);
+    job->expect_admissible = cdc_read_int_attr(line, "expect-admissible", -1);
+    job->expect_localized = cdc_read_int_attr(line, "expect-localized", -1);
+    job->expect_saturated = cdc_read_int_attr(line, "expect-saturated", -1);
+    job->expect_catalan = cdc_read_int_attr(line, "expect-catalan", -1);
 }
 
 static void add_council(Runtime *rt, const char *line) {
@@ -598,13 +513,13 @@ static void add_council(Runtime *rt, const char *line) {
     }
     council = &rt->councils[rt->council_count++];
     memset(council, 0, sizeof(*council));
-    first_token_after(line, "council ", council->id, sizeof(council->id));
-    copy_attr(line, "field", council->field, sizeof(council->field), "");
-    copy_attr(line, "members", council->members, sizeof(council->members), "");
-    copy_attr(line, "expect-decision", council->expect_decision, sizeof(council->expect_decision), "");
-    copy_attr(line, "expect-dyadic", council->expect_dyadic, sizeof(council->expect_dyadic), "");
-    copy_attr(line, "expect-triadic", council->expect_triadic, sizeof(council->expect_triadic), "");
-    council->quorum = read_int_attr(line, "quorum", 1);
+    cdc_first_token_after(line, "council ", council->id, sizeof(council->id));
+    cdc_copy_attr(line, "field", council->field, sizeof(council->field), "");
+    cdc_copy_attr(line, "members", council->members, sizeof(council->members), "");
+    cdc_copy_attr(line, "expect-decision", council->expect_decision, sizeof(council->expect_decision), "");
+    cdc_copy_attr(line, "expect-dyadic", council->expect_dyadic, sizeof(council->expect_dyadic), "");
+    cdc_copy_attr(line, "expect-triadic", council->expect_triadic, sizeof(council->expect_triadic), "");
+    council->quorum = cdc_read_int_attr(line, "quorum", 1);
 }
 
 static void add_deliberation(Runtime *rt, const char *line) {
@@ -614,8 +529,8 @@ static void add_deliberation(Runtime *rt, const char *line) {
     }
     deliberation = &rt->deliberations[rt->deliberation_count++];
     memset(deliberation, 0, sizeof(*deliberation));
-    first_token_after(line, "deliberate ", deliberation->id, sizeof(deliberation->id));
-    copy_attr(line, "council", deliberation->council, sizeof(deliberation->council), "");
+    cdc_first_token_after(line, "deliberate ", deliberation->id, sizeof(deliberation->id));
+    cdc_copy_attr(line, "council", deliberation->council, sizeof(deliberation->council), "");
 }
 
 static void add_evolution(Runtime *rt, const char *line) {
@@ -625,12 +540,12 @@ static void add_evolution(Runtime *rt, const char *line) {
     }
     job = &rt->evolutions[rt->evolution_count++];
     memset(job, 0, sizeof(*job));
-    first_token_after(line, "evolve ", job->id, sizeof(job->id));
-    copy_attr(line, "source", job->source, sizeof(job->source), "");
-    copy_attr(line, "output", job->output, sizeof(job->output), "");
-    copy_attr(line, "coordinate", job->coordinate, sizeof(job->coordinate), "");
-    copy_attr(line, "append-witness", job->append_witness, sizeof(job->append_witness), "");
-    copy_attr(line, "expect-contains", job->expect_contains, sizeof(job->expect_contains), "");
+    cdc_first_token_after(line, "evolve ", job->id, sizeof(job->id));
+    cdc_copy_attr(line, "source", job->source, sizeof(job->source), "");
+    cdc_copy_attr(line, "output", job->output, sizeof(job->output), "");
+    cdc_copy_attr(line, "coordinate", job->coordinate, sizeof(job->coordinate), "");
+    cdc_copy_attr(line, "append-witness", job->append_witness, sizeof(job->append_witness), "");
+    cdc_copy_attr(line, "expect-contains", job->expect_contains, sizeof(job->expect_contains), "");
 }
 
 static void add_guard(Runtime *rt, const char *line) {
@@ -640,9 +555,9 @@ static void add_guard(Runtime *rt, const char *line) {
     }
     guard = &rt->guards[rt->guard_count++];
     memset(guard, 0, sizeof(*guard));
-    first_token_after(line, "guard ", guard->id, sizeof(guard->id));
-    copy_attr(line, "cell", guard->cell, sizeof(guard->cell), "");
-    copy_attr(line, "expect-state", guard->expect_state, sizeof(guard->expect_state), "");
+    cdc_first_token_after(line, "guard ", guard->id, sizeof(guard->id));
+    cdc_copy_attr(line, "cell", guard->cell, sizeof(guard->cell), "");
+    cdc_copy_attr(line, "expect-state", guard->expect_state, sizeof(guard->expect_state), "");
 }
 
 static void add_trace(Runtime *rt, const char *line) {
@@ -652,10 +567,10 @@ static void add_trace(Runtime *rt, const char *line) {
     }
     trace = &rt->traces[rt->trace_count++];
     memset(trace, 0, sizeof(*trace));
-    first_token_after(line, "trace ", trace->id, sizeof(trace->id));
-    copy_attr(line, "field", trace->field, sizeof(trace->field), "");
-    copy_attr(line, "expect-trits", trace->expect_trits, sizeof(trace->expect_trits), "");
-    trace->expect_events = read_int_attr(line, "expect-events", -1);
+    cdc_first_token_after(line, "trace ", trace->id, sizeof(trace->id));
+    cdc_copy_attr(line, "field", trace->field, sizeof(trace->field), "");
+    cdc_copy_attr(line, "expect-trits", trace->expect_trits, sizeof(trace->expect_trits), "");
+    trace->expect_events = cdc_read_int_attr(line, "expect-events", -1);
 }
 
 static void add_measure(Runtime *rt, const char *line) {
@@ -665,12 +580,12 @@ static void add_measure(Runtime *rt, const char *line) {
     }
     measure = &rt->measures[rt->measure_count++];
     memset(measure, 0, sizeof(*measure));
-    first_token_after(line, "measure ", measure->id, sizeof(measure->id));
-    copy_attr(line, "observer", measure->observer, sizeof(measure->observer), "");
-    copy_attr(line, "target", measure->target, sizeof(measure->target), "");
-    copy_attr(line, "mode", measure->mode, sizeof(measure->mode), "passive");
-    copy_attr(line, "expect-outcome", measure->expect_outcome, sizeof(measure->expect_outcome), "");
-    copy_attr(line, "expect-potential", measure->expect_potential, sizeof(measure->expect_potential), "");
+    cdc_first_token_after(line, "measure ", measure->id, sizeof(measure->id));
+    cdc_copy_attr(line, "observer", measure->observer, sizeof(measure->observer), "");
+    cdc_copy_attr(line, "target", measure->target, sizeof(measure->target), "");
+    cdc_copy_attr(line, "mode", measure->mode, sizeof(measure->mode), "passive");
+    cdc_copy_attr(line, "expect-outcome", measure->expect_outcome, sizeof(measure->expect_outcome), "");
+    cdc_copy_attr(line, "expect-potential", measure->expect_potential, sizeof(measure->expect_potential), "");
 }
 
 static void add_policy(Runtime *rt, const char *line) {
@@ -680,14 +595,14 @@ static void add_policy(Runtime *rt, const char *line) {
     }
     policy = &rt->policies[rt->policy_count++];
     memset(policy, 0, sizeof(*policy));
-    first_token_after(line, "policy ", policy->id, sizeof(policy->id));
-    copy_attr(line, "window", policy->window, sizeof(policy->window), "");
-    copy_attr(line, "sampling", policy->sampling, sizeof(policy->sampling), "");
-    copy_attr(line, "commit", policy->commit, sizeof(policy->commit), "");
-    copy_attr(line, "adapt", policy->adapt, sizeof(policy->adapt), "");
-    copy_attr(line, "expect-sampling", policy->expect_sampling, sizeof(policy->expect_sampling), "");
-    copy_attr(line, "expect-commit", policy->expect_commit, sizeof(policy->expect_commit), "");
-    copy_attr(line, "expect-adapt", policy->expect_adapt, sizeof(policy->expect_adapt), "");
+    cdc_first_token_after(line, "policy ", policy->id, sizeof(policy->id));
+    cdc_copy_attr(line, "window", policy->window, sizeof(policy->window), "");
+    cdc_copy_attr(line, "sampling", policy->sampling, sizeof(policy->sampling), "");
+    cdc_copy_attr(line, "commit", policy->commit, sizeof(policy->commit), "");
+    cdc_copy_attr(line, "adapt", policy->adapt, sizeof(policy->adapt), "");
+    cdc_copy_attr(line, "expect-sampling", policy->expect_sampling, sizeof(policy->expect_sampling), "");
+    cdc_copy_attr(line, "expect-commit", policy->expect_commit, sizeof(policy->expect_commit), "");
+    cdc_copy_attr(line, "expect-adapt", policy->expect_adapt, sizeof(policy->expect_adapt), "");
 }
 
 static void add_surface_bridge(Runtime *rt, const char *line) {
@@ -697,11 +612,11 @@ static void add_surface_bridge(Runtime *rt, const char *line) {
     }
     bridge = &rt->bridges[rt->bridge_count++];
     memset(bridge, 0, sizeof(*bridge));
-    first_token_after(line, "bridge ", bridge->id, sizeof(bridge->id));
-    copy_attr(line, "trace", bridge->trace, sizeof(bridge->trace), "");
-    copy_attr(line, "via", bridge->via, sizeof(bridge->via), "");
-    copy_attr(line, "expect-dyadic", bridge->expect_dyadic, sizeof(bridge->expect_dyadic), "");
-    copy_attr(line, "expect-triadic", bridge->expect_triadic, sizeof(bridge->expect_triadic), "");
+    cdc_first_token_after(line, "bridge ", bridge->id, sizeof(bridge->id));
+    cdc_copy_attr(line, "trace", bridge->trace, sizeof(bridge->trace), "");
+    cdc_copy_attr(line, "via", bridge->via, sizeof(bridge->via), "");
+    cdc_copy_attr(line, "expect-dyadic", bridge->expect_dyadic, sizeof(bridge->expect_dyadic), "");
+    cdc_copy_attr(line, "expect-triadic", bridge->expect_triadic, sizeof(bridge->expect_triadic), "");
 }
 
 static void add_counter(Runtime *rt, const char *line) {
@@ -711,11 +626,11 @@ static void add_counter(Runtime *rt, const char *line) {
     }
     counter = &rt->counters[rt->counter_count++];
     memset(counter, 0, sizeof(*counter));
-    first_token_after(line, "counter ", counter->id, sizeof(counter->id));
-    counter->value = read_int_attr(line, "value", 0);
-    counter->increment = read_int_attr(line, "increment", 0);
-    counter->decrement = read_int_attr(line, "decrement", 0);
-    counter->expect_value = read_int_attr(line, "expect-value", counter->value);
+    cdc_first_token_after(line, "counter ", counter->id, sizeof(counter->id));
+    counter->value = cdc_read_int_attr(line, "value", 0);
+    counter->increment = cdc_read_int_attr(line, "increment", 0);
+    counter->decrement = cdc_read_int_attr(line, "decrement", 0);
+    counter->expect_value = cdc_read_int_attr(line, "expect-value", counter->value);
 }
 
 static void parse_source(Runtime *rt, const char *path) {
@@ -726,45 +641,45 @@ static void parse_source(Runtime *rt, const char *path) {
     }
     memset(rt, 0, sizeof(*rt));
     while (fgets(line, sizeof(line), fp)) {
-        strip_comment(line);
+        cdc_strip_comment(line);
         if (line[0] == '\0' || strcmp(line, "end") == 0) {
             continue;
         }
-        if (starts_with(line, "field ")) {
+        if (cdc_starts_with(line, "field ")) {
             add_field(rt, line);
-        } else if (starts_with(line, "module ")) {
+        } else if (cdc_starts_with(line, "module ")) {
             add_module(rt, line);
-        } else if (starts_with(line, "cell ")) {
+        } else if (cdc_starts_with(line, "cell ")) {
             add_cell(rt, line);
-        } else if (starts_with(line, "channel ")) {
+        } else if (cdc_starts_with(line, "channel ")) {
             add_channel(rt, line);
-        } else if (starts_with(line, "guard ")) {
+        } else if (cdc_starts_with(line, "guard ")) {
             add_guard(rt, line);
-        } else if (starts_with(line, "flow ")) {
+        } else if (cdc_starts_with(line, "flow ")) {
             add_step(rt, line, STEP_FLOW, "flow ");
-        } else if (starts_with(line, "commit ")) {
+        } else if (cdc_starts_with(line, "commit ")) {
             add_step(rt, line, STEP_COMMIT, "commit ");
-        } else if (starts_with(line, "nest ")) {
+        } else if (cdc_starts_with(line, "nest ")) {
             add_step(rt, line, STEP_NEST, "nest ");
-        } else if (starts_with(line, "counter ")) {
+        } else if (cdc_starts_with(line, "counter ")) {
             add_counter(rt, line);
-        } else if (starts_with(line, "trace ")) {
+        } else if (cdc_starts_with(line, "trace ")) {
             add_trace(rt, line);
-        } else if (starts_with(line, "measure ")) {
+        } else if (cdc_starts_with(line, "measure ")) {
             add_measure(rt, line);
-        } else if (starts_with(line, "policy ")) {
+        } else if (cdc_starts_with(line, "policy ")) {
             add_policy(rt, line);
-        } else if (starts_with(line, "bridge ")) {
+        } else if (cdc_starts_with(line, "bridge ")) {
             add_surface_bridge(rt, line);
-        } else if (starts_with(line, "compile ")) {
+        } else if (cdc_starts_with(line, "compile ")) {
             add_compile_job(rt, line);
-        } else if (starts_with(line, "proof ")) {
+        } else if (cdc_starts_with(line, "proof ")) {
             add_proof_job(rt, line);
-        } else if (starts_with(line, "council ")) {
+        } else if (cdc_starts_with(line, "council ")) {
             add_council(rt, line);
-        } else if (starts_with(line, "deliberate ")) {
+        } else if (cdc_starts_with(line, "deliberate ")) {
             add_deliberation(rt, line);
-        } else if (starts_with(line, "evolve ")) {
+        } else if (cdc_starts_with(line, "evolve ")) {
             add_evolution(rt, line);
         }
     }
@@ -816,9 +731,7 @@ static void execute_flow(Runtime *rt, Step *step, FlowResult *result) {
         if (!expected) {
             fail("flow expectation references unknown cell");
         }
-        if (!close_enough(expected->theta, step->expect_theta, step->tolerance)) {
-            fail("flow expectation mismatch");
-        }
+        cdc_expect_double(expected->theta, step->expect_theta, step->tolerance, "flow expectation mismatch");
         result->has_theta = 1;
         snprintf(result->theta_cell, sizeof(result->theta_cell), "%s", expected->name);
         result->theta = expected->theta;
@@ -891,8 +804,8 @@ static void execute_commit(Runtime *rt, Step *step, CommitResult *result) {
             cell->has_latch = 1;
         }
     }
-    if (step->expect_trits[0] && strcmp(trits, step->expect_trits) != 0) {
-        fail("commit trit expectation mismatch");
+    if (step->expect_trits[0]) {
+        cdc_expect_string(trits, step->expect_trits, "commit trit expectation mismatch");
     }
     if (step->expect_balance[0]) {
         if (strcmp(step->expect_balance, "admissible") == 0) {
@@ -911,17 +824,13 @@ static void execute_commit(Runtime *rt, Step *step, CommitResult *result) {
         if (!is_commit_status(step->expect_status)) {
             fail("unknown commit status expectation");
         }
-        if (strcmp(status, step->expect_status) != 0) {
-            fail("commit status expectation mismatch");
-        }
+        cdc_expect_string(status, step->expect_status, "commit status expectation mismatch");
     }
     if (step->expect_reason[0]) {
         if (!is_hold_reason(step->expect_reason)) {
             fail("unknown commit reason expectation");
         }
-        if (strcmp(reason, step->expect_reason) != 0) {
-            fail("commit reason expectation mismatch");
-        }
+        cdc_expect_string(reason, step->expect_reason, "commit reason expectation mismatch");
     }
     snprintf(result->id, sizeof(result->id), "%s", step->id);
     snprintf(result->module, sizeof(result->module), "%s", module->name);
@@ -977,13 +886,19 @@ static void execute_nest(Runtime *rt, Step *step, NestResult *result) {
     up = module_mean_trit(rt, child);
     parent->belief += field->gain * up;
     child->prior = parent->belief;
-    if (step->has_expect_parent_belief &&
-        !close_enough(parent->belief, step->expect_parent_belief, step->tolerance)) {
-        fail("nest parent belief expectation mismatch");
+    if (step->has_expect_parent_belief) {
+        cdc_expect_double(
+            parent->belief,
+            step->expect_parent_belief,
+            step->tolerance,
+            "nest parent belief expectation mismatch");
     }
-    if (step->has_expect_child_prior &&
-        !close_enough(child->prior, step->expect_child_prior, step->tolerance)) {
-        fail("nest child prior expectation mismatch");
+    if (step->has_expect_child_prior) {
+        cdc_expect_double(
+            child->prior,
+            step->expect_child_prior,
+            step->tolerance,
+            "nest child prior expectation mismatch");
     }
     snprintf(result->id, sizeof(result->id), "%s", step->id);
     snprintf(result->parent, sizeof(result->parent), "%s", parent->name);
@@ -1077,17 +992,17 @@ static void compile_source(Runtime *rt, const char *path) {
     }
     for (int i = 0; i < rt->compile_job_count; i++) {
         CompileJob *job = &rt->compile_jobs[i];
-        if (job->expect_ops >= 0 && job->expect_ops != rt->step_count) {
-            fail("compile job op count mismatch");
+        if (job->expect_ops >= 0) {
+            cdc_expect_int(rt->step_count, job->expect_ops, "compile job op count mismatch");
         }
-        if (job->expect_flow >= 0 && job->expect_flow != flow_count) {
-            fail("compile job flow count mismatch");
+        if (job->expect_flow >= 0) {
+            cdc_expect_int(flow_count, job->expect_flow, "compile job flow count mismatch");
         }
-        if (job->expect_commit >= 0 && job->expect_commit != commit_count) {
-            fail("compile job commit count mismatch");
+        if (job->expect_commit >= 0) {
+            cdc_expect_int(commit_count, job->expect_commit, "compile job commit count mismatch");
         }
-        if (job->expect_nest >= 0 && job->expect_nest != nest_count) {
-            fail("compile job nest count mismatch");
+        if (job->expect_nest >= 0) {
+            cdc_expect_int(nest_count, job->expect_nest, "compile job nest count mismatch");
         }
         printf("compile-job=%s source=%s ops=%d flow=%d commit=%d nest=%d\n",
                job->id, job->source[0] ? job->source : path, rt->step_count, flow_count, commit_count, nest_count);
@@ -1147,20 +1062,20 @@ static void check_trit_walk_job(ProofJob *job) {
             }
         }
     }
-    if (job->expect_total >= 0 && job->expect_total != total) {
-        fail("proof total mismatch");
+    if (job->expect_total >= 0) {
+        cdc_expect_int(total, job->expect_total, "proof total mismatch");
     }
-    if (job->expect_admissible >= 0 && job->expect_admissible != admissible) {
-        fail("proof admissible count mismatch");
+    if (job->expect_admissible >= 0) {
+        cdc_expect_int(admissible, job->expect_admissible, "proof admissible count mismatch");
     }
-    if (job->expect_localized >= 0 && job->expect_localized != localized) {
-        fail("proof localized count mismatch");
+    if (job->expect_localized >= 0) {
+        cdc_expect_int(localized, job->expect_localized, "proof localized count mismatch");
     }
-    if (job->expect_saturated >= 0 && job->expect_saturated != saturated) {
-        fail("proof saturated count mismatch");
+    if (job->expect_saturated >= 0) {
+        cdc_expect_int(saturated, job->expect_saturated, "proof saturated count mismatch");
     }
-    if (job->expect_catalan >= 0 && job->expect_catalan != catalan) {
-        fail("proof catalan count mismatch");
+    if (job->expect_catalan >= 0) {
+        cdc_expect_int(catalan, job->expect_catalan, "proof catalan count mismatch");
     }
     printf("proof=%s carrier=%s arity=%d total=%d admissible=%d localized=%d saturated=%d catalan=%d\n",
            job->id, job->carrier, job->arity, total, admissible, localized, saturated, catalan);
@@ -1313,8 +1228,8 @@ static void run_guards(Runtime *rt) {
         }
         trit = trit_from_theta(cell->theta, field->deadband);
         state = trit == '0' ? "open" : "closed";
-        if (guard->expect_state[0] && strcmp(state, guard->expect_state) != 0) {
-            fail("guard state expectation mismatch");
+        if (guard->expect_state[0]) {
+            cdc_expect_string(state, guard->expect_state, "guard state expectation mismatch");
         }
         printf("guard=%s cell=%s trit=%c state=%s\n", guard->id, cell->name, trit, state);
     }
@@ -1332,11 +1247,11 @@ static void run_traces(Runtime *rt) {
         int events;
         trace_trits(rt, trace, trits, sizeof(trits));
         events = count_occupied_trits(trits);
-        if (trace->expect_trits[0] && strcmp(trits, trace->expect_trits) != 0) {
-            fail("trace trit expectation mismatch");
+        if (trace->expect_trits[0]) {
+            cdc_expect_string(trits, trace->expect_trits, "trace trit expectation mismatch");
         }
-        if (trace->expect_events >= 0 && trace->expect_events != events) {
-            fail("trace event-count expectation mismatch");
+        if (trace->expect_events >= 0) {
+            cdc_expect_int(events, trace->expect_events, "trace event-count expectation mismatch");
         }
         printf("trace=%s field=%s trits=%s events=%d\n", trace->id, trace->field, trits, events);
     }
@@ -1352,8 +1267,8 @@ static void run_measures(Runtime *rt) {
             fail("measurement references unknown observer or target");
         }
         append_module_trits(rt, target, outcome, sizeof(outcome));
-        if (measure->expect_outcome[0] && strcmp(outcome, measure->expect_outcome) != 0) {
-            fail("measurement outcome expectation mismatch");
+        if (measure->expect_outcome[0]) {
+            cdc_expect_string(outcome, measure->expect_outcome, "measurement outcome expectation mismatch");
         }
         if (measure->expect_potential[0] && strcmp(measure->expect_potential, "nonincrease") != 0) {
             fail("unsupported measurement potential expectation");
@@ -1370,14 +1285,14 @@ static void run_policies(Runtime *rt) {
         if (!find_trace(rt, policy->window)) {
             fail("policy references unknown trace/window");
         }
-        if (policy->expect_sampling[0] && strcmp(policy->sampling, policy->expect_sampling) != 0) {
-            fail("policy sampling expectation mismatch");
+        if (policy->expect_sampling[0]) {
+            cdc_expect_string(policy->sampling, policy->expect_sampling, "policy sampling expectation mismatch");
         }
-        if (policy->expect_commit[0] && strcmp(policy->commit, policy->expect_commit) != 0) {
-            fail("policy commit expectation mismatch");
+        if (policy->expect_commit[0]) {
+            cdc_expect_string(policy->commit, policy->expect_commit, "policy commit expectation mismatch");
         }
-        if (policy->expect_adapt[0] && strcmp(policy->adapt, policy->expect_adapt) != 0) {
-            fail("policy adapt expectation mismatch");
+        if (policy->expect_adapt[0]) {
+            cdc_expect_string(policy->adapt, policy->expect_adapt, "policy adapt expectation mismatch");
         }
         printf("policy=%s window=%s sampling=%s commit=%s adapt=%s\n",
                policy->id, policy->window, policy->sampling, policy->commit, policy->adapt);
@@ -1402,11 +1317,11 @@ static void run_surface_bridges(Runtime *rt) {
         trits_to_occupancy6(trits, dyadic);
         index = dyadic6_to_index(dyadic);
         triadic_from_index64(index, triadic);
-        if (bridge->expect_dyadic[0] && strcmp(dyadic, bridge->expect_dyadic) != 0) {
-            fail("surface bridge dyadic expectation mismatch");
+        if (bridge->expect_dyadic[0]) {
+            cdc_expect_string(dyadic, bridge->expect_dyadic, "surface bridge dyadic expectation mismatch");
         }
-        if (bridge->expect_triadic[0] && strcmp(triadic, bridge->expect_triadic) != 0) {
-            fail("surface bridge triadic expectation mismatch");
+        if (bridge->expect_triadic[0]) {
+            cdc_expect_string(triadic, bridge->expect_triadic, "surface bridge triadic expectation mismatch");
         }
         printf("bridge=%s trace=%s via=%s trits=%s dyadic=%s triadic=%s\n",
                bridge->id, trace->id, bridge->via, trits, dyadic, triadic);
@@ -1417,9 +1332,7 @@ static void run_counters(Runtime *rt) {
     for (int i = 0; i < rt->counter_count; i++) {
         CounterJob *counter = &rt->counters[i];
         int value = counter->value + counter->increment - counter->decrement;
-        if (value != counter->expect_value) {
-            fail("counter expectation mismatch");
-        }
+        cdc_expect_int(value, counter->expect_value, "counter expectation mismatch");
         printf("counter=%s value=%d increment=%d decrement=%d final=%d\n",
                counter->id, counter->value, counter->increment, counter->decrement, value);
     }
@@ -1478,14 +1391,14 @@ static void run_council(Runtime *rt, const char *path) {
         index = dyadic6_to_index(dyadic);
         triadic_from_index64(index, triadic);
         snprintf(decision, sizeof(decision), "%s", occupancy >= council->quorum ? "adopt" : "hold");
-        if (council->expect_decision[0] && strcmp(decision, council->expect_decision) != 0) {
-            fail("council decision expectation mismatch");
+        if (council->expect_decision[0]) {
+            cdc_expect_string(decision, council->expect_decision, "council decision expectation mismatch");
         }
-        if (council->expect_dyadic[0] && strcmp(dyadic, council->expect_dyadic) != 0) {
-            fail("council dyadic expectation mismatch");
+        if (council->expect_dyadic[0]) {
+            cdc_expect_string(dyadic, council->expect_dyadic, "council dyadic expectation mismatch");
         }
-        if (council->expect_triadic[0] && strcmp(triadic, council->expect_triadic) != 0) {
-            fail("council triadic expectation mismatch");
+        if (council->expect_triadic[0]) {
+            cdc_expect_string(triadic, council->expect_triadic, "council triadic expectation mismatch");
         }
         printf("council=%s deliberation=%s trits=%s dyadic=%s triadic=%s occupancy=%d quorum=%d decision=%s\n",
                council->id, deliberation->id, trits, dyadic, triadic, occupancy, council->quorum, decision);
@@ -1603,11 +1516,11 @@ static void collect_replay_data(const char *reducer_path, const char *surface_pa
     trace = &surface.traces[0];
     trace_trits(&surface, trace, trits, sizeof(trits));
     data->trace_events = count_occupied_trits(trits);
-    if (trace->expect_trits[0] && strcmp(trits, trace->expect_trits) != 0) {
-        fail("replay trace trit expectation mismatch");
+    if (trace->expect_trits[0]) {
+        cdc_expect_string(trits, trace->expect_trits, "replay trace trit expectation mismatch");
     }
-    if (trace->expect_events >= 0 && trace->expect_events != data->trace_events) {
-        fail("replay trace event-count expectation mismatch");
+    if (trace->expect_events >= 0) {
+        cdc_expect_int(data->trace_events, trace->expect_events, "replay trace event-count expectation mismatch");
     }
     snprintf(data->trace_trits, sizeof(data->trace_trits), "%s", trits);
 
@@ -1623,11 +1536,11 @@ static void collect_replay_data(const char *reducer_path, const char *surface_pa
     trits_to_occupancy6(trits, dyadic);
     index = dyadic6_to_index(dyadic);
     triadic_from_index64(index, triadic);
-    if (bridge->expect_dyadic[0] && strcmp(dyadic, bridge->expect_dyadic) != 0) {
-        fail("replay bridge dyadic expectation mismatch");
+    if (bridge->expect_dyadic[0]) {
+        cdc_expect_string(dyadic, bridge->expect_dyadic, "replay bridge dyadic expectation mismatch");
     }
-    if (bridge->expect_triadic[0] && strcmp(triadic, bridge->expect_triadic) != 0) {
-        fail("replay bridge triadic expectation mismatch");
+    if (bridge->expect_triadic[0]) {
+        cdc_expect_string(triadic, bridge->expect_triadic, "replay bridge triadic expectation mismatch");
     }
     snprintf(data->bridge_dyadic, sizeof(data->bridge_dyadic), "%s", dyadic);
     snprintf(data->bridge_triadic, sizeof(data->bridge_triadic), "%s", triadic);

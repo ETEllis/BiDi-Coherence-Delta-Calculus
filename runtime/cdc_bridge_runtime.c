@@ -1,4 +1,5 @@
-#include <ctype.h>
+#include "cdc_source.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,49 +21,6 @@ static const char DIGITS[] = "0123456789ABCDEF";
 static void fail(const char *message) {
     fprintf(stderr, "cdc-bridge-runtime: %s\n", message);
     exit(1);
-}
-
-static int starts_with(const char *s, const char *prefix) {
-    return strncmp(s, prefix, strlen(prefix)) == 0;
-}
-
-static void trim_newline(char *s) {
-    size_t n = strlen(s);
-    while (n > 0 && (s[n - 1] == '\n' || s[n - 1] == '\r')) {
-        s[n - 1] = '\0';
-        n--;
-    }
-}
-
-static void first_token_after(const char *line, const char *prefix, char *out, size_t out_size) {
-    const char *p = line + strlen(prefix);
-    size_t i = 0;
-    while (*p && !isspace((unsigned char)*p)) {
-        if (i + 1 >= out_size) {
-            fail("token too long");
-        }
-        out[i++] = *p++;
-    }
-    out[i] = '\0';
-}
-
-static int read_attr(const char *line, const char *key, char *out, size_t out_size) {
-    char needle[64];
-    snprintf(needle, sizeof(needle), "%s=", key);
-    const char *p = strstr(line, needle);
-    size_t i = 0;
-    if (!p) {
-        return 0;
-    }
-    p += strlen(needle);
-    while (*p && !isspace((unsigned char)*p)) {
-        if (i + 1 >= out_size) {
-            fail("attribute too long");
-        }
-        out[i++] = *p++;
-    }
-    out[i] = '\0';
-    return 1;
 }
 
 static int dyadic_index(const char *dyadic) {
@@ -204,15 +162,15 @@ static void load_bridge64(const char *path, BridgeRow rows[BRIDGE64_ROWS]) {
         char expected_t[4];
         char expected_d[7];
 
-        trim_newline(line);
-        if (!starts_with(line, "witness bridge64-")) {
+        cdc_trim_newline(line);
+        if (!cdc_starts_with(line, "witness bridge64-")) {
             continue;
         }
 
-        first_token_after(line, "witness ", witness, sizeof(witness));
-        if (!read_attr(line, "dyadic", dyadic, sizeof(dyadic)) ||
-            !read_attr(line, "triadic", triadic, sizeof(triadic)) ||
-            !read_attr(line, "index", index_text, sizeof(index_text))) {
+        cdc_first_token_after(line, "witness ", witness, sizeof(witness));
+        if (!cdc_read_attr(line, "dyadic", dyadic, sizeof(dyadic)) ||
+            !cdc_read_attr(line, "triadic", triadic, sizeof(triadic)) ||
+            !cdc_read_attr(line, "index", index_text, sizeof(index_text))) {
             fail("bridge64 witness missing dyadic, triadic, or index attribute");
         }
 
@@ -238,9 +196,8 @@ static void load_bridge64(const char *path, BridgeRow rows[BRIDGE64_ROWS]) {
 
         expected_triadic(index, expected_t);
         expected_dyadic(index, expected_d);
-        if (strcmp(triadic, expected_t) != 0 || strcmp(dyadic, expected_d) != 0) {
-            fail("bridge64 row does not match canonical codebook");
-        }
+        cdc_expect_string(triadic, expected_t, "bridge64 row triadic code does not match canonical codebook");
+        cdc_expect_string(dyadic, expected_d, "bridge64 row dyadic code does not match canonical codebook");
 
         snprintf(rows[index].witness, sizeof(rows[index].witness), "%s", witness);
         snprintf(rows[index].dyadic, sizeof(rows[index].dyadic), "%s", dyadic);
@@ -253,9 +210,7 @@ static void load_bridge64(const char *path, BridgeRow rows[BRIDGE64_ROWS]) {
     }
     fclose(fp);
 
-    if (count != BRIDGE64_ROWS) {
-        fail("bridge64 file does not contain exactly 64 rows");
-    }
+    cdc_expect_int(count, BRIDGE64_ROWS, "bridge64 file does not contain exactly 64 rows");
     for (int i = 0; i < BRIDGE64_ROWS; i++) {
         if (!rows[i].seen) {
             fail("bridge64 table has an unfilled row");
@@ -453,19 +408,19 @@ static void cmd_verify_codebook(const char *path, const char *arity_text) {
         int d_index;
         int t_index;
 
-        trim_newline(line);
-        if (!starts_with(line, "witness bridge")) {
+        cdc_trim_newline(line);
+        if (!cdc_starts_with(line, "witness bridge")) {
             continue;
         }
-        if (!read_attr(line, "row", row, sizeof(row)) || strcmp(row, "codebook") != 0) {
+        if (!cdc_read_attr(line, "row", row, sizeof(row)) || strcmp(row, "codebook") != 0) {
             continue;
         }
-        if (!read_attr(line, "arity", attr, sizeof(attr)) || atoi(attr) != arity) {
+        if (!cdc_read_attr(line, "arity", attr, sizeof(attr)) || atoi(attr) != arity) {
             fail("generated codebook row has wrong arity");
         }
-        if (!read_attr(line, "dyadic", dyadic, sizeof(dyadic)) ||
-            !read_attr(line, "triadic", triadic, sizeof(triadic)) ||
-            !read_attr(line, "index", index_text, sizeof(index_text))) {
+        if (!cdc_read_attr(line, "dyadic", dyadic, sizeof(dyadic)) ||
+            !cdc_read_attr(line, "triadic", triadic, sizeof(triadic)) ||
+            !cdc_read_attr(line, "index", index_text, sizeof(index_text))) {
             fail("generated codebook row missing dyadic, triadic, or index");
         }
         index = atoi(index_text);
@@ -482,9 +437,8 @@ static void cmd_verify_codebook(const char *path, const char *arity_text) {
         }
         expected_dyadic_n(index, arity, expected_d, sizeof(expected_d));
         expected_triadic_n(index, arity, expected_t);
-        if (strcmp(dyadic, expected_d) != 0 || strcmp(triadic, expected_t) != 0) {
-            fail("generated codebook row does not match canonical coordinate");
-        }
+        cdc_expect_string(dyadic, expected_d, "generated codebook dyadic row does not match canonical coordinate");
+        cdc_expect_string(triadic, expected_t, "generated codebook triadic row does not match canonical coordinate");
         if (dyadic_seen[d_index] || triadic_seen[t_index]) {
             fail("generated codebook duplicate dyadic or triadic coordinate");
         }
@@ -493,9 +447,7 @@ static void cmd_verify_codebook(const char *path, const char *arity_text) {
         count++;
     }
     fclose(fp);
-    if (count != states) {
-        fail("generated codebook row count mismatch");
-    }
+    cdc_expect_int(count, states, "generated codebook row count mismatch");
     for (int i = 0; i < states; i++) {
         if (!dyadic_seen[i] || !triadic_seen[i]) {
             fail("generated codebook has an unfilled row");
@@ -527,30 +479,28 @@ static void cmd_run_jobs(const char *bridge_path, const char *jobs_path) {
         char actual_dyadic[7];
         int index;
 
-        trim_newline(line);
-        if (!starts_with(line, "witness ")) {
+        cdc_trim_newline(line);
+        if (!cdc_starts_with(line, "witness ")) {
             continue;
         }
-        if (!read_attr(line, "job", job, sizeof(job)) || strcmp(job, "bridge-coordinate") != 0) {
+        if (!cdc_read_attr(line, "job", job, sizeof(job)) || strcmp(job, "bridge-coordinate") != 0) {
             continue;
         }
 
-        first_token_after(line, "witness ", witness, sizeof(witness));
-        if (!read_attr(line, "trits", trits, sizeof(trits)) ||
-            !read_attr(line, "expect-dyadic", expected_dyadic_attr, sizeof(expected_dyadic_attr)) ||
-            !read_attr(line, "expect-triadic", expected_triadic_attr, sizeof(expected_triadic_attr))) {
+        cdc_first_token_after(line, "witness ", witness, sizeof(witness));
+        if (!cdc_read_attr(line, "trits", trits, sizeof(trits)) ||
+            !cdc_read_attr(line, "expect-dyadic", expected_dyadic_attr, sizeof(expected_dyadic_attr)) ||
+            !cdc_read_attr(line, "expect-triadic", expected_triadic_attr, sizeof(expected_triadic_attr))) {
             fail("bridge-coordinate job missing trits or expected coordinate");
         }
-        if (!read_attr(line, "window", window, sizeof(window))) {
+        if (!cdc_read_attr(line, "window", window, sizeof(window))) {
             snprintf(window, sizeof(window), "%s", "trace");
         }
 
         trits_to_dyadic(trits, actual_dyadic);
         index = dyadic_index(actual_dyadic);
-        if (strcmp(actual_dyadic, expected_dyadic_attr) != 0 ||
-            strcmp(rows[index].triadic, expected_triadic_attr) != 0) {
-            fail("bridge-coordinate job expectation mismatch");
-        }
+        cdc_expect_string(actual_dyadic, expected_dyadic_attr, "bridge-coordinate job dyadic expectation mismatch");
+        cdc_expect_string(rows[index].triadic, expected_triadic_attr, "bridge-coordinate job triadic expectation mismatch");
 
         printf("job=%s window=%s trits=%s dyadic=%s triadic=%s witness=%s\n",
                witness, window, trits, actual_dyadic, rows[index].triadic, rows[index].witness);

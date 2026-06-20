@@ -39,7 +39,9 @@ the interactive bridge SVG. The native reducer runtime lives in
 `runtime/cdc_native_runtime.c` and executes source-declared `.cdc` `flow`,
 `commit`, `nest`, `guard`, `trace`, `measure`, `policy`, `bridge`, `counter`,
 `interpret`, `council`, `evolve`, and `replay` jobs from `native_reducer.cdc`,
-`native_surface.cdc`, and `council_bridge.cdc`.
+`native_surface.cdc`, and `council_bridge.cdc`. Both C runtimes share
+`runtime/cdc_source.c` / `runtime/cdc_source.h` for `.cdc` line parsing,
+attribute extraction, typed attributes, and primitive expectation assertions.
 
 ## Native Status
 
@@ -124,6 +126,7 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Generated higher-arity codebooks** — `bridge512.cdc` and `bridge4096.cdc` contain the full generated rows for `n=9` and `n=12`, with runtime regeneration checks. The verified bootstrap arity is `n=6`; arbitrary `n=3k` generation is still a future proof/generator obligation.
 - **Operational bridge runtime** — `runtime/cdc_bridge_runtime.c` parses `bridge64.cdc`, verifies bijection, performs dyadic/triadic lookup, projects trace trits into bridge coordinates, verifies generated codebooks, and emits an interactive 64-cell SVG.
 - **Operational native reducer** — `runtime/cdc_native_runtime.c` parses `native_reducer.cdc` and executes source-declared flow, accepted commit, held commit, and nest transitions.
+- **Shared native source core** — `runtime/cdc_source.c` / `runtime/cdc_source.h` provide the common `.cdc` parser helpers and expectation checks used by the bridge, reducer, replay, and WASM export paths.
 - **Native full-surface runtime** — `native_surface.cdc` exercises guard, trace, measure, policy, bridge, and counter forms through the same C runtime.
 - **Native compile/interpreter/proof path** — the same runtime emits reducer IR, executes that IR through an interpreter path, and exhaustively checks the finite n=6 balanced-ternary walk spectrum.
 - **Council + self-evolution scenario** — `council_bridge.cdc` deliberates across modules into a bridge coordinate and writes a bridge-coordinate witness into an evolved `.cdc` source copy.
@@ -149,6 +152,7 @@ The package passes 100% through `./scripts/verify.sh`. CI runs the stricter
 - 4766/4766 native witness declarations
 - C bridge runtime compile, lookup, trace-coordinate, generated higher-arity codebook, and interactive grid/SVG checks
 - C native reducer runtime run/compile/interpret/proof/surface/council/evolve/replay checks, including explicit accepted and held commit statuses
+- Shared C `.cdc` parser/expectation core linked into both native runtimes and compile-checked for the WASM export path
 - Native replay JSON freshness for `demo/replay.json` and the one-screen demo embed
 - WASM replay export surface compile check, with live `emcc` link when Emscripten is available
 - Lean and Rocq/Coq finite carrier and algebraic law proof checks
@@ -165,7 +169,7 @@ Run the full gate anytime:
 ## Layered Value Proposition
 
 - **Language layer:** `.cdc` is the source of record for fields, modules, channels, reducers, witnesses, and expectations.
-- **Runtime layer:** C runtimes execute the bridge, reducer, surface, council, and source-evolution jobs directly from `.cdc`.
+- **Runtime layer:** C runtimes execute the bridge, reducer, surface, council, and source-evolution jobs directly from `.cdc` through a shared native parser/expectation core.
 - **Formal layer:** Lean, Rocq/Coq, and native finite checkers cover the `n=6` carrier/algebra bootstrap while larger continuous proofs remain explicitly queued.
 - **Product layer:** generated bridge assets and native replay JSON expose the runtime trace as an inspectable demo without claiming live WASM or `cdc_boot.py` parity yet.
 
@@ -237,6 +241,12 @@ The C runtime consumes that source and executes:
 - `council`: deliberate across source-declared council members into a bridge coordinate;
 - `evolve`: write a bridge-coordinate witness into a copied `.cdc` source.
 - `replay`: emit the Flow -> Commit -> Nest -> Trace -> Bridge JSON used by `demo/replay.json` and `demo/index.html`.
+
+`runtime/cdc_source.c` / `runtime/cdc_source.h` factor the shared native
+`.cdc` line parser, attribute reader, typed attribute accessors, and primitive
+expectation checks used by both C runtimes. This is a native parser/expectation
+core, not full `cdc_boot.py` parity; repo-wide declaration checking remains
+queued until the C/WASM path covers the bootloader's whole contract surface.
 
 `runtime/cdc_wasm_exports.c` wraps the replay path with a C ABI suitable for an
 Emscripten build. The verification gate always compiles that export surface as
