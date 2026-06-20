@@ -71,6 +71,8 @@ idx = invariant_index()
 required = {
     "balanced-ternary-carrier",
     "dyadic-triadic-closure",
+    "existence-viability",
+    "trace-order-locality",
     "gate-abelian",
     "interfere-monoid",
     "rotation-linear",

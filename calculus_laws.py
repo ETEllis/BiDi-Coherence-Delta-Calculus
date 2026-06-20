@@ -159,6 +159,63 @@ check("T4 Flow additivity: ⟶_{d1};⟶_{d2} = ⟶_{d1+d2}  (off-grid, numeric)"
       f"err={add_err:.1e}",
       invariant="flow-additivity")
 
+# ── T6 · TRACE-ORDER LOCALITY: smooth phase time without global tick ──────── #
+trace_field = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+trace_field.add(Knot("slow", threads=[Thread(theta=0.0, omega=0.7)]))
+trace_field.add(Knot("fast", threads=[Thread(theta=0.0, omega=1.3)]))
+trace_field.advance(0.4)
+slow_trace = trace_field.trace_window("slow", t0=0.0, t1=trace_field.t, record=False)
+fast_trace = trace_field.trace_window("fast", t0=0.0, t1=trace_field.t, record=False)
+smooth_without_events = (
+    slow_trace.commit_count == fast_trace.commit_count == 0
+    and slow_trace.event0 == slow_trace.event1 == fast_trace.event0 == fast_trace.event1 == 0
+    and slow_trace.total_phase_motion > 0
+    and fast_trace.total_phase_motion > slow_trace.total_phase_motion
+)
+ordered_samples = (
+    slow_trace.samples[0][0] == 0.0
+    and slow_trace.samples[-1][0] == trace_field.t
+    and all(a[0] <= b[0] for a, b in zip(slow_trace.samples, slow_trace.samples[1:]))
+)
+check("T6 Trace-order locality: phase-time flows without a global event tick",
+      smooth_without_events and ordered_samples,
+      f"slow={slow_trace.total_phase_motion:.2f}, fast={fast_trace.total_phase_motion:.2f}",
+      invariant="trace-order-locality")
+
+# ── E0 · EXISTENCE / VIABILITY: agency spectrum without zero-sink gridlock ── #
+passive = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+passive.add(Knot("rock", threads=[Thread(theta=math.pi / 2, omega=0.0)]))
+reactive = Breathfield(dt=0.02, gain=1.0, kappa_gate=False)
+reactive.add(Knot("src", threads=[Thread(theta=0.0, omega=0.0)]))
+reactive.add(Knot("leaf", threads=[Thread(theta=math.pi / 2, omega=0.0)]))
+reactive.wire("src", "leaf", weight=1.0)
+intent = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+intent_k = Knot("seed", threads=[Thread(theta=math.pi / 2, omega=0.0)])
+intent_k.prior = [0.6]
+intent.add(intent_k)
+agentic = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+agent_k = Knot("agent", threads=[Thread(theta=1.9, omega=0.0)])
+agent_k.prior = [0.6]
+agent_k.act_gain = 3.0
+agentic.add(agent_k)
+selfing = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+selfing.add(Knot("loop", threads=[Thread(theta=1.1, omega=0.0)]))
+selfing.wire("loop", "loop", weight=1.0)
+summaries = [
+    passive.existence_summary("rock"),
+    reactive.existence_summary("leaf"),
+    intent.existence_summary("seed"),
+    agentic.existence_summary("agent"),
+    selfing.existence_summary("loop"),
+]
+modes = tuple(s.agency_mode for s in summaries)
+viable = all(s.viable for s in summaries)
+anti_gridlock = summaries[0].transition_capacity == 0 and all(s.transition_capacity > 0 for s in summaries[1:])
+check("E0 Existence viability spans passive/reactive/intent/agentic/self-reference",
+      modes == ("passive", "reactive", "intent", "agentic", "self-referential") and viable and anti_gridlock,
+      "/".join(modes),
+      invariant="existence-viability")
+
 # ── T5 · NORMAL FORMS = Catalan: irreducible values are localized closures ─── #
 cen = census()
 nf_count_ok = (cen["classical_localized"] == 5 and cen["localized"] == 51)

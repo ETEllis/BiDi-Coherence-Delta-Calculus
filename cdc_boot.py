@@ -99,6 +99,54 @@ def _law(name):
         g2.advance(0.60)
         err = max(abs(g1.knots[n].threads[0].theta - g2.knots[n].threads[0].theta) for n in "xy")
         return err < 1e-3
+    if name == "trace-order-locality":
+        bf = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+        bf.add(Knot("slow", threads=[Thread(theta=0.0, omega=0.7)]))
+        bf.add(Knot("fast", threads=[Thread(theta=0.0, omega=1.3)]))
+        bf.advance(0.4)
+        slow = bf.trace_window("slow", t0=0.0, t1=bf.t, record=False)
+        fast = bf.trace_window("fast", t0=0.0, t1=bf.t, record=False)
+        return (
+            slow.commit_count == fast.commit_count == 0
+            and slow.event0 == slow.event1 == fast.event0 == fast.event1 == 0
+            and slow.total_phase_motion > 0
+            and fast.total_phase_motion > slow.total_phase_motion
+            and slow.samples[0][0] == 0.0
+            and slow.samples[-1][0] == bf.t
+        )
+    if name == "existence-viability":
+        passive = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+        passive.add(Knot("rock", threads=[Thread(theta=math.pi / 2, omega=0.0)]))
+        reactive = Breathfield(dt=0.02, gain=1.0, kappa_gate=False)
+        reactive.add(Knot("src", threads=[Thread(theta=0.0, omega=0.0)]))
+        reactive.add(Knot("leaf", threads=[Thread(theta=math.pi / 2, omega=0.0)]))
+        reactive.wire("src", "leaf", weight=1.0)
+        intent = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+        seed = Knot("seed", threads=[Thread(theta=math.pi / 2, omega=0.0)])
+        seed.prior = [0.6]
+        intent.add(seed)
+        agentic = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+        agent = Knot("agent", threads=[Thread(theta=1.9, omega=0.0)])
+        agent.prior = [0.6]
+        agent.act_gain = 3.0
+        agentic.add(agent)
+        selfing = Breathfield(dt=0.02, gain=0.0, kappa_gate=False)
+        selfing.add(Knot("loop", threads=[Thread(theta=1.1, omega=0.0)]))
+        selfing.wire("loop", "loop", weight=1.0)
+        summaries = [
+            passive.existence_summary("rock"),
+            reactive.existence_summary("leaf"),
+            intent.existence_summary("seed"),
+            agentic.existence_summary("agent"),
+            selfing.existence_summary("loop"),
+        ]
+        modes = tuple(s.agency_mode for s in summaries)
+        return (
+            modes == ("passive", "reactive", "intent", "agentic", "self-referential")
+            and all(s.viable for s in summaries)
+            and summaries[0].transition_capacity == 0
+            and all(s.transition_capacity > 0 for s in summaries[1:])
+        )
     if name == "preservation":
         for _ in range(500):
             k = Knot("k", threads=[Thread(theta=random.uniform(0, 6.28)) for _ in range(6)])

@@ -10,6 +10,8 @@ expect law balanced-ternary-carrier # committed values are balanced around equil
 expect law dyadic-triadic-closure   # 2^6 = 4^3 = 64 bridge codebook
 expect law preservation        # T1: every commit ⟹ admissible committed state
 expect law soundness           # T2: Φ free energy never increases across a commit
+expect law existence-viability # E0: frames persist across passive→self-referential agency modes
 expect law local-confluence    # T3: footprint-disjoint commits commute
 expect law flow-additivity     # T4: deterministic flow composes over off-grid durations
+expect law trace-order-locality # T6: phase/event trace order is local, smooth, and window-relative
 expect law normalforms         # T5: ⟶_β-irreducible values = localized closures (Catalan 5 / Motzkin 51)

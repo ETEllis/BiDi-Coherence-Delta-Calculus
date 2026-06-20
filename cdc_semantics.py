@@ -20,6 +20,13 @@ Phase = float
 Trit = int
 BALANCED_TRITS: Tuple[Trit, Trit, Trit] = (-1, 0, 1)
 DYADIC_TRIADIC_CLOSURE_STATES = 64
+AGENCY_MODES: Tuple[str, ...] = (
+    "passive",
+    "reactive",
+    "intent",
+    "agentic",
+    "self-referential",
+)
 
 
 class SourceKind(str, Enum):
@@ -315,6 +322,19 @@ class AgencySummary:
 
 
 @dataclass(frozen=True)
+class ExistenceSummary:
+    """Frame viability summary: persistence, boundary, exchange, and agency mode."""
+    scope_path: Name
+    agency_mode: Name
+    persistence: Real
+    boundary_integrity: Real
+    permeability: Real
+    transition_capacity: Real
+    free_energy: Real
+    viable: bool
+
+
+@dataclass(frozen=True)
 class IncidenceSpec:
     """A higher-order boundary projected from subordinate paths."""
     name: Name
@@ -347,6 +367,20 @@ INVARIANTS: Tuple[InvariantSpec, ...] = (
         witness_file="calculus_laws.py",
         witness_name="64-state dyadic/triadic closure bridge",
         future_formal_target="finite bijection proof for the bootstrap codebook",
+    ),
+    InvariantSpec(
+        key="existence-viability",
+        statement="A frame persists by preserving bounded coherent continuity while retaining mode-appropriate transition capacity.",
+        witness_file="calculus_laws.py",
+        witness_name="passive/reactive/intent/agentic/self-referential viability spectrum",
+        future_formal_target="viability invariant over frame boundary, permeability, and transition operators",
+    ),
+    InvariantSpec(
+        key="trace-order-locality",
+        statement="Trace time is local to bounded windows and composes phase/event order without a global tick.",
+        witness_file="calculus_laws.py",
+        witness_name="smooth phase trace with local event counters",
+        future_formal_target="partial-order proof over causal trace windows and event counters",
     ),
     InvariantSpec(
         key="gate-abelian",

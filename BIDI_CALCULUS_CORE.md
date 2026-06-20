@@ -135,7 +135,7 @@ event time is located off the realization grid by interpolation, so commits are
 event-driven, not clocked.
 
 The committed runtime value remains balanced ternary. The crossing state `0` is
-resting equilibrium and a real open aperture state, not a Boolean false. A
+resting equilibrium and a real open aperture state, not binary false. A
 committing measurement is therefore a windowed `commit` that records a
 balanced-ternary outcome vector.
 
@@ -183,6 +183,12 @@ does not alter dynamics, committing measurement does not increase `Φ`, trace
 windows cannot read future state, observer mode is role-relative, and projected
 incidence boundaries are first-class trace targets.
 
+Trace order is local to a window. A trace may observe smooth phase motion with
+zero commits, or dense event order inside one bounded projection while another
+projection sees a different event density. The calculus therefore does not need
+a universal tick: duration, event order, and trace order are compatible but
+distinct projections over the same reduction.
+
 ---
 
 ## 6 · Free energy and the dual minimizer
@@ -198,6 +204,15 @@ Each module carries a local potential (variational free energy)
 minimized two ways, both native: **perception** (move `b` toward evidence — the
 belief flow is exact gradient descent of `Φ`) and **action** (move output phase so
 evidence shifts toward prior). The precision ratio selects which.
+
+Free-energy reduction is not the terminal objective. It is one mechanism serving
+the more general existence invariant: a frame persists by preserving bounded
+coherent continuity while retaining mode-appropriate capacity for future
+transition. Equilibrium is therefore a crossing/reference state, not a universal
+sink. A passive frame can remain viable with no transition capacity; reactive,
+intentional, agentic, and self-referential frames must retain relation, prior
+pressure, action, or feedback sufficient to leave equilibrium when their context
+requires it.
 
 ---
 
@@ -216,6 +231,13 @@ symmetric, delay-free, ungated, phase-balanced coupling. Under those stated regi
 `Φ` is a Lyapunov witness for the reduction: runs descend free energy. ✔ max
 `ΔΦ = 0` over 3000 commits, plus a symmetric delay-free coupling witness.
 
+**E0 — Existence viability.** A frame remains viable when it preserves finite
+bounded state, boundary integrity, and the transition capacity appropriate to
+its agency mode. Passive frames may persist without transition capacity; reactive
+frames need relation, intent frames need prior pressure, agentic frames need
+action capacity, and self-referential frames need feedback or nesting. ✔
+witnessed across passive/reactive/intent/agentic/self-referential frames.
+
 **T3 — Local confluence (diamond).** If modules `m, m'` share no channel and both
 guards are enabled, then `⟶_β(m); ⟶_β(m') ≡ ⟶_β(m'); ⟶_β(m)`. *Proof:* `commit(m)`
 reads only `m`'s incident channels and writes only `m`; disjoint footprints commute.
@@ -226,6 +248,12 @@ Picard–Lindelöf the flow is the unique solution and `⟶` is a deterministic 
 action of `(ℝ≥0, +)`: `⟶_0 = id_≡` and `⟶_{d₁}; ⟶_{d₂} = ⟶_{d₁+d₂}`. ✔ witnessed
 over off-grid split durations within numerical realization tolerance after
 partial-step realization.
+
+**T6 — Trace-order locality.** Phase-time flows continuously through a window
+even when no commit event occurs, while event-time remains local to the bounded
+projection that observes it. Smooth phase duration, commit count, and trace order
+are not collapsed into one global clock. ✔ witnessed with two smooth phase
+windows of different rates and zero global commit events.
 
 **T5 — Normal forms / strong normalization.** A committed module is `⟶_β`-irreducible
 (a **value**) iff its trit walk is admissible and *localized* (returns to 0). The
@@ -260,7 +288,7 @@ the maximal-compression form.
 
 `bidi_calculus.py` currently realizes this calculus (continuous flow by 4th-order integration,
 commits by guarded discrete maps, off-grid event location, multirate nesting).
-`calculus_laws.py` executable-checks §5 and §7 plus bridge invariants (**20/20**); `acceptance.py` checks
+`calculus_laws.py` executable-checks §5 and §7 plus existence/trace/bridge invariants (**22/22**); `acceptance.py` checks
 the 24 capability behaviors (**24/24**). Computational universality is witnessed by
 a two-counter construction within the term syntax (`CounterField`).
 

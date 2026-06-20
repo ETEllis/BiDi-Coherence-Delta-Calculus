@@ -52,7 +52,7 @@ transitional Python reducer, a native source language (\texttt{.cdc}),
 executable law witnesses, and
 capability witnesses for hybrid flow, off-grid commits, delay lines,
 angle-biased relation channels, multirate nesting, predictive belief updates,
-local plasticity, balanced-ternary trace/window measurement, and a two-counter
+local plasticity, local trace-order windows, balanced-ternary trace/window measurement, and a two-counter
 universality construction. The
 current artifact is not presented as a completed theorem-prover development;
 rather, it is an executable calculus whose algebraic and reduction properties
@@ -78,6 +78,12 @@ systems one shared semantic spine:
 &\to \text{executable witnesses}.
 \end{aligned}
 \]
+
+Related trace-order programs model observation through observer windows over
+Markov kernels and treat observer time as local ordered experience rather than a
+detached global clock \cite{hoffman2024traces,hoffman2014time}. \CDC\ does not
+adopt that ontology. It only preserves the engineering constraint that
+observation is a bounded role over a trace, not a privileged external primitive.
 
 \paragraph{Expository order.}
 The presentation keeps the formal object, source notation, and reference reducer
@@ -176,6 +182,9 @@ A committing measurement is a windowed commit record: it uses the existing
 guarded commit, reports a balanced-ternary outcome vector in
 $\{-1,0,+1\}^n$, and must not increase $\Phi_m$. Thus observer, participant,
 and measurement interface are roles over windows, not new primitive entities.
+Trace order is local to the window: smooth phase motion can accumulate with zero
+commit events, and different windows can see different event densities over one
+field.
 
 \paragraph{Nested reference frames.}
 For $m\nest{F}$, \CDC\ couples parent and child by bidirectional
@@ -188,8 +197,9 @@ are distinct reference frames.
 
 \section{Operator Algebra}
 
-The invariant registry has eleven keys. Two pin the finite bridge/carrier layer,
-and four are algebraic invariants over the standard carrier:
+The invariant registry has thirteen keys. Four pin the finite bridge/carrier,
+existence, and trace-order layers, and four are algebraic invariants over the
+standard carrier:
 
 \begin{center}
 \begin{tabular}{llll}
@@ -198,6 +208,8 @@ Operator & Symbol & Meaning & Witnessed laws\\
 \midrule
 balanced carrier & $\{-1,0,+1\}$ & equilibrium-centered commits & finite codomain\\
 dyadic/triadic bridge & $2^6=4^3$ & 64-state codebook & finite bijection\\
+existence viability & $E_0$ & bounded coherent continuity & agency spectrum\\
+trace-order locality & $T_6$ & local trace time & no global event tick\\
 gate & $\odot$ & phase composition & abelian group on $\mathbb{T}^n$\\
 interfere & $\oplus$ & superposition & commutative monoid\\
 rotation & $\rot_\phi$ & global phase action & linear over $\oplus$\\
@@ -235,16 +247,22 @@ $\xrightarrow{d_1};\xrightarrow{d_2}$ agrees with $\xrightarrow{d_1+d_2}$
 within numerical realization tolerance.
 \end{claim}
 
+\begin{claim}[Trace-order locality]
+Smooth phase-time can flow through a bounded window with zero commit events, and
+event order remains local to the observing window rather than a universal tick.
+\end{claim}
+
 \begin{claim}[Normal forms]
 Committed irreducible localized modules correspond to closed nonnegative walks.
 For $n=6$, the saturated localized count is Catalan $C_3=5$ and the crossing-
 permitting localized count is $51$.
 \end{claim}
 
-Together, the two bridge/carrier invariants, four algebraic invariants, and five
-reduction invariants make the 11-key semantic registry exercised by the law
-checker. The witness suite reports 20/20 law, metatheorem, and bridge checks,
-11/11 invariant keys exercised, 28/28 native \texttt{.cdc} expectations, 5/5
+Together, the four bridge/carrier/existence/trace invariants, four algebraic
+invariants, and five reduction invariants make the 13-key semantic registry
+exercised by the law checker. The witness suite reports 22/22 law, metatheorem,
+viability, trace-order, and bridge checks, 13/13 invariant keys exercised, 32/32 native
+\texttt{.cdc} expectations, 5/5
 relational phase-channel witnesses, 12/12 balanced-ternary trace/window witnesses, and
 24/24 capability witnesses.
 
@@ -326,7 +344,7 @@ Its contribution is a unified semantic vocabulary and working witness suite for
 systems that must flow continuously, commit discretely, preserve local
 invariants, and couple nested reference frames bidirectionally.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{11}
 
 \bibitem{henzinger1996}
 T. A. Henzinger.
@@ -358,6 +376,16 @@ D. E. Knuth.
 D. E. Knuth.
 \newblock \emph{The TeXbook}.
 \newblock Addison-Wesley, 1984.
+
+\bibitem{hoffman2024traces}
+D. D. Hoffman, C. Prakash, and S. Chattopadhyay.
+\newblock Traces of consciousness.
+\newblock Preprints.org, 2024. DOI: 10.20944/preprints202410.1305.v1.
+
+\bibitem{hoffman2014time}
+D. D. Hoffman.
+\newblock The origin of time in conscious agents.
+\newblock Manuscript, University of California, Irvine, 2014.
 
 \end{thebibliography}
 

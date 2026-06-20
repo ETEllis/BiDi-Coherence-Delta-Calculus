@@ -2,7 +2,7 @@
 
 Date: 2026-06-18
 
-Status: public engineering specification, v0.1.2.
+Status: public engineering specification, v0.1.3.
 
 BiDi Coherence-Delta Calculus is a native `.cdc` language with a formal
 coherence-calculus kernel for hybrid systems that need continuous dynamics,
@@ -32,7 +32,7 @@ The calculus gives one compact substrate for:
 - reference-frame coupling across scales;
 - gated policy/invariant enforcement;
 - symbolic/discrete computation through configured instruction modules;
-- balanced-ternary trace/window measurement without Boolean observer primitives;
+- balanced-ternary trace/window measurement without binary observer primitives;
 - a small native surface notation for declaring fields, modules, channels, flow, and commits.
 
 The key value is not that it replaces every existing runtime. The value is that it gives a unified language for systems that are usually split across state machines, reactive runtimes, neural dynamics, simulations, control loops, and policy gates.
@@ -93,6 +93,9 @@ rules, capability surface, balanced-ternary carrier, 64-state bridge invariant,
 and remaining bootloader boundary that future passes must burn down. The end
 state is not "Python runs `.cdc`"; it is "`.cdc` contains its own
 parser/reducer/witness semantics, with a minimal replaceable runtime beneath it."
+For this release, Python remains the deliberately temporary bootloader/reducer
+host because it is portable and inspectable; new semantic authority belongs in
+`.cdc` declarations and obligations first.
 
 ## Implementation Alias Map
 
@@ -286,7 +289,12 @@ measure = passive trace or committing ternary commit record
 
 Passive observation records without changing dynamics. Committing measurement
 uses the existing guarded commit and returns a ternary outcome vector. The
-crossing value `0` remains a real aperture state, not a Boolean false.
+crossing value `0` remains a real aperture state, not binary false.
+
+Trace order is local to the window. Phase can move smoothly with zero commit
+events, and two windows over one field can observe different event densities.
+The calculus therefore has smooth phase-time, event-time, and trace-time without
+requiring a universal tick.
 
 ### 4. Free Energy
 
@@ -437,8 +445,8 @@ The `acceptance.py` witnesses cover:
 Local run result on 2026-06-18:
 
 ```text
-20/20 law, metatheorem, and bridge witnesses
-28/28 native .cdc expectations
+22/22 law, metatheorem, viability, trace-order, and bridge witnesses
+32/32 native .cdc expectations
 5/5 relational phase-channel witnesses
 12/12 ternary trace/window witnesses
 24/24 boxes green
@@ -553,7 +561,7 @@ continuous dynamics, while event-triggered commits quantize state into
 balanced-ternary outcomes, enforce invariants, update belief, and reject
 incoherent transitions. Its derived trace/window layer lets any module, relation,
 or projected boundary serve as observer or measurement participant without
-adding a Boolean observer primitive. The result is a compact language for
+adding a binary observer primitive. The result is a compact language for
 simulations, agents, adaptive UI, policy gates, predictive control, social
 fields, and mixed-reality world models.
 
@@ -573,9 +581,10 @@ If you are implementing or reviewing BiDi Coherence-Delta Calculus, preserve the
 10. Nested fields exchange context downward and coherence/evidence upward through `bidi-gamma-delta`; this is the `alpha=0` case of the general path relation.
 11. Operators `gate`, `interfere`, and `corefold` remain primitive operations over boundary state.
 12. Observer windows and measurement records are derived; they preserve the balanced-ternary `-1 / 0 / +1` outcome space.
-13. The native notation must be able to declare kernel contracts, modules, channels, guards, flow, and commits.
-14. Capability claims should be backed by small witness programs.
-15. Performance and scaling claims require separate benchmarks.
+13. Trace order is local to a bounded window; smooth phase-time and event-time are not collapsed into a universal tick.
+14. The native notation must be able to declare kernel contracts, modules, channels, guards, flow, and commits.
+15. Capability claims should be backed by small witness programs.
+16. Performance and scaling claims require separate benchmarks.
 
 ## Canonical Naming
 

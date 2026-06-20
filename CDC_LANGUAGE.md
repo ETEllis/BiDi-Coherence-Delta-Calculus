@@ -103,7 +103,7 @@ expect belief G near 1.0 0.1          expect weight a b > 0.6
 expect events-offgrid                 expect multirate >= 4
 expect interference A B cos <= -0.9   expect interference P/c P gamma >= 0.5
 expect reg c1 == 7                     (inside a counter)
-expect law balanced-ternary-carrier | dyadic-triadic-closure
+expect law balanced-ternary-carrier | dyadic-triadic-closure | existence-viability | trace-order-locality
 expect law gate-abelian | interfere-monoid | rotation-linear | corefold-morphism
 expect law preservation | soundness | local-confluence | flow-additivity | normalforms
 ```
@@ -125,7 +125,7 @@ trace/window measurement state must become representable as `.cdc` terms. The
 host bridge is transitional debt with an explicit removal plan in
 `NATIVE_SELF_HOSTING_MANDATE.md`.
 
-The committed discrete carrier is balanced ternary, not Boolean:
+The committed discrete carrier is balanced ternary, not binary:
 
 ```text
 -1  inward localization / contraction

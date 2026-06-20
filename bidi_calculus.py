@@ -24,7 +24,7 @@ between events; commits fire when guard predicates cross zero, located off-grid
 by linear interpolation. No global tick.
 """
 import math, cmath, itertools
-from cdc_semantics import AgencySummary, IncidenceSpec, MeasurementRecord, TraceSpan, WindowSpec
+from cdc_semantics import AgencySummary, ExistenceSummary, IncidenceSpec, MeasurementRecord, TraceSpan, WindowSpec
 
 TAU2 = 2 * math.pi
 EPS  = 1e-12
@@ -480,6 +480,65 @@ class Breathfield:
                              action_effect=sum(abs(th.omega) for th in knot.threads) / max(1, knot.n),
                              cross_scale_gain=sum(s.weight for s in knot.inbound),
                              stability=trace.mean_gamma)
+
+    def existence_summary(self, scope_path):
+        """Summarize the frame's bounded coherent continuity.
+
+        Existence is not modeled as collapse to zero. A frame is viable when it
+        keeps a bounded state, a distinguishable boundary, finite free-energy
+        debt, and mode-appropriate capacity for future transition or relation.
+        """
+        knot = self.resolve(scope_path)
+        A = self.afferent(knot, self.t)
+        avg_amp = sum(th.amp for th in knot.threads) / max(1, knot.n)
+        permeability = knot.permeability()
+        boundary_integrity = max(knot.coherence(), 1.0 - min(1.0, permeability))
+        intrinsic = sum(abs(th.omega) for th in knot.threads) / max(1, knot.n)
+        drive = sum(abs(a) for a in A) / max(1, knot.n)
+        outbound = sum(1 for s in self.strands if s.src is knot)
+        inbound = sum(1 for s in self.strands if s.dst is knot) + len(knot.inbound)
+        relation_capacity = (
+            sum(abs(s.weight) for s in self.strands if s.src is knot or s.dst is knot)
+            + sum(abs(s.weight) for s in knot.inbound)
+        )
+        self_ref = any(s.src is knot and s.dst is knot for s in self.strands) or knot.child is not None
+        has_prior = any(abs(x) > EPS for x in knot.prior)
+        prior_pressure = sum(abs(knot.prior[i] - knot.belief[i]) for i in range(knot.n)) / max(1, knot.n)
+        transition_capacity = (
+            intrinsic
+            + self.gain * drive
+            + knot.act_gain
+            + prior_pressure
+            + relation_capacity
+        )
+
+        if self_ref:
+            mode = "self-referential"
+        elif knot.act_gain > 0:
+            mode = "agentic"
+        elif has_prior:
+            mode = "intent"
+        elif inbound or outbound:
+            mode = "reactive"
+        else:
+            mode = "passive"
+
+        free_energy = knot.free_energy(A)
+        finite_debt = math.isfinite(free_energy)
+        bounded = avg_amp > EPS and boundary_integrity > EPS
+        can_transition = transition_capacity > EPS
+        viable = bounded and finite_debt and (mode == "passive" or can_transition or inbound > 0 or outbound > 0)
+
+        return ExistenceSummary(
+            scope_path=scope_path,
+            agency_mode=mode,
+            persistence=avg_amp,
+            boundary_integrity=boundary_integrity,
+            permeability=permeability,
+            transition_capacity=transition_capacity,
+            free_energy=free_energy,
+            viable=viable,
+        )
 
     def nest(self, parent_name, child_field):
         parent = self.knots[parent_name]

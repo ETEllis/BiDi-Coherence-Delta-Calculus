@@ -1,7 +1,7 @@
 # Ternary Trace/Window Semantics
 
 This document defines the first derived observer layer for BiDi Coherence-Delta
-Calculus. It does not add a new foundation, a Boolean observer, or a new
+Calculus. It does not add a new foundation, a binary observer, or a new
 collapse operator. It gives names to what the existing calculus already makes
 possible: phase-time, event counters, observer-relative windows, measurement
 records, and higher-order boundaries projected from subordinate dynamics.
@@ -28,7 +28,7 @@ The discrete layer is always balanced ternary:
 
 The middle value is not false, null, or absence. It is the live crossing where a
 boundary is most open to relation. This is why measurement records in BIDI
-produce balanced trits, not Boolean outcomes.
+produce balanced trits, not binary outcomes.
 
 ## Time
 
@@ -44,6 +44,11 @@ trace-time      event/phase history observed through a window
 event counter because different windows can observe different commit densities
 over the same underlying field. Relative time is therefore the mismatch between
 phase flow, delay, and commit density across windows.
+
+Trace order is the local ordering imposed by a bounded window. A window may
+record smooth phase motion with no events, or many events over a short horizon;
+another window over the same field may see a different order density. This keeps
+time frame-relative without reducing the calculus to discrete ticks.
 
 ## Window
 
@@ -173,6 +178,7 @@ phase alignment, relation energy, and scale.
 `trace_window_witness.py` checks:
 
 - trace motion composes across adjacent windows;
+- trace order is local and phase can move smoothly without a global event tick;
 - passive observation leaves field state unchanged;
 - committing measurement yields only balanced-ternary outcomes;
 - committing measurement does not increase `Phi`;

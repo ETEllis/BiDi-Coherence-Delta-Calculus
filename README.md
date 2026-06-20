@@ -16,7 +16,7 @@ also carry angular phase bias, dimension projection, and path-aware cross-scale
 endpoints. Fields evolve through continuous flow and periodically commit through
 event-triggered balanced-ternary invariant gates. A derived trace/window layer
 lets any module, relation, or projected boundary act as observer, participant,
-or measurement interface without adding a Boolean observer primitive.
+or measurement interface without adding a binary observer primitive.
 
 ## Center Of Gravity
 
@@ -39,6 +39,11 @@ This repository is on a native `.cdc` self-hosting track. The removal plan is
 explicit in `NATIVE_SELF_HOSTING_MANDATE.md`: all current host behavior must be
 replaced by native `.cdc` semantics and witnesses before host files are deleted
 without breaking verification.
+
+The practical bootloader decision for this release is conservative: keep Python
+as the widely available temporary loader/reducer host, but keep shrinking its
+authority. `.cdc` owns the source terms, declared reducer rules, proof
+obligations, and self-hosting contract.
 
 ## Installation & Exploration
 
@@ -108,7 +113,9 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **`bidiγΔ` operator** — first-class bidirectional coherence exchange across distinct reference frames; nesting is the `α=0` special case of the same relation operator.
 - **Angular/path channels** — channels can rotate incoming phase by `angle=`, project onto selected `lines=`, and connect paths such as `P/c -> P`.
 - **Trace/window observer layer** — any module, relation, or projected boundary can hold a causal window; committing measurements are guarded balanced-ternary commits.
-- **Balanced-ternary carrier** — committed values are `-1 / 0 / +1` around real equilibrium, not Boolean false/true labels.
+- **Trace-order locality** — phase-time can flow smoothly while event-time remains local to the observing window; there is no required global tick.
+- **Balanced-ternary carrier** — committed values are `-1 / 0 / +1` around real equilibrium, not binary false/true labels.
+- **Existence viability** — frames persist by preserving bounded coherent continuity while retaining mode-appropriate transition capacity.
 - **64-state dyadic/triadic bridge** — executable witness pins the `2^6 = 4^3 = 64` closure codebook for bootstrap/runtime bridge design.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Executable free-energy witnesses** — commits are guarded against Φ increase; continuous flow has explicit subset witnesses and formal obligations.
@@ -119,12 +126,12 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 Core metatheorems and bridge invariants are witnessed by executable code, with
 the finite discrete layer positioned as the first theorem-prover target.
 
-## Verification Status (v0.1.2)
+## Verification Status (v0.1.3)
 
 The package passes 100%:
 
-- 20/20 law, metatheorem, and bridge witnesses
-- 28/28 native `.cdc` expectations (`kernel.cdc`, `system.cdc`, `laws.cdc`)
+- 22/22 law, metatheorem, viability, trace-order, and bridge witnesses
+- 32/32 native `.cdc` expectations (`kernel.cdc`, `system.cdc`, `laws.cdc`)
 - 5/5 relational phase-channel witnesses plus native `relations.cdc`
 - 12/12 ternary trace/window witnesses
 - 24/24 capability acceptance witnesses

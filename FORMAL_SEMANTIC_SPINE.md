@@ -103,8 +103,12 @@ event-time      ordered guarded commits
 trace-time      phase/event history through a window
 ```
 
+Trace-time is local. Smooth phase motion can accumulate with zero commit events,
+and event density can differ by window. A global tick is a realization detail,
+not part of the semantic spine.
+
 The discrete outcome space is balanced ternary: `-1`, `0`, `+1`. The middle
-value is resting equilibrium and a real crossing/aperture state, not Boolean
+value is resting equilibrium and a real crossing/aperture state, not binary
 false. A committing measurement is a guarded balanced-ternary commit plus a
 `MeasurementRecord`; passive observation produces a `TraceSpan` and leaves field
 dynamics unchanged.
@@ -126,6 +130,8 @@ Each invariant should have:
 - `corefold-morphism`;
 - `balanced-ternary-carrier`;
 - `dyadic-triadic-closure`;
+- `existence-viability`;
+- `trace-order-locality`;
 - `preservation`;
 - `soundness`;
 - `local-confluence`;
@@ -191,7 +197,7 @@ explicit Lipschitz/determinism assumptions.
   and `.cdc` nesting auto-cone installation.
 - trace/window witnesses cover passive observation, committing measurement,
   trace additivity, causal windows, observer roles, incidence projections,
-  agency summaries, and projected higher-order boundaries.
+  agency summaries, trace-order locality, and projected higher-order boundaries.
 - every witness in `calculus_laws.py` references an `InvariantSpec`.
 - the paper's invariant table matches `cdc_semantics.py`.
 - native `.cdc` replacements are introduced before host files are removed.

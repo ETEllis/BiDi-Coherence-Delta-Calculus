@@ -14,6 +14,8 @@ verification.
 |---|---|---|
 | balanced-ternary carrier | `calculus_laws.py` enumerates `{-1,0,+1}` symmetry and all `3^6` committed walks | finite codomain proof for `commit` |
 | dyadic/triadic bridge closure | `calculus_laws.py` checks the `2^6 = 4^3 = 64` bijective codebook | finite bijection proof for bootstrap codebook |
+| existence viability | `calculus_laws.py` checks passive, reactive, intent, agentic, and self-referential frame summaries | viability invariant over bounded continuity, permeability, and transition capacity |
+| trace-order locality | `calculus_laws.py` checks smooth phase motion through local windows with zero global commit events | partial-order theorem for causal trace windows and event counters |
 | gate is abelian | `calculus_laws.py` checks associativity, commutativity, identity, inverse | algebraic group proof over torus carrier |
 | interference is monoidal | `calculus_laws.py` checks associativity, commutativity, void unit | commutative monoid proof |
 | rotation is linear | `calculus_laws.py` checks distribution over interference | carrier action proof |

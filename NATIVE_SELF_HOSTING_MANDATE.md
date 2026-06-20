@@ -11,12 +11,13 @@ The intended end state is:
   -> minimal host loader only until the native reducer can run directly
 ```
 
-Python currently remains a transitional bootstrap and verification host. It is
-not the language, not the calculus, and not an acceptable final substrate.
+Python currently remains the transitional bootstrap and verification host because
+it is portable and easy to inspect. It is not the language, not the calculus, and
+not an acceptable final semantic substrate.
 
 ## Current Host Debt
 
-As of v0.1.2, host code still provides:
+As of v0.1.3, host code still provides:
 
 - `bidi_calculus.py`: transitional reducer and runtime objects;
 - `cdc_boot.py`: bootstrap bridge from `.cdc` source to the reducer;
@@ -27,6 +28,16 @@ As of v0.1.2, host code still provides:
 - `trace_window_witness.py`: ternary trace/window witnesses.
 
 That is useful construction scaffolding, not the target architecture.
+
+The minimal bootloader target for the Python phase is:
+
+```text
+read .cdc source -> parse blocks -> dispatch native declarations/obligations
+                 -> call replaceable reducer witness -> report expectations
+```
+
+Anything beyond that remains host debt unless it has a named native replacement
+gate.
 
 ## Non-Negotiable Direction
 
@@ -41,7 +52,7 @@ The language must become native in its own source language:
 - no foundational behavior may depend on host-object semantics.
 
 The discrete layer is balanced ternary: `-1 / 0 / +1`. The middle value is
-resting equilibrium and an open crossing state, not Boolean false or absence.
+resting equilibrium and an open crossing state, not binary false or absence.
 Self-hosting must preserve this equilibrium-centered carrier.
 
 ## Required Burn-Down Gates
