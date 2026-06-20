@@ -171,20 +171,22 @@ semantics back into Python.
 
 ### Native Witness Files
 
-`laws.cdc`, `bridge64.cdc`, `bridge_codebooks.cdc`, `bridge_jobs.cdc`,
-`native_reducer.cdc`, `system.cdc`, `relations.cdc`, and `trace_windows.cdc`
-should remain the native witness surface. Each witness declares the invariant or
-capability it discharges.
+`laws.cdc`, `bridge64.cdc`, `bridge_codebooks.cdc`, `bridge512.cdc`,
+`bridge4096.cdc`, `bridge_jobs.cdc`, `native_reducer.cdc`, `council_bridge.cdc`,
+`system.cdc`, `relations.cdc`, and `trace_windows.cdc` should remain the native
+witness surface. Each witness declares the invariant or capability it discharges.
 
 `runtime/cdc_bridge_runtime.c` is the first operational consumer outside Python:
 it reads `bridge64.cdc`, validates the finite table, performs lookup, projects
 trace occupancy into bridge coordinates, executes source-declared jobs from
-`bridge_jobs.cdc`, and emits the visible 64-cell grid.
+`bridge_jobs.cdc`, regenerates/verifies the `bridge512.cdc` and `bridge4096.cdc`
+higher-arity codebooks, and emits the visible interactive 64-cell grid.
 
 `runtime/cdc_native_runtime.c` is the first operational reducer consumer outside
 Python: it reads `native_reducer.cdc`, executes source-declared flow, commit,
-and nest jobs, emits reducer IR, and checks the finite n=6 balanced-ternary walk
-spectrum.
+and nest jobs, emits reducer IR, interprets that IR, and checks the finite n=6
+balanced-ternary walk spectrum. It also consumes `council_bridge.cdc` to exercise
+source-declared council deliberation and bridge-coordinate source evolution.
 
 ### Paper
 
@@ -195,16 +197,19 @@ future formal proof obligations.
 ### Lean/Coq/Kani
 
 The first formal target is now represented three ways: native C proof checking,
-Lean source, and Coq source for the finite n=6 balanced-ternary carrier layer.
-The checked finite layer covers:
+Lean source, and Coq source for the finite n=6 balanced-ternary carrier layer
+plus finite algebraic laws. The checked finite layer covers:
 
 1. trit quantization;
 2. prefix-walk admissibility;
 3. commit barrier preservation;
-4. localized normal forms.
+4. localized normal forms;
+5. finite gate associativity/commutativity/identity/inverse;
+6. finite interference associativity/commutativity/unit;
+7. finite rotation linearity.
 
-The next formal step is to extend those artifacts from finite carrier counts
-into commit-barrier preservation, then the algebraic carrier laws, then the flow
+The next formal step is to extend those artifacts from finite carrier and
+finite-algebra witnesses into commit-barrier preservation, then the flow
 relation under explicit Lipschitz/determinism assumptions.
 
 ## Acceptance Criteria For The Next Pass
@@ -216,7 +221,8 @@ relation under explicit Lipschitz/determinism assumptions.
 - `bridge64.cdc` stays as the explicit finite bootstrap codebook and the C
   bridge runtime stays a verified consumer of that source.
 - `bridge_codebooks.cdc` records the higher-arity growth rule for `n=9` and
-  `n=12`; generated rows or a native arity rule can follow.
+  `n=12`; `bridge512.cdc` and `bridge4096.cdc` contain the full generated rows
+  and must match runtime regeneration.
 - relation witnesses cover angular phase, dimension projection, path endpoints,
   and `.cdc` nesting auto-cone installation.
 - trace/window witnesses cover passive observation, committing measurement,

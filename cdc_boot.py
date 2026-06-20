@@ -29,7 +29,10 @@ class BootState:
     reducer_forms: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
     reducer_steps: set[str] = field(default_factory=set)
     compile_steps: set[str] = field(default_factory=set)
+    interpret_steps: set[str] = field(default_factory=set)
     proof_steps: set[str] = field(default_factory=set)
+    council_steps: set[str] = field(default_factory=set)
+    evolution_steps: set[str] = field(default_factory=set)
     expectations: list[tuple[str, list[str], str]] = field(default_factory=list)
 
 
@@ -113,7 +116,11 @@ def parse_file(state: BootState, path: Path) -> None:
             "policy",
             "bridge",
             "compile",
+            "interpret",
             "proof",
+            "council",
+            "deliberate",
+            "evolve",
         }:
             if not args:
                 raise SyntaxError(f"{source}: {cmd} requires an id")
@@ -124,8 +131,14 @@ def parse_file(state: BootState, path: Path) -> None:
                 state.reducer_steps.add(key)
             if cmd == "compile":
                 state.compile_steps.add(key)
+            if cmd == "interpret":
+                state.interpret_steps.add(key)
             if cmd == "proof":
                 state.proof_steps.add(key)
+            if cmd == "deliberate":
+                state.council_steps.add(key)
+            if cmd == "evolve":
+                state.evolution_steps.add(key)
         elif cmd == "expect":
             state.expectations.append((source, rest, line))
         else:
@@ -227,6 +240,36 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
         ok = bool(step and step in state.proof_steps)
         detail = f"job {step}" if step else "missing proof link"
         return ok, f"proof {wid} ({detail})"
+
+    if head == "interpret":
+        wid = args[1]
+        witness = state.witnesses.get(wid)
+        if not witness:
+            return False, f"interpret {wid} (missing witness)"
+        step = witness.get("interpret")
+        ok = bool(step and step in state.interpret_steps)
+        detail = f"job {step}" if step else "missing interpret link"
+        return ok, f"interpret {wid} ({detail})"
+
+    if head == "council":
+        wid = args[1]
+        witness = state.witnesses.get(wid)
+        if not witness:
+            return False, f"council {wid} (missing witness)"
+        step = witness.get("council")
+        ok = bool(step and step in state.council_steps)
+        detail = f"job {step}" if step else "missing council link"
+        return ok, f"council {wid} ({detail})"
+
+    if head == "evolution":
+        wid = args[1]
+        witness = state.witnesses.get(wid)
+        if not witness:
+            return False, f"evolution {wid} (missing witness)"
+        step = witness.get("evolution")
+        ok = bool(step and step in state.evolution_steps)
+        detail = f"job {step}" if step else "missing evolution link"
+        return ok, f"evolution {wid} ({detail})"
 
     if head == "python-files":
         op, want = args[1], int(args[2])

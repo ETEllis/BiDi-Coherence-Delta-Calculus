@@ -17,7 +17,7 @@ substrate.
 
 ## Current Host Boundary
 
-As of v0.2.3, host code is restricted to one Python file:
+As of v0.2.4, host code is restricted to one Python file:
 
 - `cdc_boot.py`: minimal loader/checker for native `.cdc` declarations.
 
@@ -25,15 +25,19 @@ The bridge also has a non-Python operational consumer:
 
 - `runtime/cdc_bridge_runtime.c`: reads `bridge64.cdc`, validates the finite
   codebook, performs dyadic/triadic lookup, projects six-trit trace occupancy
-  into bridge coordinates, executes `bridge_jobs.cdc`, and emits grid/SVG output.
+  into bridge coordinates, executes `bridge_jobs.cdc`, emits interactive
+  grid/SVG output, and regenerates/verifies the tracked `bridge512.cdc` and
+  `bridge4096.cdc` higher-arity codebooks.
 
 The first reducer path also has a non-Python operational consumer:
 
 - `runtime/cdc_native_runtime.c`: reads `native_reducer.cdc`, initializes native
   field/module/cell/channel state, and executes source-declared `flow`,
-  `commit`, and `nest` jobs with checked expectations. It also emits reducer IR
-  and exhaustively checks the finite n=6 balanced-ternary walk spectrum from
-  source-declared compile/proof jobs.
+  `commit`, and `nest` jobs with checked expectations. It also emits and
+  interprets reducer IR, exhaustively checks the finite n=6 balanced-ternary
+  walk spectrum from source-declared compile/proof jobs, and consumes
+  `council_bridge.cdc` for council deliberation plus bridge-coordinate source
+  evolution.
 
 All reducer semantics, invariants, capability claims, and witness obligations
 must be expressed as `.cdc` declarations. The bootloader may parse, collect, and
@@ -96,21 +100,24 @@ capability, and witness objects without a Python semantic registry.
 Encode the reducer as `.cdc` transition rules over explicit state records.
 
 Acceptance: native `.cdc` owns `kernel.cdc`, `laws.cdc`, `bridge64.cdc`,
-`bridge_codebooks.cdc`, `bridge_jobs.cdc`, `native_reducer.cdc`, `system.cdc`,
-`relations.cdc`, and trace/window witness scenarios through the native contract.
+`bridge_codebooks.cdc`, `bridge512.cdc`, `bridge4096.cdc`, `bridge_jobs.cdc`,
+`native_reducer.cdc`, `council_bridge.cdc`, `system.cdc`, `relations.cdc`, and
+trace/window witness scenarios through the native contract.
 
-Status: concrete pilot for v0.2.3. `native_reducer.cdc` now declares executable
-field/module/cell/channel state plus flow, commit, nest, compile, and finite
-proof jobs, and `runtime/cdc_native_runtime.c` consumes that source directly.
-Lean and Coq finite-carrier mirrors live under `formal/`. The remaining work is
-to broaden the reducer from this checked spine into the full language surface
-and eventually express the reducer itself in `.cdc`.
+Status: concrete pilot for v0.2.4. `native_reducer.cdc` now declares executable
+field/module/cell/channel state plus flow, commit, nest, compile, interpret,
+and finite proof jobs, and `runtime/cdc_native_runtime.c` consumes that source
+directly. `council_bridge.cdc` adds a source-declared council and source-evolution
+exercise. Lean and Coq finite-carrier and finite-algebra mirrors live under
+`formal/`. The remaining work is to broaden the reducer from this checked spine
+into the full language surface and eventually express the reducer itself in
+`.cdc`.
 
 ### Gate 3: Native Witness Harness
 
 Move law, relation, acceptance, and trace/window witnesses into `.cdc`.
 
-Status: complete for v0.2.3. Verification now invokes `.cdc` files and checks
+Status: complete for v0.2.4. Verification now invokes `.cdc` files and checks
 their declared expectations.
 
 ### Gate 4: Host Loader Collapse
@@ -118,7 +125,7 @@ their declared expectations.
 Collapse former reducer, semantic-registry, law, acceptance, relation, and
 trace/window host modules into native `.cdc` sources.
 
-Status: complete for v0.2.3. The only remaining Python host artifact is `cdc_boot.py`,
+Status: complete for v0.2.4. The only remaining Python host artifact is `cdc_boot.py`,
 and its behavior is fully specified by `kernel.cdc` expectations.
 
 ### Gate 5: Host Removal Or Replacement
@@ -137,13 +144,16 @@ Candidate directions:
 Acceptance: the repository can verify the language without expanding beyond the
 minimal bootloader.
 
-Status: partial concrete pilot for v0.2.3. The bridge no longer depends on
+Status: partial concrete pilot for v0.2.4. The bridge no longer depends on
 Python for operational lookup: `runtime/cdc_bridge_runtime.c` consumes
-`bridge64.cdc` directly. The first reducer path also no longer depends on
-Python: `runtime/cdc_native_runtime.c` consumes `native_reducer.cdc` and
-executes flow, commit, nest, compile, and finite proof jobs. This does not yet
-replace the full declaration bootloader or make `.cdc` self-compiled, but it
-moves reducer execution and finite proof checking out of Python and into
+`bridge64.cdc` directly, regenerates/verifies the `bridge512.cdc` and
+`bridge4096.cdc` codebooks, and emits the interactive bridge grid. The first
+reducer path also no longer depends on Python: `runtime/cdc_native_runtime.c`
+consumes `native_reducer.cdc` and `council_bridge.cdc` and executes flow, commit,
+nest, compile, interpret, proof, council, and source-evolution jobs. This does
+not yet replace the full declaration bootloader or make `.cdc` self-compiled,
+but it moves reducer execution, IR interpretation, finite proof checking,
+council deliberation, and source evolution out of Python and into
 source-declared native jobs.
 
 ## Immediate Rule

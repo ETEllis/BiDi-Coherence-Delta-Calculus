@@ -1,10 +1,11 @@
 # The `.cdc` Language
 ### Native source format for the Coherence-Delta Calculus
 
-`.cdc` is the native language surface for the calculus kernel. In v0.2.3 the
+`.cdc` is the native language surface for the calculus kernel. In v0.2.4 the
 checked surface includes native declarations, witnesses, and the first
 source-declared reducer jobs: terms, reducer rules, field/module/cell/channel
-state, flow/commit/nest jobs, invariants, capabilities, witnesses, and
+state, flow/commit/nest jobs, IR interpretation, council deliberation,
+bridge-coordinate source evolution, invariants, capabilities, witnesses, and
 expectations are expressed in `.cdc`; Python is limited to the small
 `cdc_boot.py` loader/checker.
 
@@ -20,7 +21,8 @@ trace/window  derived observer projection
 The bootloader does not implement those reductions. It verifies that the native
 source tree declares them and that every claim has a native witness handle. The
 non-Python runtime `runtime/cdc_native_runtime.c` consumes `native_reducer.cdc`
-and executes the first checked `flow`, `commit`, and `nest` reducer jobs.
+and `council_bridge.cdc`, executes the first checked `flow`, `commit`, `nest`,
+`interpret`, `council`, and `evolve` jobs, and verifies their expectations.
 
 ## Current Checked Grammar
 
@@ -30,6 +32,7 @@ directive    = kernel | term | rule | provides | bootloader
              | invariant | law | capability | witness
              | field | module | cell | channel | guard
              | flow | commit | nest | trace | measure | policy | bridge
+             | compile | interpret | proof | council | deliberate | evolve
              | expect | "end" ;
 
 kernel       = "kernel" name { kwarg } ;
@@ -55,6 +58,12 @@ trace        = "trace" key { kwarg } ;
 measure      = "measure" key { kwarg } ;
 policy       = "policy" key { kwarg } ;
 bridge       = "bridge" key { kwarg } ;
+compile      = "compile" key { kwarg } ;
+interpret    = "interpret" key { kwarg } ;
+proof        = "proof" key { kwarg } ;
+council      = "council" key { kwarg } ;
+deliberate   = "deliberate" key { kwarg } ;
+evolve       = "evolve" key { kwarg } ;
 
 expect       = "expect" predicate ;
 kwarg        = key "=" value ;
@@ -82,7 +91,10 @@ expect capability <capability-key>
 expect witness <witness-id>
 expect reducer <witness-id>
 expect compile <witness-id>
+expect interpret <witness-id>
 expect proof <witness-id>
+expect council <witness-id>
+expect evolution <witness-id>
 ```
 
 `expect law K` requires both an `invariant K` declaration and at least one native
@@ -90,8 +102,9 @@ expect proof <witness-id>
 `capability C` declaration and at least one native `witness ... capability=C`.
 `expect reducer W` requires witness `W` to link to a declared native reducer
 step through `witness ... reducer=<flow-or-commit-or-nest-id>`.
-`expect compile W` and `expect proof W` use the same linkage pattern for
-source-declared compile and finite-proof jobs.
+`expect compile W`, `expect interpret W`, `expect proof W`, `expect council W`,
+and `expect evolution W` use the same linkage pattern for source-declared
+compile, IR interpretation, finite-proof, council, and source-evolution jobs.
 
 ## Native Files
 
@@ -101,16 +114,19 @@ source-declared compile and finite-proof jobs.
 | `laws.cdc` | invariant registry and 22 law/metatheorem witness declarations |
 | `bridge64.cdc` | explicit 64-row `2^6 = 4^3` dyadic/triadic bootstrap codebook |
 | `bridge_codebooks.cdc` | higher-arity bridge declarations for `n=9` and `n=12` |
+| `bridge512.cdc` | full generated `n=9`, `2^9 = 8^3 = 512` bridge codebook rows |
+| `bridge4096.cdc` | full generated `n=12`, `2^12 = 16^3 = 4096` bridge codebook rows |
 | `bridge_jobs.cdc` | source-declared bridge-coordinate jobs consumed by the C runtime |
-| `native_reducer.cdc` | source-declared field/module/cell/channel state plus reducer, compile, and finite-proof jobs consumed by the C native runtime |
-| `system.cdc` | 26 capability declarations and native witness handles |
+| `native_reducer.cdc` | source-declared field/module/cell/channel state plus reducer, compile, interpret, and finite-proof jobs consumed by the C native runtime |
+| `council_bridge.cdc` | source-declared council deliberation and bridge-coordinate source-evolution jobs |
+| `system.cdc` | 31 capability declarations and native witness handles |
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
 | `cdc_boot.py` | minimal loader/checker; not the reducer or language semantics |
-| `runtime/cdc_bridge_runtime.c` | non-Python bridge consumer for lookup, trace projection, grid output, and finite validation |
-| `runtime/cdc_native_runtime.c` | non-Python reducer, compile-IR, and finite-proof consumer for source-declared jobs |
-| `formal/lean/CDCFinite.lean` | Lean mirror of the finite n=6 balanced-ternary carrier proof |
-| `formal/coq/CDCFinite.v` | Coq mirror of the finite n=6 balanced-ternary carrier proof |
+| `runtime/cdc_bridge_runtime.c` | non-Python bridge consumer for lookup, trace projection, generated codebook verification, interactive grid/SVG output, and finite validation |
+| `runtime/cdc_native_runtime.c` | non-Python reducer, compile-IR, IR interpreter, finite-proof, council, and source-evolution consumer for source-declared jobs |
+| `formal/lean/CDCFinite.lean` | Lean mirror of the finite n=6 balanced-ternary carrier and algebraic law proofs |
+| `formal/coq/CDCFinite.v` | Coq mirror of the finite n=6 balanced-ternary carrier and algebraic law proofs |
 
 ## Balanced Ternary Carrier
 
@@ -145,7 +161,11 @@ measure <observer> <target>
 policy <window> sampling=<mode> commit=<mode> adapt=<mode>
 bridge <field-or-trace> via=<codebook>
 compile <name> source=<path> expect-ops=<int>
+interpret <name> source=<path> expect-ops=<int>
 proof <name> carrier=balanced-ternary arity=<int>
+council <name> field=<field> members=<module-list> quorum=<int>
+deliberate <name> council=<council>
+evolve <name> source=<path> output=<path> coordinate=<dyadic> append-witness=<id>
 ```
 
 Those forms must continue to grow as native reducer clauses in `.cdc`, not by

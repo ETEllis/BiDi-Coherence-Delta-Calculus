@@ -49,13 +49,14 @@ uses five canonical primitives---cells, channels, modules, fields, and
 commits---plus a bidirectional coherence-delta operator for coupling nested
 scales and path endpoints. Its current artifact includes a native source
 language (\texttt{.cdc}), one minimal Python bootloader, non-Python bridge and
-reducer runtimes, native law witnesses, a finite proof checker, Lean/Coq finite
-carrier mirrors, and capability witnesses for hybrid flow, off-grid commits, delay lines,
+reducer runtimes, generated higher-arity bridge codebooks, native law witnesses,
+a finite proof checker, Lean/Coq finite carrier and algebraic law mirrors, and
+capability witnesses for hybrid flow, off-grid commits, delay lines,
 angle-biased relation channels, multirate nesting, predictive belief updates,
 local plasticity, local trace-order windows, balanced-ternary trace/window measurement, and a two-counter
 universality construction. The artifact includes a mechanized finite-carrier
-proof layer for the n=6 balanced-ternary walk spectrum, while broader algebraic
-and continuous-reduction proof obligations remain staged explicitly.
+proof layer for the n=6 balanced-ternary walk spectrum plus finite algebraic
+law checks, while continuous-reduction proof obligations remain staged explicitly.
 \end{abstract}
 
 \section{Motivation}
@@ -260,12 +261,14 @@ permitting localized count is $51$.
 Together, the four bridge/carrier/existence/trace invariants, four algebraic
 invariants, and five reduction invariants make the 13-key semantic registry
 exercised by the native bootloader. The witness suite reports 13/13 invariant
-keys, 158/158 native \texttt{.cdc} expectations, 148/148 native witnesses, and
-28/28 capability declarations. The bridge runtime also compiles as C and consumes
-\texttt{bridge64.cdc} for lookup, trace-coordinate projection, higher-arity
-codebook checks, source-declared bridge jobs, and grid generation. The native
-reducer runtime consumes \nolinkurl{native_reducer.cdc} for flow, commit, nest,
-compile-IR, and finite proof jobs.
+keys, 169/169 native \texttt{.cdc} expectations, 4759/4759 native witnesses, and
+31/31 capability declarations. The bridge runtime also compiles as C and consumes
+\texttt{bridge64.cdc} for lookup, trace-coordinate projection, generated
+higher-arity codebook checks, source-declared bridge jobs, and interactive grid
+generation. The native reducer runtime consumes \nolinkurl{native_reducer.cdc}
+for flow, commit, nest, compile-IR, IR interpretation, and finite proof jobs,
+and consumes \nolinkurl{council_bridge.cdc} for council deliberation plus
+bridge-coordinate source evolution.
 
 \section{Native Source Language}
 
@@ -274,21 +277,23 @@ field, modules, channels, reductions, compile jobs, finite proof jobs, counter
 programs, and assertions.
 
 \begin{lstlisting}[language={},caption={A small .cdc program.}]
-field reducer-demo dt=0.125 gain=1.0 deadband=0.5
-module council field=reducer-demo belief=0.0 prior=0.0
+field reducer-field dt=0.125 gain=1.0 deadband=0.5
+module council field=reducer-field belief=0.0 prior=0.0
 cell council.a module=council theta=1.5707963267948966 omega=0.0
 cell council.b module=council theta=0.0 omega=0.0
 channel council.a -> council.b weight=0.25 delay=0.0 angle=0.0 lines=1
-flow reducer-flow field=reducer-demo duration=1.0 expect-theta=council.b:0.25
+flow reducer-flow field=reducer-field duration=1.0 expect-theta=council.b:0.25
 commit reducer-commit module=council expect-trits=0+- expect-balance=admissible
 compile reducer-ir source=native_reducer.cdc expect-ops=3
+interpret reducer-ir-exec source=native_reducer.cdc expect-ops=3
 proof trit-walk-n6 carrier=balanced-ternary arity=6 expect-admissible=267
 end
 \end{lstlisting}
 
 The loader \texttt{cdc\_boot.py} reads native declarations and verifies
 expectations. The C native runtime consumes the reducer source for execution,
-IR emission, and finite proof checking; Python remains a declaration checker.
+IR emission, IR interpretation, and finite proof checking; Python remains a
+declaration checker.
 
 \section{Universality and Boundaries}
 
@@ -317,12 +322,14 @@ The repository contains:
 \item \texttt{laws.cdc}: native invariant and law/metatheorem witnesses;
 \item \texttt{bridge64.cdc}: explicit 64-row dyadic/triadic bridge codebook;
 \item \texttt{bridge\_codebooks.cdc}: higher-arity bridge declarations;
+\item \texttt{bridge512.cdc}: full generated \texttt{n=9}, $2^9=8^3=512$ bridge codebook rows;
+\item \texttt{bridge4096.cdc}: full generated \texttt{n=12}, $2^{12}=16^3=4096$ bridge codebook rows;
 \item \texttt{bridge\_jobs.cdc}: source-declared bridge-coordinate jobs;
-\item \texttt{native\_reducer.cdc}: source-declared reducer, compile, and finite proof jobs;
-\item \texttt{runtime/cdc\_bridge\_runtime.c}: non-Python bridge runtime;
-\item \texttt{runtime/cdc\_native\_runtime.c}: non-Python reducer, compile-IR, and finite proof runtime;
-\item \texttt{formal/lean/CDCFinite.lean}: Lean finite carrier proof mirror;
-\item \texttt{formal/coq/CDCFinite.v}: Coq finite carrier proof mirror;
+\item \texttt{native\_reducer.cdc}: source-declared reducer, compile, interpret, and finite proof jobs;
+\item \texttt{council\_bridge.cdc}: source-declared council deliberation and bridge-coordinate source-evolution jobs;
+\item bridge runtime: verifies codebooks and emits the interactive SVG;
+\item native runtime: runs reducer, IR, proof, council, and evolution jobs;
+\item Lean/Coq mirrors: finite carrier and algebraic law checks;
 \item \texttt{system.cdc}: native capability witnesses;
 \item \texttt{relations.cdc}: angular/path relation witnesses;
 \item \texttt{trace\_windows.cdc}: balanced-ternary observer-window witnesses.
@@ -342,9 +349,11 @@ parser state, reducer state, witness state, and trace/window state into native
 This makes the theorem-prover lift narrow and explicit. The finite discrete
 layer now has a native C checker plus Lean and Coq source mirrors for the n=6
 balanced-ternary walk spectrum: total states, prefix admissibility, localized
-closures, saturated walks, and Catalan closures. The next proof target is
-commit-barrier preservation over the same carrier, followed by the carrier
-algebra and continuous-flow assumptions around the same invariant table.
+closures, saturated walks, and Catalan closures. Lean and Coq also check finite
+algebraic laws for gate, interference, and rotation over the finite carrier. The
+next proof target is commit-barrier preservation over the same carrier, followed
+by continuous-carrier algebra and continuous-flow assumptions around the same
+invariant table.
 
 \section{Conclusion}
 

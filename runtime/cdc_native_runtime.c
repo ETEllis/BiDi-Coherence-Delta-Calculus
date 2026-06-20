@@ -11,6 +11,9 @@
 #define MAX_STEPS 128
 #define MAX_COMPILE_JOBS 32
 #define MAX_PROOF_JOBS 32
+#define MAX_COUNCILS 32
+#define MAX_DELIBERATIONS 32
+#define MAX_EVOLUTIONS 32
 #define LINE_MAX_BYTES 1024
 #define PI 3.14159265358979323846
 
@@ -97,6 +100,30 @@ typedef struct {
 } ProofJob;
 
 typedef struct {
+    char id[64];
+    char field[64];
+    char members[256];
+    int quorum;
+    char expect_decision[32];
+    char expect_dyadic[32];
+    char expect_triadic[32];
+} Council;
+
+typedef struct {
+    char id[64];
+    char council[64];
+} Deliberation;
+
+typedef struct {
+    char id[64];
+    char source[128];
+    char output[128];
+    char coordinate[32];
+    char append_witness[64];
+    char expect_contains[64];
+} EvolutionJob;
+
+typedef struct {
     Field fields[MAX_FIELDS];
     Module modules[MAX_MODULES];
     Cell cells[MAX_CELLS];
@@ -104,6 +131,9 @@ typedef struct {
     Step steps[MAX_STEPS];
     CompileJob compile_jobs[MAX_COMPILE_JOBS];
     ProofJob proof_jobs[MAX_PROOF_JOBS];
+    Council councils[MAX_COUNCILS];
+    Deliberation deliberations[MAX_DELIBERATIONS];
+    EvolutionJob evolutions[MAX_EVOLUTIONS];
     int field_count;
     int module_count;
     int cell_count;
@@ -111,6 +141,9 @@ typedef struct {
     int step_count;
     int compile_job_count;
     int proof_job_count;
+    int council_count;
+    int deliberation_count;
+    int evolution_count;
 } Runtime;
 
 static void fail(const char *message) {
@@ -213,6 +246,15 @@ static Module *find_module(Runtime *rt, const char *name) {
     for (int i = 0; i < rt->module_count; i++) {
         if (strcmp(rt->modules[i].name, name) == 0) {
             return &rt->modules[i];
+        }
+    }
+    return NULL;
+}
+
+static Council *find_council(Runtime *rt, const char *name) {
+    for (int i = 0; i < rt->council_count; i++) {
+        if (strcmp(rt->councils[i].id, name) == 0) {
+            return &rt->councils[i];
         }
     }
     return NULL;
@@ -415,6 +457,48 @@ static void add_proof_job(Runtime *rt, const char *line) {
     job->expect_catalan = read_int_attr(line, "expect-catalan", -1);
 }
 
+static void add_council(Runtime *rt, const char *line) {
+    Council *council;
+    if (rt->council_count >= MAX_COUNCILS) {
+        fail("too many councils");
+    }
+    council = &rt->councils[rt->council_count++];
+    memset(council, 0, sizeof(*council));
+    first_token_after(line, "council ", council->id, sizeof(council->id));
+    copy_attr(line, "field", council->field, sizeof(council->field), "");
+    copy_attr(line, "members", council->members, sizeof(council->members), "");
+    copy_attr(line, "expect-decision", council->expect_decision, sizeof(council->expect_decision), "");
+    copy_attr(line, "expect-dyadic", council->expect_dyadic, sizeof(council->expect_dyadic), "");
+    copy_attr(line, "expect-triadic", council->expect_triadic, sizeof(council->expect_triadic), "");
+    council->quorum = read_int_attr(line, "quorum", 1);
+}
+
+static void add_deliberation(Runtime *rt, const char *line) {
+    Deliberation *deliberation;
+    if (rt->deliberation_count >= MAX_DELIBERATIONS) {
+        fail("too many deliberations");
+    }
+    deliberation = &rt->deliberations[rt->deliberation_count++];
+    memset(deliberation, 0, sizeof(*deliberation));
+    first_token_after(line, "deliberate ", deliberation->id, sizeof(deliberation->id));
+    copy_attr(line, "council", deliberation->council, sizeof(deliberation->council), "");
+}
+
+static void add_evolution(Runtime *rt, const char *line) {
+    EvolutionJob *job;
+    if (rt->evolution_count >= MAX_EVOLUTIONS) {
+        fail("too many evolution jobs");
+    }
+    job = &rt->evolutions[rt->evolution_count++];
+    memset(job, 0, sizeof(*job));
+    first_token_after(line, "evolve ", job->id, sizeof(job->id));
+    copy_attr(line, "source", job->source, sizeof(job->source), "");
+    copy_attr(line, "output", job->output, sizeof(job->output), "");
+    copy_attr(line, "coordinate", job->coordinate, sizeof(job->coordinate), "");
+    copy_attr(line, "append-witness", job->append_witness, sizeof(job->append_witness), "");
+    copy_attr(line, "expect-contains", job->expect_contains, sizeof(job->expect_contains), "");
+}
+
 static void parse_source(Runtime *rt, const char *path) {
     FILE *fp = fopen(path, "r");
     char line[LINE_MAX_BYTES];
@@ -445,6 +529,12 @@ static void parse_source(Runtime *rt, const char *path) {
             add_compile_job(rt, line);
         } else if (starts_with(line, "proof ")) {
             add_proof_job(rt, line);
+        } else if (starts_with(line, "council ")) {
+            add_council(rt, line);
+        } else if (starts_with(line, "deliberate ")) {
+            add_deliberation(rt, line);
+        } else if (starts_with(line, "evolve ")) {
+            add_evolution(rt, line);
         }
     }
     fclose(fp);
@@ -777,11 +867,201 @@ static void prove_source(Runtime *rt, const char *path) {
     printf("native proof ok jobs=%d source=%s\n", rt->proof_job_count, path);
 }
 
+static void interpret_source(Runtime *rt, const char *path) {
+    int flow_count = 0;
+    int commit_count = 0;
+    int nest_count = 0;
+    if (rt->step_count == 0) {
+        fail("native reducer source has no IR operations");
+    }
+    printf("ir-interpreter source=%s ops=%d\n", path, rt->step_count);
+    for (int i = 0; i < rt->step_count; i++) {
+        Step *step = &rt->steps[i];
+        printf("ir-exec op[%d]=%s id=%s\n", i, step_kind_name(step->kind), step->id);
+        if (step->kind == STEP_FLOW) {
+            run_flow(rt, step);
+            flow_count++;
+        } else if (step->kind == STEP_COMMIT) {
+            run_commit(rt, step);
+            commit_count++;
+        } else if (step->kind == STEP_NEST) {
+            run_nest(rt, step);
+            nest_count++;
+        }
+    }
+    if (flow_count == 0 || commit_count == 0 || nest_count == 0) {
+        fail("IR interpreter must exercise flow, commit, and nest");
+    }
+    printf("native interpret ok ops=%d flow=%d commit=%d nest=%d source=%s\n",
+           rt->step_count, flow_count, commit_count, nest_count, path);
+}
+
+static void trits_to_occupancy6(const char *trits, char out[7]) {
+    if (strlen(trits) != 6) {
+        fail("council bridge coordinate expects six trits");
+    }
+    for (int i = 0; i < 6; i++) {
+        if (trits[i] == '+' || trits[i] == '-') {
+            out[i] = '1';
+        } else if (trits[i] == '0') {
+            out[i] = '0';
+        } else {
+            fail("council trits must be balanced ternary");
+        }
+    }
+    out[6] = '\0';
+}
+
+static void triadic_from_index64(int index, char out[4]) {
+    out[0] = (char)('0' + ((index >> 4) & 3));
+    out[1] = (char)('0' + ((index >> 2) & 3));
+    out[2] = (char)('0' + (index & 3));
+    out[3] = '\0';
+}
+
+static int dyadic6_to_index(const char *dyadic) {
+    int value = 0;
+    if (strlen(dyadic) != 6) {
+        fail("dyadic bridge coordinate must have six bits");
+    }
+    for (int i = 0; i < 6; i++) {
+        if (dyadic[i] != '0' && dyadic[i] != '1') {
+            fail("dyadic bridge coordinate must be binary");
+        }
+        value = (value << 1) | (dyadic[i] - '0');
+    }
+    return value;
+}
+
+static void append_module_trits(Runtime *rt, Module *module, char *trits, size_t trits_size) {
+    Field *field = find_field(rt, module->field);
+    size_t used = strlen(trits);
+    if (!field) {
+        fail("council module references unknown field");
+    }
+    for (int i = 0; i < rt->cell_count; i++) {
+        Cell *cell = &rt->cells[i];
+        if (strcmp(cell->module, module->name) != 0) {
+            continue;
+        }
+        if (used + 1 >= trits_size) {
+            fail("council trit vector too long");
+        }
+        trits[used++] = trit_from_theta(cell->theta, field->deadband);
+        trits[used] = '\0';
+    }
+}
+
+static void run_council(Runtime *rt, const char *path) {
+    if (rt->deliberation_count == 0) {
+        fail("source has no council deliberation");
+    }
+    for (int i = 0; i < rt->deliberation_count; i++) {
+        Deliberation *deliberation = &rt->deliberations[i];
+        Council *council = find_council(rt, deliberation->council);
+        char members[256];
+        char trits[128] = "";
+        char dyadic[7];
+        char triadic[4];
+        char decision[32];
+        int occupancy = 0;
+        int index;
+        char *cursor;
+        if (!council) {
+            fail("deliberation references unknown council");
+        }
+        snprintf(members, sizeof(members), "%s", council->members);
+        cursor = strtok(members, ",");
+        while (cursor) {
+            Module *member = find_module(rt, cursor);
+            if (!member) {
+                fail("council member references unknown module");
+            }
+            append_module_trits(rt, member, trits, sizeof(trits));
+            cursor = strtok(NULL, ",");
+        }
+        trits_to_occupancy6(trits, dyadic);
+        for (int j = 0; j < 6; j++) {
+            if (dyadic[j] == '1') {
+                occupancy++;
+            }
+        }
+        index = dyadic6_to_index(dyadic);
+        triadic_from_index64(index, triadic);
+        snprintf(decision, sizeof(decision), "%s", occupancy >= council->quorum ? "adopt" : "hold");
+        if (council->expect_decision[0] && strcmp(decision, council->expect_decision) != 0) {
+            fail("council decision expectation mismatch");
+        }
+        if (council->expect_dyadic[0] && strcmp(dyadic, council->expect_dyadic) != 0) {
+            fail("council dyadic expectation mismatch");
+        }
+        if (council->expect_triadic[0] && strcmp(triadic, council->expect_triadic) != 0) {
+            fail("council triadic expectation mismatch");
+        }
+        printf("council=%s deliberation=%s trits=%s dyadic=%s triadic=%s occupancy=%d quorum=%d decision=%s\n",
+               council->id, deliberation->id, trits, dyadic, triadic, occupancy, council->quorum, decision);
+    }
+    printf("native council ok deliberations=%d source=%s\n", rt->deliberation_count, path);
+}
+
+static int file_contains(const char *path, const char *needle) {
+    FILE *fp = fopen(path, "r");
+    char line[LINE_MAX_BYTES];
+    if (!fp) {
+        return 0;
+    }
+    while (fgets(line, sizeof(line), fp)) {
+        if (strstr(line, needle)) {
+            fclose(fp);
+            return 1;
+        }
+    }
+    fclose(fp);
+    return 0;
+}
+
+static void run_evolution(Runtime *rt, const char *path) {
+    if (rt->evolution_count == 0) {
+        fail("source has no evolution job");
+    }
+    for (int i = 0; i < rt->evolution_count; i++) {
+        EvolutionJob *job = &rt->evolutions[i];
+        FILE *in = fopen(job->source, "r");
+        FILE *out;
+        char line[LINE_MAX_BYTES];
+        if (!in) {
+            fail("evolution source could not be opened");
+        }
+        out = fopen(job->output, "w");
+        if (!out) {
+            fclose(in);
+            fail("evolution output could not be opened");
+        }
+        while (fgets(line, sizeof(line), in)) {
+            fputs(line, out);
+        }
+        fprintf(out, "\n# evolved by bridge coordinate %s through %s\n", job->coordinate, job->id);
+        fprintf(out, "witness %s invariant=dyadic-triadic-closure coordinate=%s claim=\"bridge coordinate self evolution wrote this witness\"\n",
+                job->append_witness, job->coordinate);
+        fclose(in);
+        fclose(out);
+        if (job->expect_contains[0] && !file_contains(job->output, job->expect_contains)) {
+            fail("evolution output missing expected text");
+        }
+        printf("evolution=%s coordinate=%s source=%s output=%s appended=%s\n",
+               job->id, job->coordinate, job->source, job->output, job->append_witness);
+    }
+    printf("native evolution ok jobs=%d source=%s\n", rt->evolution_count, path);
+}
+
 static void usage(void) {
     fprintf(stderr, "usage:\n");
     fprintf(stderr, "  cdc_native_runtime run native_reducer.cdc\n");
     fprintf(stderr, "  cdc_native_runtime compile native_reducer.cdc\n");
+    fprintf(stderr, "  cdc_native_runtime interpret native_reducer.cdc\n");
     fprintf(stderr, "  cdc_native_runtime prove native_reducer.cdc\n");
+    fprintf(stderr, "  cdc_native_runtime council council_bridge.cdc\n");
+    fprintf(stderr, "  cdc_native_runtime evolve council_bridge.cdc\n");
     exit(2);
 }
 
@@ -795,8 +1075,14 @@ int main(int argc, char **argv) {
         run_steps(&runtime, argv[2]);
     } else if (strcmp(argv[1], "compile") == 0) {
         compile_source(&runtime, argv[2]);
+    } else if (strcmp(argv[1], "interpret") == 0) {
+        interpret_source(&runtime, argv[2]);
     } else if (strcmp(argv[1], "prove") == 0) {
         prove_source(&runtime, argv[2]);
+    } else if (strcmp(argv[1], "council") == 0) {
+        run_council(&runtime, argv[2]);
+    } else if (strcmp(argv[1], "evolve") == 0) {
+        run_evolution(&runtime, argv[2]);
     } else {
         usage();
     }

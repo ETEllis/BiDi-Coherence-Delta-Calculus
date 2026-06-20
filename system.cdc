@@ -28,6 +28,9 @@ capability G1 label="operational-bridge-runtime"
 capability G2 label="native-reducer-runtime"
 capability G3 label="native-compiler-ir"
 capability G4 label="finite-proof-checker"
+capability G5 label="council-deliberation"
+capability G6 label="bridge-coordinate-self-evolution"
+capability G7 label="native-ir-interpreter"
 
 witness A1-native-primitives capability=A1 claim="cell/channel/module/field/commit/bidi-gamma-delta are native terms"
 witness A2-host-free-spec capability=A2 claim="formal core names primitives without host-language dependence"
@@ -84,3 +87,6 @@ expect capability G1
 expect capability G2
 expect capability G3
 expect capability G4
+expect capability G5
+expect capability G6
+expect capability G7

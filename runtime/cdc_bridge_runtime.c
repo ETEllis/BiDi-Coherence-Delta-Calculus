@@ -5,6 +5,7 @@
 
 #define BRIDGE64_ROWS 64
 #define LINE_MAX_BYTES 1024
+#define MAX_CODEBOOK_ARITY 24
 
 typedef struct {
     char witness[64];
@@ -13,6 +14,8 @@ typedef struct {
     int index;
     int seen;
 } BridgeRow;
+
+static const char DIGITS[] = "0123456789ABCDEF";
 
 static void fail(const char *message) {
     fprintf(stderr, "cdc-bridge-runtime: %s\n", message);
@@ -90,6 +93,48 @@ static int triadic_index(const char *triadic) {
     return value;
 }
 
+static int digit_value(char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    }
+    if (c >= 'A' && c <= 'F') {
+        return 10 + (c - 'A');
+    }
+    if (c >= 'a' && c <= 'f') {
+        return 10 + (c - 'a');
+    }
+    return -1;
+}
+
+static int dyadic_index_n(const char *dyadic, int arity) {
+    int value = 0;
+    if ((int)strlen(dyadic) != arity) {
+        return -1;
+    }
+    for (int i = 0; i < arity; i++) {
+        if (dyadic[i] != '0' && dyadic[i] != '1') {
+            return -1;
+        }
+        value = (value << 1) | (dyadic[i] - '0');
+    }
+    return value;
+}
+
+static int triadic_index_n(const char *triadic, int base) {
+    int value = 0;
+    if (strlen(triadic) != 3) {
+        return -1;
+    }
+    for (size_t i = 0; i < 3; i++) {
+        int digit = digit_value(triadic[i]);
+        if (digit < 0 || digit >= base) {
+            return -1;
+        }
+        value = value * base + digit;
+    }
+    return value;
+}
+
 static void expected_triadic(int index, char out[4]) {
     out[0] = (char)('0' + ((index >> 4) & 3));
     out[1] = (char)('0' + ((index >> 2) & 3));
@@ -102,6 +147,31 @@ static void expected_dyadic(int index, char out[7]) {
         out[5 - i] = ((index >> i) & 1) ? '1' : '0';
     }
     out[6] = '\0';
+}
+
+static void expected_dyadic_n(int index, int arity, char *out, size_t out_size) {
+    if ((size_t)arity + 1 > out_size) {
+        fail("dyadic output buffer too small");
+    }
+    for (int i = arity - 1; i >= 0; i--) {
+        out[arity - 1 - i] = ((index >> i) & 1) ? '1' : '0';
+    }
+    out[arity] = '\0';
+}
+
+static void expected_triadic_n(int index, int arity, char out[4]) {
+    int digit_bits = arity / 3;
+    int base = 1 << digit_bits;
+    int high = index / (base * base);
+    int mid = (index / base) % base;
+    int low = index % base;
+    if (base > 16) {
+        fail("base too large for compact codebook rows");
+    }
+    out[0] = DIGITS[high];
+    out[1] = DIGITS[mid];
+    out[2] = DIGITS[low];
+    out[3] = '\0';
 }
 
 static void load_bridge64(const char *path, BridgeRow rows[BRIDGE64_ROWS]) {
@@ -273,18 +343,29 @@ static void cmd_grid_svg(const char *path) {
     BridgeRow rows[BRIDGE64_ROWS];
     load_bridge64(path, rows);
     printf("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"960\" height=\"620\" viewBox=\"0 0 960 620\">\n");
+    printf("<style><![CDATA[\n");
+    printf(".bridge-cell rect{transition:fill .12s ease,stroke-width .12s ease}.bridge-cell:hover rect,.bridge-cell:focus rect{fill:#dff7ff;stroke:#0369a1;stroke-width:2}.bridge-cell text{pointer-events:none}.bridge-cell{cursor:pointer;outline:none}\n");
+    printf("]]></style>\n");
+    printf("<script><![CDATA[\n");
+    printf("function selectCell(g){var p=document.getElementById('bridge-selection');p.textContent='selected index='+g.dataset.index+' dyadic='+g.dataset.dyadic+' triadic='+g.dataset.triadic+' witness='+g.dataset.witness;}\n");
+    printf("]]></script>\n");
     printf("<rect width=\"960\" height=\"620\" fill=\"#f8fafc\"/>\n");
     printf("<text x=\"24\" y=\"36\" font-family=\"ui-monospace, Menlo, monospace\" font-size=\"22\" font-weight=\"700\">bridge64 dyadic/triadic codebook</text>\n");
     printf("<text x=\"24\" y=\"62\" font-family=\"ui-monospace, Menlo, monospace\" font-size=\"13\" fill=\"#475569\">source=%s</text>\n", path);
+    printf("<text id=\"bridge-selection\" x=\"24\" y=\"600\" font-family=\"ui-monospace, Menlo, monospace\" font-size=\"13\" fill=\"#0f172a\">hover or click a cell to inspect bridge coordinates</text>\n");
     for (int i = 0; i < BRIDGE64_ROWS; i++) {
         int row = i / 8;
         int col = i % 8;
         int x = 24 + col * 114;
         int y = 88 + row * 62;
+        printf("<g class=\"bridge-cell\" tabindex=\"0\" data-index=\"%02d\" data-dyadic=\"%s\" data-triadic=\"%s\" data-witness=\"%s\" onclick=\"selectCell(this)\" onfocus=\"selectCell(this)\">\n",
+               i, rows[i].dyadic, rows[i].triadic, rows[i].witness);
+        printf("<title>index=%02d dyadic=%s triadic=%s witness=%s</title>\n", i, rows[i].dyadic, rows[i].triadic, rows[i].witness);
         printf("<rect x=\"%d\" y=\"%d\" width=\"102\" height=\"50\" rx=\"6\" fill=\"#ffffff\" stroke=\"#334155\"/>\n", x, y);
         printf("<text x=\"%d\" y=\"%d\" font-family=\"ui-monospace, Menlo, monospace\" font-size=\"11\" fill=\"#64748b\">%02d</text>\n", x + 8, y + 15, i);
         printf("<text x=\"%d\" y=\"%d\" font-family=\"ui-monospace, Menlo, monospace\" font-size=\"14\" font-weight=\"700\" fill=\"#0f172a\">%s</text>\n", x + 8, y + 32, rows[i].dyadic);
         printf("<text x=\"%d\" y=\"%d\" font-family=\"ui-monospace, Menlo, monospace\" font-size=\"14\" fill=\"#0369a1\">%s</text>\n", x + 62, y + 32, rows[i].triadic);
+        printf("</g>\n");
     }
     printf("</svg>\n");
 }
@@ -303,6 +384,126 @@ static void cmd_codebook(const char *arity_text) {
     printf("codebook arity=%d dyadic=2^%d slots=3 base=%llu states=%llu equality=2^%d=%llu^3\n",
            arity, arity, base, states, arity, base);
     printf("row-format dyadic=<%d binary digits> triadic=<3 base-%llu digits>\n", arity, base);
+}
+
+static void parse_codebook_arity(const char *arity_text, int *arity, int *base, int *states) {
+    int digit_bits;
+    *arity = atoi(arity_text);
+    if (*arity <= 0 || *arity % 3 != 0 || *arity > MAX_CODEBOOK_ARITY) {
+        fail("codebook arity must be a positive multiple of 3 within runtime bounds");
+    }
+    digit_bits = *arity / 3;
+    *base = 1 << digit_bits;
+    *states = 1 << *arity;
+    if (*base > 16) {
+        fail("codebook base too large for compact row digits");
+    }
+}
+
+static void cmd_emit_codebook(const char *arity_text) {
+    int arity;
+    int base;
+    int states;
+    char dyadic[32];
+    char triadic[4];
+    parse_codebook_arity(arity_text, &arity, &base, &states);
+    printf("# bridge%d.cdc -- generated full higher-arity dyadic/triadic codebook.\n", states);
+    printf("# Generated by runtime/cdc_bridge_runtime.c emit-codebook %d.\n\n", arity);
+    for (int i = 0; i < states; i++) {
+        expected_dyadic_n(i, arity, dyadic, sizeof(dyadic));
+        expected_triadic_n(i, arity, triadic);
+        printf("witness bridge%d-%s-%s invariant=dyadic-triadic-closure row=codebook arity=%d slots=3 base=%d states=%d index=%d dyadic=%s triadic=%s claim=\"generated full codebook row\"\n",
+               states, dyadic, triadic, arity, base, states, i, dyadic, triadic);
+    }
+    printf("\nexpect witness bridge%d-%0*d-000\n", states, arity, 0);
+    expected_dyadic_n(states - 1, arity, dyadic, sizeof(dyadic));
+    expected_triadic_n(states - 1, arity, triadic);
+    printf("expect witness bridge%d-%s-%s\n", states, dyadic, triadic);
+}
+
+static void cmd_verify_codebook(const char *path, const char *arity_text) {
+    FILE *fp = fopen(path, "r");
+    char line[LINE_MAX_BYTES];
+    int arity;
+    int base;
+    int states;
+    int count = 0;
+    int *dyadic_seen;
+    int *triadic_seen;
+
+    if (!fp) {
+        fail("could not open generated codebook file");
+    }
+    parse_codebook_arity(arity_text, &arity, &base, &states);
+    dyadic_seen = calloc((size_t)states, sizeof(int));
+    triadic_seen = calloc((size_t)states, sizeof(int));
+    if (!dyadic_seen || !triadic_seen) {
+        fail("could not allocate generated codebook census");
+    }
+
+    while (fgets(line, sizeof(line), fp)) {
+        char row[32];
+        char dyadic[32];
+        char triadic[32];
+        char attr[32];
+        char index_text[32];
+        char expected_d[32];
+        char expected_t[4];
+        int index;
+        int d_index;
+        int t_index;
+
+        trim_newline(line);
+        if (!starts_with(line, "witness bridge")) {
+            continue;
+        }
+        if (!read_attr(line, "row", row, sizeof(row)) || strcmp(row, "codebook") != 0) {
+            continue;
+        }
+        if (!read_attr(line, "arity", attr, sizeof(attr)) || atoi(attr) != arity) {
+            fail("generated codebook row has wrong arity");
+        }
+        if (!read_attr(line, "dyadic", dyadic, sizeof(dyadic)) ||
+            !read_attr(line, "triadic", triadic, sizeof(triadic)) ||
+            !read_attr(line, "index", index_text, sizeof(index_text))) {
+            fail("generated codebook row missing dyadic, triadic, or index");
+        }
+        index = atoi(index_text);
+        if (index < 0 || index >= states) {
+            fail("generated codebook index out of range");
+        }
+        d_index = dyadic_index_n(dyadic, arity);
+        t_index = triadic_index_n(triadic, base);
+        if (d_index < 0 || t_index < 0) {
+            fail("generated codebook row has malformed coordinate");
+        }
+        if (d_index != index || t_index != index) {
+            fail("generated codebook row does not match numeric index");
+        }
+        expected_dyadic_n(index, arity, expected_d, sizeof(expected_d));
+        expected_triadic_n(index, arity, expected_t);
+        if (strcmp(dyadic, expected_d) != 0 || strcmp(triadic, expected_t) != 0) {
+            fail("generated codebook row does not match canonical coordinate");
+        }
+        if (dyadic_seen[d_index] || triadic_seen[t_index]) {
+            fail("generated codebook duplicate dyadic or triadic coordinate");
+        }
+        dyadic_seen[d_index] = 1;
+        triadic_seen[t_index] = 1;
+        count++;
+    }
+    fclose(fp);
+    if (count != states) {
+        fail("generated codebook row count mismatch");
+    }
+    for (int i = 0; i < states; i++) {
+        if (!dyadic_seen[i] || !triadic_seen[i]) {
+            fail("generated codebook has an unfilled row");
+        }
+    }
+    free(dyadic_seen);
+    free(triadic_seen);
+    printf("generated-codebook ok arity=%d rows=%d base=%d source=%s\n", arity, states, base, path);
 }
 
 static void cmd_run_jobs(const char *bridge_path, const char *jobs_path) {
@@ -372,6 +573,8 @@ static void usage(void) {
     fprintf(stderr, "  cdc_bridge_runtime grid bridge64.cdc\n");
     fprintf(stderr, "  cdc_bridge_runtime grid-svg bridge64.cdc\n");
     fprintf(stderr, "  cdc_bridge_runtime codebook 9\n");
+    fprintf(stderr, "  cdc_bridge_runtime emit-codebook 9\n");
+    fprintf(stderr, "  cdc_bridge_runtime verify-codebook bridge512.cdc 9\n");
     fprintf(stderr, "  cdc_bridge_runtime run-jobs bridge64.cdc bridge_jobs.cdc\n");
     exit(2);
 }
@@ -394,6 +597,10 @@ int main(int argc, char **argv) {
         cmd_grid_svg(argv[2]);
     } else if (strcmp(argv[1], "codebook") == 0 && argc == 3) {
         cmd_codebook(argv[2]);
+    } else if (strcmp(argv[1], "emit-codebook") == 0 && argc == 3) {
+        cmd_emit_codebook(argv[2]);
+    } else if (strcmp(argv[1], "verify-codebook") == 0 && argc == 4) {
+        cmd_verify_codebook(argv[2], argv[3]);
     } else if (strcmp(argv[1], "run-jobs") == 0 && argc == 4) {
         cmd_run_jobs(argv[2], argv[3]);
     } else {

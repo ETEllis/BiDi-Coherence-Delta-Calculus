@@ -1,261 +1,460 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="620" viewBox="0 0 960 620">
+<style><![CDATA[
+.bridge-cell rect{transition:fill .12s ease,stroke-width .12s ease}.bridge-cell:hover rect,.bridge-cell:focus rect{fill:#dff7ff;stroke:#0369a1;stroke-width:2}.bridge-cell text{pointer-events:none}.bridge-cell{cursor:pointer;outline:none}
+]]></style>
+<script><![CDATA[
+function selectCell(g){var p=document.getElementById('bridge-selection');p.textContent='selected index='+g.dataset.index+' dyadic='+g.dataset.dyadic+' triadic='+g.dataset.triadic+' witness='+g.dataset.witness;}
+]]></script>
 <rect width="960" height="620" fill="#f8fafc"/>
 <text x="24" y="36" font-family="ui-monospace, Menlo, monospace" font-size="22" font-weight="700">bridge64 dyadic/triadic codebook</text>
 <text x="24" y="62" font-family="ui-monospace, Menlo, monospace" font-size="13" fill="#475569">source=bridge64.cdc</text>
+<text id="bridge-selection" x="24" y="600" font-family="ui-monospace, Menlo, monospace" font-size="13" fill="#0f172a">hover or click a cell to inspect bridge coordinates</text>
+<g class="bridge-cell" tabindex="0" data-index="00" data-dyadic="000000" data-triadic="000" data-witness="bridge64-000000-000" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=00 dyadic=000000 triadic=000 witness=bridge64-000000-000</title>
 <rect x="24" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">00</text>
 <text x="32" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000000</text>
 <text x="86" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">000</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="01" data-dyadic="000001" data-triadic="001" data-witness="bridge64-000001-001" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=01 dyadic=000001 triadic=001 witness=bridge64-000001-001</title>
 <rect x="138" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">01</text>
 <text x="146" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000001</text>
 <text x="200" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">001</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="02" data-dyadic="000010" data-triadic="002" data-witness="bridge64-000010-002" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=02 dyadic=000010 triadic=002 witness=bridge64-000010-002</title>
 <rect x="252" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">02</text>
 <text x="260" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000010</text>
 <text x="314" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">002</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="03" data-dyadic="000011" data-triadic="003" data-witness="bridge64-000011-003" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=03 dyadic=000011 triadic=003 witness=bridge64-000011-003</title>
 <rect x="366" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">03</text>
 <text x="374" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000011</text>
 <text x="428" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">003</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="04" data-dyadic="000100" data-triadic="010" data-witness="bridge64-000100-010" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=04 dyadic=000100 triadic=010 witness=bridge64-000100-010</title>
 <rect x="480" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">04</text>
 <text x="488" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000100</text>
 <text x="542" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">010</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="05" data-dyadic="000101" data-triadic="011" data-witness="bridge64-000101-011" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=05 dyadic=000101 triadic=011 witness=bridge64-000101-011</title>
 <rect x="594" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">05</text>
 <text x="602" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000101</text>
 <text x="656" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">011</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="06" data-dyadic="000110" data-triadic="012" data-witness="bridge64-000110-012" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=06 dyadic=000110 triadic=012 witness=bridge64-000110-012</title>
 <rect x="708" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">06</text>
 <text x="716" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000110</text>
 <text x="770" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">012</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="07" data-dyadic="000111" data-triadic="013" data-witness="bridge64-000111-013" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=07 dyadic=000111 triadic=013 witness=bridge64-000111-013</title>
 <rect x="822" y="88" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="103" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">07</text>
 <text x="830" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">000111</text>
 <text x="884" y="120" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">013</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="08" data-dyadic="001000" data-triadic="020" data-witness="bridge64-001000-020" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=08 dyadic=001000 triadic=020 witness=bridge64-001000-020</title>
 <rect x="24" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">08</text>
 <text x="32" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001000</text>
 <text x="86" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">020</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="09" data-dyadic="001001" data-triadic="021" data-witness="bridge64-001001-021" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=09 dyadic=001001 triadic=021 witness=bridge64-001001-021</title>
 <rect x="138" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">09</text>
 <text x="146" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001001</text>
 <text x="200" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">021</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="10" data-dyadic="001010" data-triadic="022" data-witness="bridge64-001010-022" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=10 dyadic=001010 triadic=022 witness=bridge64-001010-022</title>
 <rect x="252" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">10</text>
 <text x="260" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001010</text>
 <text x="314" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">022</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="11" data-dyadic="001011" data-triadic="023" data-witness="bridge64-001011-023" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=11 dyadic=001011 triadic=023 witness=bridge64-001011-023</title>
 <rect x="366" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">11</text>
 <text x="374" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001011</text>
 <text x="428" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">023</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="12" data-dyadic="001100" data-triadic="030" data-witness="bridge64-001100-030" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=12 dyadic=001100 triadic=030 witness=bridge64-001100-030</title>
 <rect x="480" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">12</text>
 <text x="488" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001100</text>
 <text x="542" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">030</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="13" data-dyadic="001101" data-triadic="031" data-witness="bridge64-001101-031" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=13 dyadic=001101 triadic=031 witness=bridge64-001101-031</title>
 <rect x="594" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">13</text>
 <text x="602" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001101</text>
 <text x="656" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">031</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="14" data-dyadic="001110" data-triadic="032" data-witness="bridge64-001110-032" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=14 dyadic=001110 triadic=032 witness=bridge64-001110-032</title>
 <rect x="708" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">14</text>
 <text x="716" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001110</text>
 <text x="770" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">032</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="15" data-dyadic="001111" data-triadic="033" data-witness="bridge64-001111-033" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=15 dyadic=001111 triadic=033 witness=bridge64-001111-033</title>
 <rect x="822" y="150" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="165" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">15</text>
 <text x="830" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">001111</text>
 <text x="884" y="182" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">033</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="16" data-dyadic="010000" data-triadic="100" data-witness="bridge64-010000-100" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=16 dyadic=010000 triadic=100 witness=bridge64-010000-100</title>
 <rect x="24" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">16</text>
 <text x="32" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010000</text>
 <text x="86" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">100</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="17" data-dyadic="010001" data-triadic="101" data-witness="bridge64-010001-101" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=17 dyadic=010001 triadic=101 witness=bridge64-010001-101</title>
 <rect x="138" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">17</text>
 <text x="146" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010001</text>
 <text x="200" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">101</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="18" data-dyadic="010010" data-triadic="102" data-witness="bridge64-010010-102" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=18 dyadic=010010 triadic=102 witness=bridge64-010010-102</title>
 <rect x="252" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">18</text>
 <text x="260" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010010</text>
 <text x="314" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">102</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="19" data-dyadic="010011" data-triadic="103" data-witness="bridge64-010011-103" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=19 dyadic=010011 triadic=103 witness=bridge64-010011-103</title>
 <rect x="366" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">19</text>
 <text x="374" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010011</text>
 <text x="428" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">103</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="20" data-dyadic="010100" data-triadic="110" data-witness="bridge64-010100-110" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=20 dyadic=010100 triadic=110 witness=bridge64-010100-110</title>
 <rect x="480" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">20</text>
 <text x="488" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010100</text>
 <text x="542" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">110</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="21" data-dyadic="010101" data-triadic="111" data-witness="bridge64-010101-111" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=21 dyadic=010101 triadic=111 witness=bridge64-010101-111</title>
 <rect x="594" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">21</text>
 <text x="602" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010101</text>
 <text x="656" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">111</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="22" data-dyadic="010110" data-triadic="112" data-witness="bridge64-010110-112" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=22 dyadic=010110 triadic=112 witness=bridge64-010110-112</title>
 <rect x="708" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">22</text>
 <text x="716" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010110</text>
 <text x="770" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">112</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="23" data-dyadic="010111" data-triadic="113" data-witness="bridge64-010111-113" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=23 dyadic=010111 triadic=113 witness=bridge64-010111-113</title>
 <rect x="822" y="212" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="227" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">23</text>
 <text x="830" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">010111</text>
 <text x="884" y="244" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">113</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="24" data-dyadic="011000" data-triadic="120" data-witness="bridge64-011000-120" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=24 dyadic=011000 triadic=120 witness=bridge64-011000-120</title>
 <rect x="24" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">24</text>
 <text x="32" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011000</text>
 <text x="86" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">120</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="25" data-dyadic="011001" data-triadic="121" data-witness="bridge64-011001-121" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=25 dyadic=011001 triadic=121 witness=bridge64-011001-121</title>
 <rect x="138" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">25</text>
 <text x="146" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011001</text>
 <text x="200" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">121</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="26" data-dyadic="011010" data-triadic="122" data-witness="bridge64-011010-122" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=26 dyadic=011010 triadic=122 witness=bridge64-011010-122</title>
 <rect x="252" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">26</text>
 <text x="260" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011010</text>
 <text x="314" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">122</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="27" data-dyadic="011011" data-triadic="123" data-witness="bridge64-011011-123" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=27 dyadic=011011 triadic=123 witness=bridge64-011011-123</title>
 <rect x="366" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">27</text>
 <text x="374" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011011</text>
 <text x="428" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">123</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="28" data-dyadic="011100" data-triadic="130" data-witness="bridge64-011100-130" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=28 dyadic=011100 triadic=130 witness=bridge64-011100-130</title>
 <rect x="480" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">28</text>
 <text x="488" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011100</text>
 <text x="542" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">130</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="29" data-dyadic="011101" data-triadic="131" data-witness="bridge64-011101-131" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=29 dyadic=011101 triadic=131 witness=bridge64-011101-131</title>
 <rect x="594" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">29</text>
 <text x="602" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011101</text>
 <text x="656" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">131</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="30" data-dyadic="011110" data-triadic="132" data-witness="bridge64-011110-132" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=30 dyadic=011110 triadic=132 witness=bridge64-011110-132</title>
 <rect x="708" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">30</text>
 <text x="716" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011110</text>
 <text x="770" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">132</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="31" data-dyadic="011111" data-triadic="133" data-witness="bridge64-011111-133" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=31 dyadic=011111 triadic=133 witness=bridge64-011111-133</title>
 <rect x="822" y="274" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="289" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">31</text>
 <text x="830" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">011111</text>
 <text x="884" y="306" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">133</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="32" data-dyadic="100000" data-triadic="200" data-witness="bridge64-100000-200" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=32 dyadic=100000 triadic=200 witness=bridge64-100000-200</title>
 <rect x="24" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">32</text>
 <text x="32" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100000</text>
 <text x="86" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">200</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="33" data-dyadic="100001" data-triadic="201" data-witness="bridge64-100001-201" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=33 dyadic=100001 triadic=201 witness=bridge64-100001-201</title>
 <rect x="138" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">33</text>
 <text x="146" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100001</text>
 <text x="200" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">201</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="34" data-dyadic="100010" data-triadic="202" data-witness="bridge64-100010-202" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=34 dyadic=100010 triadic=202 witness=bridge64-100010-202</title>
 <rect x="252" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">34</text>
 <text x="260" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100010</text>
 <text x="314" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">202</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="35" data-dyadic="100011" data-triadic="203" data-witness="bridge64-100011-203" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=35 dyadic=100011 triadic=203 witness=bridge64-100011-203</title>
 <rect x="366" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">35</text>
 <text x="374" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100011</text>
 <text x="428" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">203</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="36" data-dyadic="100100" data-triadic="210" data-witness="bridge64-100100-210" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=36 dyadic=100100 triadic=210 witness=bridge64-100100-210</title>
 <rect x="480" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">36</text>
 <text x="488" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100100</text>
 <text x="542" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">210</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="37" data-dyadic="100101" data-triadic="211" data-witness="bridge64-100101-211" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=37 dyadic=100101 triadic=211 witness=bridge64-100101-211</title>
 <rect x="594" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">37</text>
 <text x="602" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100101</text>
 <text x="656" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">211</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="38" data-dyadic="100110" data-triadic="212" data-witness="bridge64-100110-212" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=38 dyadic=100110 triadic=212 witness=bridge64-100110-212</title>
 <rect x="708" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">38</text>
 <text x="716" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100110</text>
 <text x="770" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">212</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="39" data-dyadic="100111" data-triadic="213" data-witness="bridge64-100111-213" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=39 dyadic=100111 triadic=213 witness=bridge64-100111-213</title>
 <rect x="822" y="336" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="351" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">39</text>
 <text x="830" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">100111</text>
 <text x="884" y="368" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">213</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="40" data-dyadic="101000" data-triadic="220" data-witness="bridge64-101000-220" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=40 dyadic=101000 triadic=220 witness=bridge64-101000-220</title>
 <rect x="24" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">40</text>
 <text x="32" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101000</text>
 <text x="86" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">220</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="41" data-dyadic="101001" data-triadic="221" data-witness="bridge64-101001-221" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=41 dyadic=101001 triadic=221 witness=bridge64-101001-221</title>
 <rect x="138" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">41</text>
 <text x="146" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101001</text>
 <text x="200" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">221</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="42" data-dyadic="101010" data-triadic="222" data-witness="bridge64-101010-222" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=42 dyadic=101010 triadic=222 witness=bridge64-101010-222</title>
 <rect x="252" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">42</text>
 <text x="260" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101010</text>
 <text x="314" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">222</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="43" data-dyadic="101011" data-triadic="223" data-witness="bridge64-101011-223" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=43 dyadic=101011 triadic=223 witness=bridge64-101011-223</title>
 <rect x="366" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">43</text>
 <text x="374" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101011</text>
 <text x="428" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">223</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="44" data-dyadic="101100" data-triadic="230" data-witness="bridge64-101100-230" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=44 dyadic=101100 triadic=230 witness=bridge64-101100-230</title>
 <rect x="480" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">44</text>
 <text x="488" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101100</text>
 <text x="542" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">230</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="45" data-dyadic="101101" data-triadic="231" data-witness="bridge64-101101-231" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=45 dyadic=101101 triadic=231 witness=bridge64-101101-231</title>
 <rect x="594" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">45</text>
 <text x="602" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101101</text>
 <text x="656" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">231</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="46" data-dyadic="101110" data-triadic="232" data-witness="bridge64-101110-232" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=46 dyadic=101110 triadic=232 witness=bridge64-101110-232</title>
 <rect x="708" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">46</text>
 <text x="716" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101110</text>
 <text x="770" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">232</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="47" data-dyadic="101111" data-triadic="233" data-witness="bridge64-101111-233" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=47 dyadic=101111 triadic=233 witness=bridge64-101111-233</title>
 <rect x="822" y="398" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="413" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">47</text>
 <text x="830" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">101111</text>
 <text x="884" y="430" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">233</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="48" data-dyadic="110000" data-triadic="300" data-witness="bridge64-110000-300" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=48 dyadic=110000 triadic=300 witness=bridge64-110000-300</title>
 <rect x="24" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">48</text>
 <text x="32" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110000</text>
 <text x="86" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">300</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="49" data-dyadic="110001" data-triadic="301" data-witness="bridge64-110001-301" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=49 dyadic=110001 triadic=301 witness=bridge64-110001-301</title>
 <rect x="138" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">49</text>
 <text x="146" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110001</text>
 <text x="200" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">301</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="50" data-dyadic="110010" data-triadic="302" data-witness="bridge64-110010-302" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=50 dyadic=110010 triadic=302 witness=bridge64-110010-302</title>
 <rect x="252" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">50</text>
 <text x="260" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110010</text>
 <text x="314" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">302</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="51" data-dyadic="110011" data-triadic="303" data-witness="bridge64-110011-303" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=51 dyadic=110011 triadic=303 witness=bridge64-110011-303</title>
 <rect x="366" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">51</text>
 <text x="374" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110011</text>
 <text x="428" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">303</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="52" data-dyadic="110100" data-triadic="310" data-witness="bridge64-110100-310" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=52 dyadic=110100 triadic=310 witness=bridge64-110100-310</title>
 <rect x="480" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">52</text>
 <text x="488" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110100</text>
 <text x="542" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">310</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="53" data-dyadic="110101" data-triadic="311" data-witness="bridge64-110101-311" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=53 dyadic=110101 triadic=311 witness=bridge64-110101-311</title>
 <rect x="594" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">53</text>
 <text x="602" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110101</text>
 <text x="656" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">311</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="54" data-dyadic="110110" data-triadic="312" data-witness="bridge64-110110-312" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=54 dyadic=110110 triadic=312 witness=bridge64-110110-312</title>
 <rect x="708" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">54</text>
 <text x="716" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110110</text>
 <text x="770" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">312</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="55" data-dyadic="110111" data-triadic="313" data-witness="bridge64-110111-313" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=55 dyadic=110111 triadic=313 witness=bridge64-110111-313</title>
 <rect x="822" y="460" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="475" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">55</text>
 <text x="830" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">110111</text>
 <text x="884" y="492" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">313</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="56" data-dyadic="111000" data-triadic="320" data-witness="bridge64-111000-320" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=56 dyadic=111000 triadic=320 witness=bridge64-111000-320</title>
 <rect x="24" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="32" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">56</text>
 <text x="32" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111000</text>
 <text x="86" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">320</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="57" data-dyadic="111001" data-triadic="321" data-witness="bridge64-111001-321" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=57 dyadic=111001 triadic=321 witness=bridge64-111001-321</title>
 <rect x="138" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="146" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">57</text>
 <text x="146" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111001</text>
 <text x="200" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">321</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="58" data-dyadic="111010" data-triadic="322" data-witness="bridge64-111010-322" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=58 dyadic=111010 triadic=322 witness=bridge64-111010-322</title>
 <rect x="252" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="260" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">58</text>
 <text x="260" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111010</text>
 <text x="314" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">322</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="59" data-dyadic="111011" data-triadic="323" data-witness="bridge64-111011-323" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=59 dyadic=111011 triadic=323 witness=bridge64-111011-323</title>
 <rect x="366" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="374" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">59</text>
 <text x="374" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111011</text>
 <text x="428" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">323</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="60" data-dyadic="111100" data-triadic="330" data-witness="bridge64-111100-330" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=60 dyadic=111100 triadic=330 witness=bridge64-111100-330</title>
 <rect x="480" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="488" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">60</text>
 <text x="488" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111100</text>
 <text x="542" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">330</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="61" data-dyadic="111101" data-triadic="331" data-witness="bridge64-111101-331" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=61 dyadic=111101 triadic=331 witness=bridge64-111101-331</title>
 <rect x="594" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="602" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">61</text>
 <text x="602" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111101</text>
 <text x="656" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">331</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="62" data-dyadic="111110" data-triadic="332" data-witness="bridge64-111110-332" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=62 dyadic=111110 triadic=332 witness=bridge64-111110-332</title>
 <rect x="708" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="716" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">62</text>
 <text x="716" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111110</text>
 <text x="770" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">332</text>
+</g>
+<g class="bridge-cell" tabindex="0" data-index="63" data-dyadic="111111" data-triadic="333" data-witness="bridge64-111111-333" onclick="selectCell(this)" onfocus="selectCell(this)">
+<title>index=63 dyadic=111111 triadic=333 witness=bridge64-111111-333</title>
 <rect x="822" y="522" width="102" height="50" rx="6" fill="#ffffff" stroke="#334155"/>
 <text x="830" y="537" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#64748b">63</text>
 <text x="830" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" font-weight="700" fill="#0f172a">111111</text>
 <text x="884" y="554" font-family="ui-monospace, Menlo, monospace" font-size="14" fill="#0369a1">333</text>
+</g>
 </svg>

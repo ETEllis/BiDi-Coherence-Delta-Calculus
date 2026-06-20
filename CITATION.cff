@@ -6,14 +6,15 @@ authors:
   - family-names: Ellis
     given-names: Edward
 date-released: "2026-06-20"
-version: "0.2.3"
+version: "0.2.4"
 license: MIT
 repository-code: "https://github.com/ETEllis/bidi-coherence-delta-calculus"
 abstract: >-
   BiDi Coherence-Delta Calculus is a compact formal substrate for hybrid systems
   with continuous flow, evented commits, delayed and angle-biased coupling,
   local invariants, nested reference frames, ternary trace/window measurement,
-  and executable coherence witnesses. Version 0.2.3 adds a non-Python native
-  reducer/proof runtime that consumes source-declared .cdc flow, commit, nest,
-  compile, and finite proof jobs, with Lean and Coq mirrors of the n=6 carrier
-  proof.
+  and executable coherence witnesses. Version 0.2.4 adds a non-Python native
+  bridge/reducer/proof runtime path that consumes source-declared .cdc flow,
+  commit, nest, compile, interpret, proof, council, and source-evolution jobs;
+  generated n=9/n=12 bridge codebooks; an interactive bridge SVG; and Lean/Coq
+  mirrors of the n=6 carrier plus finite algebraic laws.

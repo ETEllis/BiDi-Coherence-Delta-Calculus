@@ -32,6 +32,10 @@ build/cdc_bridge_runtime grid bridge64.cdc
 build/cdc_bridge_runtime grid-svg bridge64.cdc > build/bridge64-grid.svg
 build/cdc_bridge_runtime codebook 9
 build/cdc_bridge_runtime codebook 12
+build/cdc_bridge_runtime emit-codebook 9 > build/bridge512.cdc
+build/cdc_bridge_runtime emit-codebook 12 > build/bridge4096.cdc
+build/cdc_bridge_runtime verify-codebook bridge512.cdc 9
+build/cdc_bridge_runtime verify-codebook bridge4096.cdc 12
 ```
 
 `project-trits` gives the bridge a real trace-coordinate job. It projects a
@@ -67,15 +71,26 @@ n=9:  2^9  = 8^3  = 512
 n=12: 2^12 = 16^3 = 4096
 ```
 
-The C runtime exposes the same rule with `codebook 9` and `codebook 12`. Larger
-generated `.cdc` rows can follow, but the finite bridge rule is already checked
-by the runtime.
+The C runtime exposes the same rule with `codebook 9` and `codebook 12`, emits
+the complete generated rows with `emit-codebook`, and verifies the tracked
+`bridge512.cdc` and `bridge4096.cdc` files with `verify-codebook`. The full
+generated higher-arity rows are therefore part of the checked source tree, not
+only a declared growth rule.
+
+## Interactive Bridge Grid
+
+`grid-svg` emits the visible bridge coordinate grid as an interactive SVG. Each
+cell carries bridge metadata (`data-index`, `data-dyadic`, `data-triadic`, and
+`data-witness`), focus/hover affordances, a title, and a small script that
+updates the selected bridge coordinate. `./scripts/verify.sh` regenerates the
+SVG and rejects the tracked asset if the interactive output drifts.
 
 ## Gate 5 Status
 
 This is a concrete Gate 5 pilot, not full host removal. The repo still uses
 `cdc_boot.py` as the minimal declaration checker, but bridge execution no longer
-depends on Python. The bridge has an operational consumer, a verified lookup
-job, a trace-coordinate projection, and generated grid output. The companion
-native runtime now handles source-declared reducer execution, compile-IR output,
-and finite proof checking from `native_reducer.cdc`.
+depends on Python. The bridge has an operational consumer, verified lookup jobs,
+trace-coordinate projection, generated higher-arity codebooks, and an
+interactive grid asset. The companion native runtime now handles source-declared
+reducer execution, compile-IR output, IR interpretation, finite proof checking,
+council deliberation, and bridge-coordinate source evolution from `.cdc`.

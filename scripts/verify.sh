@@ -57,10 +57,24 @@ esac
 build/cdc_bridge_runtime run-jobs bridge64.cdc bridge_jobs.cdc
 build/cdc_bridge_runtime codebook 9
 build/cdc_bridge_runtime codebook 12
+build/cdc_bridge_runtime verify-codebook bridge512.cdc 9
+build/cdc_bridge_runtime verify-codebook bridge4096.cdc 12
+build/cdc_bridge_runtime emit-codebook 9 > build/bridge512.cdc
+build/cdc_bridge_runtime emit-codebook 12 > build/bridge4096.cdc
+cmp -s build/bridge512.cdc bridge512.cdc || {
+  echo "bridge512.cdc is stale; regenerate with: build/cdc_bridge_runtime emit-codebook 9 > bridge512.cdc" >&2
+  exit 1
+}
+cmp -s build/bridge4096.cdc bridge4096.cdc || {
+  echo "bridge4096.cdc is stale; regenerate with: build/cdc_bridge_runtime emit-codebook 12 > bridge4096.cdc" >&2
+  exit 1
+}
 build/cdc_bridge_runtime grid bridge64.cdc > build/bridge64-grid.txt
 build/cdc_bridge_runtime grid-svg bridge64.cdc > build/bridge64-grid.svg
 test -s build/bridge64-grid.txt
 test -s build/bridge64-grid.svg
+grep -q "class=\"bridge-cell\"" build/bridge64-grid.svg
+grep -q "function selectCell" build/bridge64-grid.svg
 cmp -s build/bridge64-grid.svg assets/bridge64-grid.svg || {
   echo "assets/bridge64-grid.svg is stale; regenerate with: build/cdc_bridge_runtime grid-svg bridge64.cdc > assets/bridge64-grid.svg" >&2
   exit 1
@@ -96,6 +110,16 @@ grep -q "native compile ok jobs=1 ops=3" <<<"$native_compile" || {
   echo "native compile check failed" >&2
   exit 1
 }
+native_interpret="$(build/cdc_native_runtime interpret native_reducer.cdc)"
+echo "$native_interpret"
+grep -q "ir-interpreter source=native_reducer.cdc ops=3" <<<"$native_interpret" || {
+  echo "native IR interpreter did not compile IR" >&2
+  exit 1
+}
+grep -q "native interpret ok ops=3 flow=1 commit=1 nest=1" <<<"$native_interpret" || {
+  echo "native IR interpreter check failed" >&2
+  exit 1
+}
 native_proof="$(build/cdc_native_runtime prove native_reducer.cdc)"
 echo "$native_proof"
 grep -q "proof=trit-walk-n6 .*total=729 .*admissible=267 .*localized=51 .*saturated=20 .*catalan=5" <<<"$native_proof" || {
@@ -106,22 +130,46 @@ grep -q "native proof ok jobs=1" <<<"$native_proof" || {
   echo "native proof summary check failed" >&2
   exit 1
 }
+council_output="$(build/cdc_native_runtime council council_bridge.cdc)"
+echo "$council_output"
+grep -q "council=bridge-council .*dyadic=101101 .*triadic=231 .*decision=adopt" <<<"$council_output" || {
+  echo "native council deliberation check failed" >&2
+  exit 1
+}
+grep -q "native council ok deliberations=1" <<<"$council_output" || {
+  echo "native council summary check failed" >&2
+  exit 1
+}
+self_evolution="$(build/cdc_native_runtime evolve council_bridge.cdc)"
+echo "$self_evolution"
+grep -q "evolution=bridge-coordinate-evolution coordinate=101101" <<<"$self_evolution" || {
+  echo "native self-evolution check failed" >&2
+  exit 1
+}
+grep -q "native evolution ok jobs=1" <<<"$self_evolution" || {
+  echo "native self-evolution summary check failed" >&2
+  exit 1
+}
+grep -q "self-evolution-bridge" build/evolved_native_reducer.cdc || {
+  echo "evolved .cdc output is missing the bridge-written witness" >&2
+  exit 1
+}
 
 echo
-echo "== Lean/Coq finite proofs =="
+echo "== Lean/Coq finite carrier and algebraic proofs =="
 if command -v lean >/dev/null 2>&1; then
   lean formal/lean/CDCFinite.lean
-  echo "lean finite proof: ok"
+  echo "lean finite carrier/algebra proof: ok"
 else
-  echo "lean not found; skipping Lean finite proof check"
+  echo "lean not found; skipping Lean finite carrier/algebra proof check"
 fi
 
 if command -v coqc >/dev/null 2>&1; then
   coqc -q formal/coq/CDCFinite.v
   rm -f formal/coq/CDCFinite.vo formal/coq/CDCFinite.vos formal/coq/CDCFinite.vok formal/coq/CDCFinite.glob formal/coq/.CDCFinite.aux
-  echo "coq finite proof: ok"
+  echo "coq finite carrier/algebra proof: ok"
 else
-  echo "coqc not found; skipping Coq finite proof check"
+  echo "coqc not found; skipping Coq finite carrier/algebra proof check"
 fi
 
 echo
