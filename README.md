@@ -138,7 +138,8 @@ source mirrors for the same n=6 carrier spectrum.
 
 ## Verification Status (v0.2.4)
 
-The package passes 100%:
+The package passes 100% through `./scripts/verify.sh`, which is also the
+repository CI gate in `.github/workflows/formal-gate.yml`:
 
 - 1/1 Python bootloader file: `cdc_boot.py`
 - 176/176 native `.cdc` expectations
@@ -149,6 +150,7 @@ The package passes 100%:
 - C native reducer runtime run/compile/interpret/proof/surface/council/evolve checks
 - Lean and Coq finite carrier and algebraic law proof checks when `lean` or `coqc` are installed
 - Paper compile through `tectonic` when available
+- CI installs Lean and Coq and treats the native contract, C runtimes, generated artifact freshness, and finite proof mirrors as one required formal gate
 
 Run the full gate anytime:
 

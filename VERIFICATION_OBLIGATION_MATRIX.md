@@ -57,3 +57,14 @@ This is the shortest route from native witness declaration to mechanically
 checked calculus without prematurely formalizing the continuous numeric
 realization. The next proof increment is commit-barrier preservation over the
 same finite carrier, followed by continuous-carrier algebra and flow obligations.
+
+## Gate Discipline
+
+`scripts/verify.sh` is the local and CI authority for the current formal gate.
+It rebuilds the C bridge and native reducer runtimes, verifies native `.cdc`
+expectations, checks generated codebooks and the interactive bridge SVG against
+runtime output, runs finite proof mirrors when their tools are available, and
+compiles the paper when `tectonic` is installed. The GitHub Actions workflow
+`.github/workflows/formal-gate.yml` installs Lean and Coq before running the
+same script, so pushes and pull requests cannot drift from the native witness
+surface or the finite formal mirrors.

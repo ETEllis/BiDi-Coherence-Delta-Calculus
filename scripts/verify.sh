@@ -2,6 +2,31 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+
+on_error() {
+  local status=$?
+  local line=${BASH_LINENO[0]:-${LINENO}}
+  echo "verify failed at line ${line}: ${BASH_COMMAND} (exit ${status})" >&2
+}
+trap on_error ERR
+
+run_step() {
+  echo "+ $*"
+  "$@"
+}
+
+assert_fresh_file() {
+  local generated=$1
+  local tracked=$2
+  local refresh_hint=$3
+
+  test -s "$generated"
+  if ! cmp -s "$generated" "$tracked"; then
+    echo "$tracked is stale; regenerate with: $refresh_hint" >&2
+    exit 1
+  fi
+}
+
 mkdir -p build
 
 echo "== Minimal Python bootloader syntax =="
@@ -31,10 +56,11 @@ command -v cc >/dev/null 2>&1 || {
   echo "cc is required for operational bridge verification" >&2
   exit 1
 }
-cc -std=c99 -Wall -Wextra -pedantic -O2 \
+rm -f build/cdc_bridge_runtime
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_bridge_runtime.c \
   -o build/cdc_bridge_runtime
-build/cdc_bridge_runtime verify bridge64.cdc
+run_step build/cdc_bridge_runtime verify bridge64.cdc
 
 dyadic_lookup="$(build/cdc_bridge_runtime lookup-dyadic bridge64.cdc 101011)"
 case "$dyadic_lookup" in
@@ -54,35 +80,39 @@ case "$trace_projection" in
   *) echo "unexpected trace projection: $trace_projection" >&2; exit 1 ;;
 esac
 
-build/cdc_bridge_runtime run-jobs bridge64.cdc bridge_jobs.cdc
-build/cdc_bridge_runtime codebook 9
-build/cdc_bridge_runtime codebook 12
-build/cdc_bridge_runtime verify-codebook bridge512.cdc 9
-build/cdc_bridge_runtime verify-codebook bridge4096.cdc 12
+run_step build/cdc_bridge_runtime run-jobs bridge64.cdc bridge_jobs.cdc
+run_step build/cdc_bridge_runtime codebook 9
+run_step build/cdc_bridge_runtime codebook 12
+run_step build/cdc_bridge_runtime verify-codebook bridge512.cdc 9
+run_step build/cdc_bridge_runtime verify-codebook bridge4096.cdc 12
+echo "+ build/cdc_bridge_runtime emit-codebook 9 > build/bridge512.cdc"
 build/cdc_bridge_runtime emit-codebook 9 > build/bridge512.cdc
+echo "+ build/cdc_bridge_runtime emit-codebook 12 > build/bridge4096.cdc"
 build/cdc_bridge_runtime emit-codebook 12 > build/bridge4096.cdc
-cmp -s build/bridge512.cdc bridge512.cdc || {
-  echo "bridge512.cdc is stale; regenerate with: build/cdc_bridge_runtime emit-codebook 9 > bridge512.cdc" >&2
-  exit 1
-}
-cmp -s build/bridge4096.cdc bridge4096.cdc || {
-  echo "bridge4096.cdc is stale; regenerate with: build/cdc_bridge_runtime emit-codebook 12 > bridge4096.cdc" >&2
-  exit 1
-}
+assert_fresh_file \
+  build/bridge512.cdc \
+  bridge512.cdc \
+  "build/cdc_bridge_runtime emit-codebook 9 > bridge512.cdc"
+assert_fresh_file \
+  build/bridge4096.cdc \
+  bridge4096.cdc \
+  "build/cdc_bridge_runtime emit-codebook 12 > bridge4096.cdc"
+echo "+ build/cdc_bridge_runtime grid bridge64.cdc > build/bridge64-grid.txt"
 build/cdc_bridge_runtime grid bridge64.cdc > build/bridge64-grid.txt
+echo "+ build/cdc_bridge_runtime grid-svg bridge64.cdc > build/bridge64-grid.svg"
 build/cdc_bridge_runtime grid-svg bridge64.cdc > build/bridge64-grid.svg
 test -s build/bridge64-grid.txt
-test -s build/bridge64-grid.svg
 grep -q "class=\"bridge-cell\"" build/bridge64-grid.svg
 grep -q "function selectCell" build/bridge64-grid.svg
-cmp -s build/bridge64-grid.svg assets/bridge64-grid.svg || {
-  echo "assets/bridge64-grid.svg is stale; regenerate with: build/cdc_bridge_runtime grid-svg bridge64.cdc > assets/bridge64-grid.svg" >&2
-  exit 1
-}
+assert_fresh_file \
+  build/bridge64-grid.svg \
+  assets/bridge64-grid.svg \
+  "build/cdc_bridge_runtime grid-svg bridge64.cdc > assets/bridge64-grid.svg"
 
 echo
 echo "== Native reducer runtime =="
-cc -std=c99 -Wall -Wextra -pedantic -O2 \
+rm -f build/cdc_native_runtime
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_native_runtime.c \
   -o build/cdc_native_runtime \
   -lm
@@ -188,14 +218,14 @@ grep -q "self-evolution-bridge" build/evolved_native_reducer.cdc || {
 echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="
 if command -v lean >/dev/null 2>&1; then
-  lean formal/lean/CDCFinite.lean
+  run_step lean formal/lean/CDCFinite.lean
   echo "lean finite carrier/algebra proof: ok"
 else
   echo "lean not found; skipping Lean finite carrier/algebra proof check"
 fi
 
 if command -v coqc >/dev/null 2>&1; then
-  coqc -q formal/coq/CDCFinite.v
+  run_step coqc -q formal/coq/CDCFinite.v
   rm -f formal/coq/CDCFinite.vo formal/coq/CDCFinite.vos formal/coq/CDCFinite.vok formal/coq/CDCFinite.glob formal/coq/.CDCFinite.aux
   echo "coq finite carrier/algebra proof: ok"
 else
@@ -205,7 +235,7 @@ fi
 echo
 echo "== Paper compile =="
 if command -v tectonic >/dev/null 2>&1; then
-  (cd paper/arxiv && tectonic main.tex)
+  (cd paper/arxiv && run_step tectonic main.tex)
 else
   echo "tectonic not found; skipping PDF compile"
 fi
