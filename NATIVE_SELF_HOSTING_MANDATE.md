@@ -35,9 +35,10 @@ The first reducer path also has a non-Python operational consumer:
   field/module/cell/channel state, and executes source-declared `flow`,
   `commit`, and `nest` jobs with checked expectations. It also emits and
   interprets reducer IR, exhaustively checks the finite n=6 balanced-ternary
-  walk spectrum from source-declared compile/proof jobs, and consumes
-  `council_bridge.cdc` for council deliberation plus bridge-coordinate source
-  evolution.
+  walk spectrum from source-declared compile/proof jobs, consumes
+  `native_surface.cdc` for guard, trace, measure, policy, bridge, and counter
+  jobs, and consumes `council_bridge.cdc` for council deliberation plus
+  bridge-coordinate source evolution.
 
 All reducer semantics, invariants, capability claims, and witness obligations
 must be expressed as `.cdc` declarations. The bootloader may parse, collect, and
@@ -101,17 +102,18 @@ Encode the reducer as `.cdc` transition rules over explicit state records.
 
 Acceptance: native `.cdc` owns `kernel.cdc`, `laws.cdc`, `bridge64.cdc`,
 `bridge_codebooks.cdc`, `bridge512.cdc`, `bridge4096.cdc`, `bridge_jobs.cdc`,
-`native_reducer.cdc`, `council_bridge.cdc`, `system.cdc`, `relations.cdc`, and
-trace/window witness scenarios through the native contract.
+`native_reducer.cdc`, `native_surface.cdc`, `council_bridge.cdc`, `system.cdc`,
+`relations.cdc`, and trace/window witness scenarios through the native contract.
 
 Status: concrete pilot for v0.2.4. `native_reducer.cdc` now declares executable
 field/module/cell/channel state plus flow, commit, nest, compile, interpret,
 and finite proof jobs, and `runtime/cdc_native_runtime.c` consumes that source
-directly. `council_bridge.cdc` adds a source-declared council and source-evolution
-exercise. Lean and Coq finite-carrier and finite-algebra mirrors live under
-`formal/`. The remaining work is to broaden the reducer from this checked spine
-into the full language surface and eventually express the reducer itself in
-`.cdc`.
+directly. `native_surface.cdc` adds source-declared guard, trace, measure,
+policy, bridge, and counter exercises. `council_bridge.cdc` adds a
+source-declared council and source-evolution exercise. Lean and Coq
+finite-carrier and finite-algebra mirrors live under `formal/`. The remaining
+work is to express the reducer itself in `.cdc` and remove the neutral host
+runtime boundary.
 
 ### Gate 3: Native Witness Harness
 
@@ -149,11 +151,12 @@ Python for operational lookup: `runtime/cdc_bridge_runtime.c` consumes
 `bridge64.cdc` directly, regenerates/verifies the `bridge512.cdc` and
 `bridge4096.cdc` codebooks, and emits the interactive bridge grid. The first
 reducer path also no longer depends on Python: `runtime/cdc_native_runtime.c`
-consumes `native_reducer.cdc` and `council_bridge.cdc` and executes flow, commit,
-nest, compile, interpret, proof, council, and source-evolution jobs. This does
-not yet replace the full declaration bootloader or make `.cdc` self-compiled,
-but it moves reducer execution, IR interpretation, finite proof checking,
-council deliberation, and source evolution out of Python and into
+consumes `native_reducer.cdc`, `native_surface.cdc`, and `council_bridge.cdc`
+and executes flow, commit, nest, guard, trace, measure, policy, bridge, counter,
+compile, interpret, proof, council, and source-evolution jobs. This does not yet
+replace the full declaration bootloader or make `.cdc` self-compiled, but it
+moves reducer execution, full-surface checking, IR interpretation, finite proof
+checking, council deliberation, and source evolution out of Python and into
 source-declared native jobs.
 
 ## Immediate Rule

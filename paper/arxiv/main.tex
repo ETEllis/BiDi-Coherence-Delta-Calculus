@@ -261,12 +261,14 @@ permitting localized count is $51$.
 Together, the four bridge/carrier/existence/trace invariants, four algebraic
 invariants, and five reduction invariants make the 13-key semantic registry
 exercised by the native bootloader. The witness suite reports 13/13 invariant
-keys, 169/169 native \texttt{.cdc} expectations, 4759/4759 native witnesses, and
-31/31 capability declarations. The bridge runtime also compiles as C and consumes
+keys, 176/176 native \texttt{.cdc} expectations, 4765/4765 native witnesses, and
+32/32 capability declarations. The bridge runtime also compiles as C and consumes
 \texttt{bridge64.cdc} for lookup, trace-coordinate projection, generated
 higher-arity codebook checks, source-declared bridge jobs, and interactive grid
 generation. The native reducer runtime consumes \nolinkurl{native_reducer.cdc}
 for flow, commit, nest, compile-IR, IR interpretation, and finite proof jobs,
+consumes \nolinkurl{native_surface.cdc} for guard, trace, measure, policy,
+bridge, and counter jobs,
 and consumes \nolinkurl{council_bridge.cdc} for council deliberation plus
 bridge-coordinate source evolution.
 
@@ -326,6 +328,7 @@ The repository contains:
 \item \texttt{bridge4096.cdc}: full generated \texttt{n=12}, $2^{12}=16^3=4096$ bridge codebook rows;
 \item \texttt{bridge\_jobs.cdc}: source-declared bridge-coordinate jobs;
 \item \texttt{native\_reducer.cdc}: source-declared reducer, compile, interpret, and finite proof jobs;
+\item \texttt{native\_surface.cdc}: source-declared guard, trace, measure, policy, bridge, and counter jobs;
 \item \texttt{council\_bridge.cdc}: source-declared council deliberation and bridge-coordinate source-evolution jobs;
 \item bridge runtime: verifies codebooks and emits the interactive SVG;
 \item native runtime: runs reducer, IR, proof, council, and evolution jobs;

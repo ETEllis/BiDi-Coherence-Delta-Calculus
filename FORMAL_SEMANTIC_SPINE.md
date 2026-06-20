@@ -172,8 +172,9 @@ semantics back into Python.
 ### Native Witness Files
 
 `laws.cdc`, `bridge64.cdc`, `bridge_codebooks.cdc`, `bridge512.cdc`,
-`bridge4096.cdc`, `bridge_jobs.cdc`, `native_reducer.cdc`, `council_bridge.cdc`,
-`system.cdc`, `relations.cdc`, and `trace_windows.cdc` should remain the native
+`bridge4096.cdc`, `bridge_jobs.cdc`, `native_reducer.cdc`,
+`native_surface.cdc`, `council_bridge.cdc`, `system.cdc`, `relations.cdc`, and
+`trace_windows.cdc` should remain the native
 witness surface. Each witness declares the invariant or capability it discharges.
 
 `runtime/cdc_bridge_runtime.c` is the first operational consumer outside Python:
@@ -185,8 +186,10 @@ higher-arity codebooks, and emits the visible interactive 64-cell grid.
 `runtime/cdc_native_runtime.c` is the first operational reducer consumer outside
 Python: it reads `native_reducer.cdc`, executes source-declared flow, commit,
 and nest jobs, emits reducer IR, interprets that IR, and checks the finite n=6
-balanced-ternary walk spectrum. It also consumes `council_bridge.cdc` to exercise
-source-declared council deliberation and bridge-coordinate source evolution.
+balanced-ternary walk spectrum. It also consumes `native_surface.cdc` to
+exercise guard, trace, measure, policy, bridge, and counter clauses, and consumes
+`council_bridge.cdc` to exercise source-declared council deliberation and
+bridge-coordinate source evolution.
 
 ### Paper
 
@@ -216,8 +219,9 @@ relation under explicit Lipschitz/determinism assumptions.
 
 - `.cdc` grows from declaration parsing into `ProgramTerm`.
 - `cdc_boot.py` remains a minimal loader/checker and does not accumulate reducer semantics.
-- `native_reducer.cdc` continues expanding from executable flow/commit/nest
-  jobs into complete native reducer clauses.
+- `native_reducer.cdc` and `native_surface.cdc` keep executable flow/commit/nest,
+  guard, trace, measure, policy, bridge, and counter clauses synchronized with
+  the native runtime.
 - `bridge64.cdc` stays as the explicit finite bootstrap codebook and the C
   bridge runtime stays a verified consumer of that source.
 - `bridge_codebooks.cdc` records the higher-arity growth rule for `n=9` and

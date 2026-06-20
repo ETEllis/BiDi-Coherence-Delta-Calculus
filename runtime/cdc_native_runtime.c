@@ -14,6 +14,12 @@
 #define MAX_COUNCILS 32
 #define MAX_DELIBERATIONS 32
 #define MAX_EVOLUTIONS 32
+#define MAX_GUARDS 32
+#define MAX_TRACES 32
+#define MAX_MEASURES 32
+#define MAX_POLICIES 32
+#define MAX_BRIDGES 32
+#define MAX_COUNTERS 32
 #define LINE_MAX_BYTES 1024
 #define PI 3.14159265358979323846
 
@@ -124,6 +130,55 @@ typedef struct {
 } EvolutionJob;
 
 typedef struct {
+    char id[64];
+    char cell[64];
+    char expect_state[32];
+} Guard;
+
+typedef struct {
+    char id[64];
+    char field[64];
+    char expect_trits[128];
+    int expect_events;
+} TraceJob;
+
+typedef struct {
+    char id[64];
+    char observer[64];
+    char target[64];
+    char mode[32];
+    char expect_outcome[128];
+    char expect_potential[32];
+} MeasureJob;
+
+typedef struct {
+    char id[64];
+    char window[64];
+    char sampling[32];
+    char commit[32];
+    char adapt[32];
+    char expect_sampling[32];
+    char expect_commit[32];
+    char expect_adapt[32];
+} PolicyJob;
+
+typedef struct {
+    char id[64];
+    char trace[64];
+    char via[64];
+    char expect_dyadic[32];
+    char expect_triadic[32];
+} SurfaceBridgeJob;
+
+typedef struct {
+    char id[64];
+    int value;
+    int increment;
+    int decrement;
+    int expect_value;
+} CounterJob;
+
+typedef struct {
     Field fields[MAX_FIELDS];
     Module modules[MAX_MODULES];
     Cell cells[MAX_CELLS];
@@ -134,6 +189,12 @@ typedef struct {
     Council councils[MAX_COUNCILS];
     Deliberation deliberations[MAX_DELIBERATIONS];
     EvolutionJob evolutions[MAX_EVOLUTIONS];
+    Guard guards[MAX_GUARDS];
+    TraceJob traces[MAX_TRACES];
+    MeasureJob measures[MAX_MEASURES];
+    PolicyJob policies[MAX_POLICIES];
+    SurfaceBridgeJob bridges[MAX_BRIDGES];
+    CounterJob counters[MAX_COUNTERS];
     int field_count;
     int module_count;
     int cell_count;
@@ -144,6 +205,12 @@ typedef struct {
     int council_count;
     int deliberation_count;
     int evolution_count;
+    int guard_count;
+    int trace_count;
+    int measure_count;
+    int policy_count;
+    int bridge_count;
+    int counter_count;
 } Runtime;
 
 static void fail(const char *message) {
@@ -255,6 +322,15 @@ static Council *find_council(Runtime *rt, const char *name) {
     for (int i = 0; i < rt->council_count; i++) {
         if (strcmp(rt->councils[i].id, name) == 0) {
             return &rt->councils[i];
+        }
+    }
+    return NULL;
+}
+
+static TraceJob *find_trace(Runtime *rt, const char *name) {
+    for (int i = 0; i < rt->trace_count; i++) {
+        if (strcmp(rt->traces[i].id, name) == 0) {
+            return &rt->traces[i];
         }
     }
     return NULL;
@@ -499,6 +575,91 @@ static void add_evolution(Runtime *rt, const char *line) {
     copy_attr(line, "expect-contains", job->expect_contains, sizeof(job->expect_contains), "");
 }
 
+static void add_guard(Runtime *rt, const char *line) {
+    Guard *guard;
+    if (rt->guard_count >= MAX_GUARDS) {
+        fail("too many guards");
+    }
+    guard = &rt->guards[rt->guard_count++];
+    memset(guard, 0, sizeof(*guard));
+    first_token_after(line, "guard ", guard->id, sizeof(guard->id));
+    copy_attr(line, "cell", guard->cell, sizeof(guard->cell), "");
+    copy_attr(line, "expect-state", guard->expect_state, sizeof(guard->expect_state), "");
+}
+
+static void add_trace(Runtime *rt, const char *line) {
+    TraceJob *trace;
+    if (rt->trace_count >= MAX_TRACES) {
+        fail("too many traces");
+    }
+    trace = &rt->traces[rt->trace_count++];
+    memset(trace, 0, sizeof(*trace));
+    first_token_after(line, "trace ", trace->id, sizeof(trace->id));
+    copy_attr(line, "field", trace->field, sizeof(trace->field), "");
+    copy_attr(line, "expect-trits", trace->expect_trits, sizeof(trace->expect_trits), "");
+    trace->expect_events = read_int_attr(line, "expect-events", -1);
+}
+
+static void add_measure(Runtime *rt, const char *line) {
+    MeasureJob *measure;
+    if (rt->measure_count >= MAX_MEASURES) {
+        fail("too many measurements");
+    }
+    measure = &rt->measures[rt->measure_count++];
+    memset(measure, 0, sizeof(*measure));
+    first_token_after(line, "measure ", measure->id, sizeof(measure->id));
+    copy_attr(line, "observer", measure->observer, sizeof(measure->observer), "");
+    copy_attr(line, "target", measure->target, sizeof(measure->target), "");
+    copy_attr(line, "mode", measure->mode, sizeof(measure->mode), "passive");
+    copy_attr(line, "expect-outcome", measure->expect_outcome, sizeof(measure->expect_outcome), "");
+    copy_attr(line, "expect-potential", measure->expect_potential, sizeof(measure->expect_potential), "");
+}
+
+static void add_policy(Runtime *rt, const char *line) {
+    PolicyJob *policy;
+    if (rt->policy_count >= MAX_POLICIES) {
+        fail("too many policies");
+    }
+    policy = &rt->policies[rt->policy_count++];
+    memset(policy, 0, sizeof(*policy));
+    first_token_after(line, "policy ", policy->id, sizeof(policy->id));
+    copy_attr(line, "window", policy->window, sizeof(policy->window), "");
+    copy_attr(line, "sampling", policy->sampling, sizeof(policy->sampling), "");
+    copy_attr(line, "commit", policy->commit, sizeof(policy->commit), "");
+    copy_attr(line, "adapt", policy->adapt, sizeof(policy->adapt), "");
+    copy_attr(line, "expect-sampling", policy->expect_sampling, sizeof(policy->expect_sampling), "");
+    copy_attr(line, "expect-commit", policy->expect_commit, sizeof(policy->expect_commit), "");
+    copy_attr(line, "expect-adapt", policy->expect_adapt, sizeof(policy->expect_adapt), "");
+}
+
+static void add_surface_bridge(Runtime *rt, const char *line) {
+    SurfaceBridgeJob *bridge;
+    if (rt->bridge_count >= MAX_BRIDGES) {
+        fail("too many surface bridge jobs");
+    }
+    bridge = &rt->bridges[rt->bridge_count++];
+    memset(bridge, 0, sizeof(*bridge));
+    first_token_after(line, "bridge ", bridge->id, sizeof(bridge->id));
+    copy_attr(line, "trace", bridge->trace, sizeof(bridge->trace), "");
+    copy_attr(line, "via", bridge->via, sizeof(bridge->via), "");
+    copy_attr(line, "expect-dyadic", bridge->expect_dyadic, sizeof(bridge->expect_dyadic), "");
+    copy_attr(line, "expect-triadic", bridge->expect_triadic, sizeof(bridge->expect_triadic), "");
+}
+
+static void add_counter(Runtime *rt, const char *line) {
+    CounterJob *counter;
+    if (rt->counter_count >= MAX_COUNTERS) {
+        fail("too many counters");
+    }
+    counter = &rt->counters[rt->counter_count++];
+    memset(counter, 0, sizeof(*counter));
+    first_token_after(line, "counter ", counter->id, sizeof(counter->id));
+    counter->value = read_int_attr(line, "value", 0);
+    counter->increment = read_int_attr(line, "increment", 0);
+    counter->decrement = read_int_attr(line, "decrement", 0);
+    counter->expect_value = read_int_attr(line, "expect-value", counter->value);
+}
+
 static void parse_source(Runtime *rt, const char *path) {
     FILE *fp = fopen(path, "r");
     char line[LINE_MAX_BYTES];
@@ -519,12 +680,24 @@ static void parse_source(Runtime *rt, const char *path) {
             add_cell(rt, line);
         } else if (starts_with(line, "channel ")) {
             add_channel(rt, line);
+        } else if (starts_with(line, "guard ")) {
+            add_guard(rt, line);
         } else if (starts_with(line, "flow ")) {
             add_step(rt, line, STEP_FLOW, "flow ");
         } else if (starts_with(line, "commit ")) {
             add_step(rt, line, STEP_COMMIT, "commit ");
         } else if (starts_with(line, "nest ")) {
             add_step(rt, line, STEP_NEST, "nest ");
+        } else if (starts_with(line, "counter ")) {
+            add_counter(rt, line);
+        } else if (starts_with(line, "trace ")) {
+            add_trace(rt, line);
+        } else if (starts_with(line, "measure ")) {
+            add_measure(rt, line);
+        } else if (starts_with(line, "policy ")) {
+            add_policy(rt, line);
+        } else if (starts_with(line, "bridge ")) {
+            add_surface_bridge(rt, line);
         } else if (starts_with(line, "compile ")) {
             add_compile_job(rt, line);
         } else if (starts_with(line, "proof ")) {
@@ -952,6 +1125,186 @@ static void append_module_trits(Runtime *rt, Module *module, char *trits, size_t
     }
 }
 
+static void append_field_trits(Runtime *rt, const char *field_name, char *trits, size_t trits_size) {
+    size_t used = strlen(trits);
+    Field *field = find_field(rt, field_name);
+    if (!field) {
+        fail("trace references unknown field");
+    }
+    for (int i = 0; i < rt->cell_count; i++) {
+        Cell *cell = &rt->cells[i];
+        if (!cell_in_field(rt, cell, field_name)) {
+            continue;
+        }
+        if (used + 1 >= trits_size) {
+            fail("trace trit vector too long");
+        }
+        trits[used++] = trit_from_theta(cell->theta, field->deadband);
+        trits[used] = '\0';
+    }
+}
+
+static int count_occupied_trits(const char *trits) {
+    int occupied = 0;
+    for (int i = 0; trits[i]; i++) {
+        if (trits[i] == '+' || trits[i] == '-') {
+            occupied++;
+        } else if (trits[i] != '0') {
+            fail("surface trits must be balanced ternary");
+        }
+    }
+    return occupied;
+}
+
+static void run_guards(Runtime *rt) {
+    for (int i = 0; i < rt->guard_count; i++) {
+        Guard *guard = &rt->guards[i];
+        Cell *cell = find_cell(rt, guard->cell);
+        Module *module;
+        Field *field;
+        char trit;
+        const char *state;
+        if (!cell) {
+            fail("guard references unknown cell");
+        }
+        module = find_module(rt, cell->module);
+        if (!module) {
+            fail("guard cell references unknown module");
+        }
+        field = find_field(rt, module->field);
+        if (!field) {
+            fail("guard module references unknown field");
+        }
+        trit = trit_from_theta(cell->theta, field->deadband);
+        state = trit == '0' ? "open" : "closed";
+        if (guard->expect_state[0] && strcmp(state, guard->expect_state) != 0) {
+            fail("guard state expectation mismatch");
+        }
+        printf("guard=%s cell=%s trit=%c state=%s\n", guard->id, cell->name, trit, state);
+    }
+}
+
+static void trace_trits(Runtime *rt, TraceJob *trace, char *trits, size_t trits_size) {
+    trits[0] = '\0';
+    append_field_trits(rt, trace->field, trits, trits_size);
+}
+
+static void run_traces(Runtime *rt) {
+    for (int i = 0; i < rt->trace_count; i++) {
+        TraceJob *trace = &rt->traces[i];
+        char trits[128];
+        int events;
+        trace_trits(rt, trace, trits, sizeof(trits));
+        events = count_occupied_trits(trits);
+        if (trace->expect_trits[0] && strcmp(trits, trace->expect_trits) != 0) {
+            fail("trace trit expectation mismatch");
+        }
+        if (trace->expect_events >= 0 && trace->expect_events != events) {
+            fail("trace event-count expectation mismatch");
+        }
+        printf("trace=%s field=%s trits=%s events=%d\n", trace->id, trace->field, trits, events);
+    }
+}
+
+static void run_measures(Runtime *rt) {
+    for (int i = 0; i < rt->measure_count; i++) {
+        MeasureJob *measure = &rt->measures[i];
+        Module *observer = find_module(rt, measure->observer);
+        Module *target = find_module(rt, measure->target);
+        char outcome[128] = "";
+        if (!observer || !target) {
+            fail("measurement references unknown observer or target");
+        }
+        append_module_trits(rt, target, outcome, sizeof(outcome));
+        if (measure->expect_outcome[0] && strcmp(outcome, measure->expect_outcome) != 0) {
+            fail("measurement outcome expectation mismatch");
+        }
+        if (measure->expect_potential[0] && strcmp(measure->expect_potential, "nonincrease") != 0) {
+            fail("unsupported measurement potential expectation");
+        }
+        printf("measure=%s observer=%s target=%s mode=%s outcome=%s potential=%s\n",
+               measure->id, observer->name, target->name, measure->mode, outcome,
+               measure->expect_potential[0] ? measure->expect_potential : "unchecked");
+    }
+}
+
+static void run_policies(Runtime *rt) {
+    for (int i = 0; i < rt->policy_count; i++) {
+        PolicyJob *policy = &rt->policies[i];
+        if (!find_trace(rt, policy->window)) {
+            fail("policy references unknown trace/window");
+        }
+        if (policy->expect_sampling[0] && strcmp(policy->sampling, policy->expect_sampling) != 0) {
+            fail("policy sampling expectation mismatch");
+        }
+        if (policy->expect_commit[0] && strcmp(policy->commit, policy->expect_commit) != 0) {
+            fail("policy commit expectation mismatch");
+        }
+        if (policy->expect_adapt[0] && strcmp(policy->adapt, policy->expect_adapt) != 0) {
+            fail("policy adapt expectation mismatch");
+        }
+        printf("policy=%s window=%s sampling=%s commit=%s adapt=%s\n",
+               policy->id, policy->window, policy->sampling, policy->commit, policy->adapt);
+    }
+}
+
+static void run_surface_bridges(Runtime *rt) {
+    for (int i = 0; i < rt->bridge_count; i++) {
+        SurfaceBridgeJob *bridge = &rt->bridges[i];
+        TraceJob *trace = find_trace(rt, bridge->trace);
+        char trits[128];
+        char dyadic[7];
+        char triadic[4];
+        int index;
+        if (!trace) {
+            fail("surface bridge references unknown trace");
+        }
+        if (bridge->via[0] && strcmp(bridge->via, "bridge64") != 0) {
+            fail("surface bridge currently supports bridge64");
+        }
+        trace_trits(rt, trace, trits, sizeof(trits));
+        trits_to_occupancy6(trits, dyadic);
+        index = dyadic6_to_index(dyadic);
+        triadic_from_index64(index, triadic);
+        if (bridge->expect_dyadic[0] && strcmp(dyadic, bridge->expect_dyadic) != 0) {
+            fail("surface bridge dyadic expectation mismatch");
+        }
+        if (bridge->expect_triadic[0] && strcmp(triadic, bridge->expect_triadic) != 0) {
+            fail("surface bridge triadic expectation mismatch");
+        }
+        printf("bridge=%s trace=%s via=%s trits=%s dyadic=%s triadic=%s\n",
+               bridge->id, trace->id, bridge->via, trits, dyadic, triadic);
+    }
+}
+
+static void run_counters(Runtime *rt) {
+    for (int i = 0; i < rt->counter_count; i++) {
+        CounterJob *counter = &rt->counters[i];
+        int value = counter->value + counter->increment - counter->decrement;
+        if (value != counter->expect_value) {
+            fail("counter expectation mismatch");
+        }
+        printf("counter=%s value=%d increment=%d decrement=%d final=%d\n",
+               counter->id, counter->value, counter->increment, counter->decrement, value);
+    }
+}
+
+static void run_surface(Runtime *rt, const char *path) {
+    if (rt->guard_count == 0 || rt->trace_count == 0 || rt->measure_count == 0 ||
+        rt->policy_count == 0 || rt->bridge_count == 0 || rt->counter_count == 0) {
+        fail("surface source must exercise guard, trace, measure, policy, bridge, and counter");
+    }
+    run_guards(rt);
+    run_traces(rt);
+    run_measures(rt);
+    run_policies(rt);
+    run_surface_bridges(rt);
+    run_counters(rt);
+    printf("native surface ok guards=%d traces=%d measures=%d policies=%d bridges=%d counters=%d source=%s\n",
+           rt->guard_count, rt->trace_count, rt->measure_count,
+           rt->policy_count, rt->bridge_count, rt->counter_count, path);
+}
+
 static void run_council(Runtime *rt, const char *path) {
     if (rt->deliberation_count == 0) {
         fail("source has no council deliberation");
@@ -1060,6 +1413,7 @@ static void usage(void) {
     fprintf(stderr, "  cdc_native_runtime compile native_reducer.cdc\n");
     fprintf(stderr, "  cdc_native_runtime interpret native_reducer.cdc\n");
     fprintf(stderr, "  cdc_native_runtime prove native_reducer.cdc\n");
+    fprintf(stderr, "  cdc_native_runtime surface native_surface.cdc\n");
     fprintf(stderr, "  cdc_native_runtime council council_bridge.cdc\n");
     fprintf(stderr, "  cdc_native_runtime evolve council_bridge.cdc\n");
     exit(2);
@@ -1079,6 +1433,8 @@ int main(int argc, char **argv) {
         interpret_source(&runtime, argv[2]);
     } else if (strcmp(argv[1], "prove") == 0) {
         prove_source(&runtime, argv[2]);
+    } else if (strcmp(argv[1], "surface") == 0) {
+        run_surface(&runtime, argv[2]);
     } else if (strcmp(argv[1], "council") == 0) {
         run_council(&runtime, argv[2]);
     } else if (strcmp(argv[1], "evolve") == 0) {

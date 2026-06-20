@@ -4,10 +4,10 @@
 `.cdc` is the native language surface for the calculus kernel. In v0.2.4 the
 checked surface includes native declarations, witnesses, and the first
 source-declared reducer jobs: terms, reducer rules, field/module/cell/channel
-state, flow/commit/nest jobs, IR interpretation, council deliberation,
-bridge-coordinate source evolution, invariants, capabilities, witnesses, and
-expectations are expressed in `.cdc`; Python is limited to the small
-`cdc_boot.py` loader/checker.
+state, flow/commit/nest jobs, guard/trace/measure/policy/bridge/counter jobs,
+IR interpretation, council deliberation, bridge-coordinate source evolution,
+invariants, capabilities, witnesses, and expectations are expressed in `.cdc`;
+Python is limited to the small `cdc_boot.py` loader/checker.
 
 The semantic target remains the full calculus:
 
@@ -20,9 +20,10 @@ trace/window  derived observer projection
 
 The bootloader does not implement those reductions. It verifies that the native
 source tree declares them and that every claim has a native witness handle. The
-non-Python runtime `runtime/cdc_native_runtime.c` consumes `native_reducer.cdc`
-and `council_bridge.cdc`, executes the first checked `flow`, `commit`, `nest`,
-`interpret`, `council`, and `evolve` jobs, and verifies their expectations.
+non-Python runtime `runtime/cdc_native_runtime.c` consumes `native_reducer.cdc`,
+`native_surface.cdc`, and `council_bridge.cdc`; executes the checked `flow`,
+`commit`, `nest`, `guard`, `trace`, `measure`, `policy`, `bridge`, `counter`,
+`interpret`, `council`, and `evolve` jobs; and verifies their expectations.
 
 ## Current Checked Grammar
 
@@ -30,7 +31,7 @@ and `council_bridge.cdc`, executes the first checked `flow`, `commit`, `nest`,
 program      = { directive } ;
 directive    = kernel | term | rule | provides | bootloader
              | invariant | law | capability | witness
-             | field | module | cell | channel | guard
+             | field | module | cell | channel | guard | counter
              | flow | commit | nest | trace | measure | policy | bridge
              | compile | interpret | proof | council | deliberate | evolve
              | expect | "end" ;
@@ -51,6 +52,7 @@ module       = "module" key { kwarg } ;
 cell         = "cell" key { kwarg } ;
 channel      = "channel" path "->" path { kwarg } ;
 guard        = "guard" key { kwarg } ;
+counter      = "counter" key { kwarg } ;
 flow         = "flow" key { kwarg } ;
 commit       = "commit" key { kwarg } ;
 nest         = "nest" key { kwarg } ;
@@ -90,6 +92,12 @@ expect law <invariant-key>
 expect capability <capability-key>
 expect witness <witness-id>
 expect reducer <witness-id>
+expect guard <witness-id>
+expect trace <witness-id>
+expect measure <witness-id>
+expect policy <witness-id>
+expect bridge <witness-id>
+expect counter <witness-id>
 expect compile <witness-id>
 expect interpret <witness-id>
 expect proof <witness-id>
@@ -102,9 +110,11 @@ expect evolution <witness-id>
 `capability C` declaration and at least one native `witness ... capability=C`.
 `expect reducer W` requires witness `W` to link to a declared native reducer
 step through `witness ... reducer=<flow-or-commit-or-nest-id>`.
-`expect compile W`, `expect interpret W`, `expect proof W`, `expect council W`,
-and `expect evolution W` use the same linkage pattern for source-declared
-compile, IR interpretation, finite-proof, council, and source-evolution jobs.
+`expect guard W`, `expect trace W`, `expect measure W`, `expect policy W`,
+`expect bridge W`, `expect counter W`, `expect compile W`, `expect interpret W`,
+`expect proof W`, `expect council W`, and `expect evolution W` use the same
+linkage pattern for source-declared full-surface, compile, IR interpretation,
+finite-proof, council, and source-evolution jobs.
 
 ## Native Files
 
@@ -118,13 +128,14 @@ compile, IR interpretation, finite-proof, council, and source-evolution jobs.
 | `bridge4096.cdc` | full generated `n=12`, `2^12 = 16^3 = 4096` bridge codebook rows |
 | `bridge_jobs.cdc` | source-declared bridge-coordinate jobs consumed by the C runtime |
 | `native_reducer.cdc` | source-declared field/module/cell/channel state plus reducer, compile, interpret, and finite-proof jobs consumed by the C native runtime |
+| `native_surface.cdc` | source-declared guard, trace, measure, policy, bridge, and counter jobs consumed by the C native runtime |
 | `council_bridge.cdc` | source-declared council deliberation and bridge-coordinate source-evolution jobs |
-| `system.cdc` | 31 capability declarations and native witness handles |
+| `system.cdc` | 32 capability declarations and native witness handles |
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
 | `cdc_boot.py` | minimal loader/checker; not the reducer or language semantics |
 | `runtime/cdc_bridge_runtime.c` | non-Python bridge consumer for lookup, trace projection, generated codebook verification, interactive grid/SVG output, and finite validation |
-| `runtime/cdc_native_runtime.c` | non-Python reducer, compile-IR, IR interpreter, finite-proof, council, and source-evolution consumer for source-declared jobs |
+| `runtime/cdc_native_runtime.c` | non-Python reducer, full-surface, compile-IR, IR interpreter, finite-proof, council, and source-evolution consumer for source-declared jobs |
 | `formal/lean/CDCFinite.lean` | Lean mirror of the finite n=6 balanced-ternary carrier and algebraic law proofs |
 | `formal/coq/CDCFinite.v` | Coq mirror of the finite n=6 balanced-ternary carrier and algebraic law proofs |
 
@@ -143,23 +154,22 @@ absence.
 
 ## Full Semantic Syntax Target
 
-The following forms are now part of the checked reducer surface, with trace,
-measure, policy, and bridge still expanding toward the full semantic target:
+The following forms are now part of the checked reducer surface:
 
 ```text
 field <name> dt=<real> gain=<real> deadband=<real>
 module <name> field=<field> belief=<real> prior=<real>
 cell <path> module=<module> theta=<real> amplitude=<real> omega=<real>
 channel <path-a> -> <path-b> delay=<real> weight=<real> angle=<real> lines=<i,j>
-guard <name> crossing <i>
+guard <name> cell=<path> expect-state=<open|closed>
 flow <name> field=<field> duration=<real>
 commit <name> module=<module>
 nest <name> parent=<module> child=<module>
-counter <name>
-trace <window>
-measure <observer> <target>
-policy <window> sampling=<mode> commit=<mode> adapt=<mode>
-bridge <field-or-trace> via=<codebook>
+counter <name> value=<int> increment=<int> decrement=<int>
+trace <window> field=<field> expect-trits=<trits> expect-events=<int>
+measure <name> observer=<module> target=<module> mode=<mode>
+policy <name> window=<trace> sampling=<mode> commit=<mode> adapt=<mode>
+bridge <name> trace=<trace> via=<codebook>
 compile <name> source=<path> expect-ops=<int>
 interpret <name> source=<path> expect-ops=<int>
 proof <name> carrier=balanced-ternary arity=<int>

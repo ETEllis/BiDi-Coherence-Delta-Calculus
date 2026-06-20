@@ -10,7 +10,7 @@ kernel bidi stage=2 target=cdc
   provides parser-state reducer-state witness-state trace-window-state
   provides balanced-ternary-carrier angular-phase path-relation invariant-gate
   provides dyadic-triadic-bridge closure-64 closure-512 closure-4096
-  provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid interactive-bridge-grid native-reducer-runtime native-compiler-ir finite-proof-checker native-ir-interpreter
+  provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid interactive-bridge-grid native-reducer-runtime native-compiler-ir finite-proof-checker native-ir-interpreter native-full-surface-runtime
   provides trace-order-locality local-time local-counter-synchrony
   provides observer-window-coupling recursive-window-policy shared-state-commit
   provides council-deliberation bridge-coordinate-self-evolution
@@ -26,12 +26,12 @@ kernel bidi stage=2 target=cdc
   expect terms >= 10
   expect rules >= 14
   expect invariants >= 13
-  expect witnesses >= 4759
-  expect capabilities >= 31
+  expect witnesses >= 4765
+  expect capabilities >= 32
   expect provides parser-state reducer-state witness-state trace-window-state
   expect provides balanced-ternary-carrier angular-phase path-relation invariant-gate
   expect provides dyadic-triadic-bridge closure-64 closure-512 closure-4096
-  expect provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid interactive-bridge-grid native-reducer-runtime native-compiler-ir finite-proof-checker native-ir-interpreter
+  expect provides operational-bridge-runtime bridge-coordinate-runtime bridge64-grid interactive-bridge-grid native-reducer-runtime native-compiler-ir finite-proof-checker native-ir-interpreter native-full-surface-runtime
   expect provides trace-order-locality local-time local-counter-synchrony
   expect provides observer-window-coupling recursive-window-policy shared-state-commit
   expect provides council-deliberation bridge-coordinate-self-evolution

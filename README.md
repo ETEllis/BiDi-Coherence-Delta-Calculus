@@ -35,10 +35,11 @@ native `.cdc` declarations and verifies expectations. It is not the calculus.
 The 64-state bridge has a separate non-Python runtime in
 `runtime/cdc_bridge_runtime.c` that consumes `bridge64.cdc` as a lookup table,
 generates and verifies the `n=9` and `n=12` higher-arity codebooks, and emits
-the interactive bridge SVG. The first native reducer runtime lives in
+the interactive bridge SVG. The native reducer runtime lives in
 `runtime/cdc_native_runtime.c` and executes source-declared `.cdc` `flow`,
-`commit`, `nest`, `interpret`, `council`, and `evolve` jobs from
-`native_reducer.cdc` and `council_bridge.cdc`.
+`commit`, `nest`, `guard`, `trace`, `measure`, `policy`, `bridge`, `counter`,
+`interpret`, `council`, and `evolve` jobs from `native_reducer.cdc`,
+`native_surface.cdc`, and `council_bridge.cdc`.
 
 ## Native Status
 
@@ -122,6 +123,7 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Generated higher-arity codebooks** — `bridge512.cdc` and `bridge4096.cdc` contain the full generated rows for `n=9` and `n=12`, with runtime regeneration checks.
 - **Operational bridge runtime** — `runtime/cdc_bridge_runtime.c` parses `bridge64.cdc`, verifies bijection, performs dyadic/triadic lookup, projects trace trits into bridge coordinates, verifies generated codebooks, and emits an interactive 64-cell SVG.
 - **Operational native reducer** — `runtime/cdc_native_runtime.c` parses `native_reducer.cdc` and executes source-declared flow, commit, and nest transitions.
+- **Native full-surface runtime** — `native_surface.cdc` exercises guard, trace, measure, policy, bridge, and counter forms through the same C runtime.
 - **Native compile/interpreter/proof path** — the same runtime emits reducer IR, executes that IR through an interpreter path, and exhaustively checks the finite n=6 balanced-ternary walk spectrum.
 - **Council + self-evolution scenario** — `council_bridge.cdc` deliberates across modules into a bridge coordinate and writes a bridge-coordinate witness into an evolved `.cdc` source copy.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
@@ -139,12 +141,12 @@ source mirrors for the same n=6 carrier spectrum.
 The package passes 100%:
 
 - 1/1 Python bootloader file: `cdc_boot.py`
-- 169/169 native `.cdc` expectations
+- 176/176 native `.cdc` expectations
 - 13/13 native invariant declarations
-- 31/31 native capability declarations
-- 4759/4759 native witness declarations
+- 32/32 native capability declarations
+- 4765/4765 native witness declarations
 - C bridge runtime compile, lookup, trace-coordinate, generated higher-arity codebook, and interactive grid/SVG checks
-- C native reducer runtime run/compile/interpret/proof/council/evolve checks
+- C native reducer runtime run/compile/interpret/proof/surface/council/evolve checks
 - Lean and Coq finite carrier and algebraic law proof checks when `lean` or `coqc` are installed
 - Paper compile through `tectonic` when available
 
@@ -164,7 +166,7 @@ kernel bidi stage=2 target=cdc
   bootloader read-source parse-lines collect-native-declarations verify-expectations report
   expect native substrate == cdc
   expect python-files == 1
-  expect witnesses >= 4759
+  expect witnesses >= 4765
 end
 ```
 
@@ -204,6 +206,7 @@ build/cdc_native_runtime run native_reducer.cdc
 build/cdc_native_runtime compile native_reducer.cdc
 build/cdc_native_runtime interpret native_reducer.cdc
 build/cdc_native_runtime prove native_reducer.cdc
+build/cdc_native_runtime surface native_surface.cdc
 build/cdc_native_runtime council council_bridge.cdc
 build/cdc_native_runtime evolve council_bridge.cdc
 ```
@@ -216,6 +219,7 @@ The C runtime consumes that source and executes:
 - `compile`: reducer source to a small IR listing;
 - `interpret`: execute the compiled reducer IR as an IR path rather than only printing it;
 - `prove`: exhaustive n=6 trit-walk counts: `729 / 267 / 51 / 20 / 5`.
+- `surface`: guard, trace, measurement, policy, bridge-coordinate, and counter clauses;
 - `council`: deliberate across source-declared council members into a bridge coordinate;
 - `evolve`: write a bridge-coordinate witness into a copied `.cdc` source.
 

@@ -130,6 +130,36 @@ grep -q "native proof ok jobs=1" <<<"$native_proof" || {
   echo "native proof summary check failed" >&2
   exit 1
 }
+native_surface="$(build/cdc_native_runtime surface native_surface.cdc)"
+echo "$native_surface"
+grep -q "guard=surface-guard .*state=open" <<<"$native_surface" || {
+  echo "native surface guard check failed" >&2
+  exit 1
+}
+grep -q "trace=surface-trace .*trits=+0-+0- .*events=4" <<<"$native_surface" || {
+  echo "native surface trace check failed" >&2
+  exit 1
+}
+grep -q "measure=surface-measure .*outcome=+0- .*potential=nonincrease" <<<"$native_surface" || {
+  echo "native surface measurement check failed" >&2
+  exit 1
+}
+grep -q "policy=surface-policy .*sampling=local .*commit=guarded .*adapt=recursive" <<<"$native_surface" || {
+  echo "native surface policy check failed" >&2
+  exit 1
+}
+grep -q "bridge=surface-bridge .*dyadic=101101 .*triadic=231" <<<"$native_surface" || {
+  echo "native surface bridge check failed" >&2
+  exit 1
+}
+grep -q "counter=surface-counter .*final=4" <<<"$native_surface" || {
+  echo "native surface counter check failed" >&2
+  exit 1
+}
+grep -q "native surface ok guards=1 traces=1 measures=1 policies=1 bridges=1 counters=1" <<<"$native_surface" || {
+  echo "native surface summary check failed" >&2
+  exit 1
+}
 council_output="$(build/cdc_native_runtime council council_bridge.cdc)"
 echo "$council_output"
 grep -q "council=bridge-council .*dyadic=101101 .*triadic=231 .*decision=adopt" <<<"$council_output" || {

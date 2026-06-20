@@ -27,7 +27,13 @@ class BootState:
     capabilities: dict[str, dict[str, str]] = field(default_factory=dict)
     witnesses: dict[str, dict[str, str]] = field(default_factory=dict)
     reducer_forms: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
+    guard_steps: set[str] = field(default_factory=set)
     reducer_steps: set[str] = field(default_factory=set)
+    trace_steps: set[str] = field(default_factory=set)
+    measure_steps: set[str] = field(default_factory=set)
+    policy_steps: set[str] = field(default_factory=set)
+    bridge_steps: set[str] = field(default_factory=set)
+    counter_steps: set[str] = field(default_factory=set)
     compile_steps: set[str] = field(default_factory=set)
     interpret_steps: set[str] = field(default_factory=set)
     proof_steps: set[str] = field(default_factory=set)
@@ -108,6 +114,7 @@ def parse_file(state: BootState, path: Path) -> None:
             "cell",
             "channel",
             "guard",
+            "counter",
             "flow",
             "commit",
             "nest",
@@ -127,8 +134,20 @@ def parse_file(state: BootState, path: Path) -> None:
             key = args[0]
             state.reducer_forms.setdefault(cmd, {})
             state.reducer_forms[cmd][key] = {"source": source, "args": " ".join(args), **attrs}
+            if cmd == "guard":
+                state.guard_steps.add(key)
             if cmd in {"flow", "commit", "nest"}:
                 state.reducer_steps.add(key)
+            if cmd == "trace":
+                state.trace_steps.add(key)
+            if cmd == "measure":
+                state.measure_steps.add(key)
+            if cmd == "policy":
+                state.policy_steps.add(key)
+            if cmd == "bridge":
+                state.bridge_steps.add(key)
+            if cmd == "counter":
+                state.counter_steps.add(key)
             if cmd == "compile":
                 state.compile_steps.add(key)
             if cmd == "interpret":
@@ -220,6 +239,24 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
         ok = bool(step and step in state.reducer_steps)
         detail = f"step {step}" if step else "missing reducer link"
         return ok, f"reducer {wid} ({detail})"
+
+    if head in {"guard", "trace", "measure", "policy", "bridge", "counter"}:
+        wid = args[1]
+        witness = state.witnesses.get(wid)
+        if not witness:
+            return False, f"{head} {wid} (missing witness)"
+        step = witness.get(head)
+        step_sets = {
+            "guard": state.guard_steps,
+            "trace": state.trace_steps,
+            "measure": state.measure_steps,
+            "policy": state.policy_steps,
+            "bridge": state.bridge_steps,
+            "counter": state.counter_steps,
+        }
+        ok = bool(step and step in step_sets[head])
+        detail = f"job {step}" if step else f"missing {head} link"
+        return ok, f"{head} {wid} ({detail})"
 
     if head == "compile":
         wid = args[1]

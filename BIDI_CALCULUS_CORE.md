@@ -287,15 +287,16 @@ the maximal-compression form.
 The v0.2.4 repository expresses the term syntax, invariant registry, capability
 surface, and witness suite in native `.cdc`: `kernel.cdc`, `laws.cdc`,
 `bridge64.cdc`, `bridge_codebooks.cdc`, `bridge_jobs.cdc`, `native_reducer.cdc`,
-`bridge512.cdc`, `bridge4096.cdc`, `council_bridge.cdc`, `system.cdc`,
+`native_surface.cdc`, `bridge512.cdc`, `bridge4096.cdc`, `council_bridge.cdc`, `system.cdc`,
 `relations.cdc`, and `trace_windows.cdc`. The only Python file is `cdc_boot.py`,
 a minimal loader/checker. The bridge has a separate C runtime that consumes
 `bridge64.cdc` for lookup and trace-coordinate projection, regenerates/verifies
 the `bridge512.cdc` and `bridge4096.cdc` higher-arity codebooks, and emits the
 interactive bridge grid. The native reducer has a separate C runtime that
 consumes `native_reducer.cdc` for flow, commit, nest, compile-IR,
-IR-interpretation, and finite proof jobs, and consumes `council_bridge.cdc` for
-council deliberation and bridge-coordinate source evolution. Lean and Coq
+IR-interpretation, and finite proof jobs; consumes `native_surface.cdc` for
+guard, trace, measure, policy, bridge, and counter jobs; and consumes
+`council_bridge.cdc` for council deliberation and bridge-coordinate source evolution. Lean and Coq
 finite-carrier and finite-algebra mirrors live under `formal/`. The burn-down
 path is pinned in `NATIVE_SELF_HOSTING_MANDATE.md`.
 
