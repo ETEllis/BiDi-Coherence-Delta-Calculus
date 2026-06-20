@@ -34,7 +34,7 @@ jobs:
       - name: Install Rocq/Coq 9.1.1
         run: |
           opam update
-          opam install -y rocq-core=9.1.1 rocq-stdlib=9.1.1
+          opam install -y coq=9.1.1
           eval "$(opam env)"
           echo "$(opam var bin)" >> "$GITHUB_PATH"
 
