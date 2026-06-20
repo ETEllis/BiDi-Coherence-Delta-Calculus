@@ -13,7 +13,7 @@ verification.
 | Claim | Current native witness | Formal obligation |
 |---|---|---|
 | balanced-ternary carrier | `laws.cdc` declares carrier witnesses | finite codomain proof for `commit` |
-| dyadic/triadic bridge closure | `laws.cdc` declares the `2^6 = 4^3 = 64` bridge witness | finite bijection proof for bootstrap codebook |
+| dyadic/triadic bridge closure | `laws.cdc` declares the invariant and `bridge64.cdc` declares all 64 dyadic/triadic rows | finite uniqueness/bijection proof for bootstrap codebook |
 | existence viability | `laws.cdc`, `relations.cdc`, and `trace_windows.cdc` declare viability witnesses | viability invariant over bounded continuity, permeability, and transition capacity |
 | trace-order locality | `laws.cdc`, `relations.cdc`, and `trace_windows.cdc` declare local trace, local-counter, detuning, overlap, and recursive-policy witnesses | partial-order theorem for causal trace windows, local event counters, and projection policy |
 | gate is abelian | `laws.cdc` declares associativity, commutativity, identity, inverse witnesses | algebraic group proof over torus carrier |
@@ -38,7 +38,7 @@ The first theorem-prover port should remain finite:
 3. prefix-walk admissibility;
 4. commit-barrier preservation;
 5. localized normal forms;
-6. `2^6 = 4^3 = 64` bridge codebook.
+6. `2^6 = 4^3 = 64` bridge codebook uniqueness and totality.
 
 This is the shortest route from native witness declaration to mechanically checked
 calculus without prematurely formalizing the continuous numeric realization.

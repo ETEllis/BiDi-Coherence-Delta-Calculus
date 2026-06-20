@@ -2,7 +2,7 @@
 
 Date: 2026-06-18
 
-Status: public engineering specification, v0.2.0.
+Status: public engineering specification, v0.2.1.
 
 BiDi Coherence-Delta Calculus is a native `.cdc` language with a formal
 coherence-calculus kernel for hybrid systems that need continuous dynamics,
@@ -52,7 +52,7 @@ The current repository has one host artifact: `cdc_boot.py`. It is a loader and
 native contract checker. It does not expose reducer classes, runtime objects, or
 law logic. A conforming implementation must preserve the native `.cdc` terms,
 rules, invariants, capabilities, witnesses, and expectations declared in
-`kernel.cdc`, `laws.cdc`, `system.cdc`, `relations.cdc`, and
+`kernel.cdc`, `laws.cdc`, `bridge64.cdc`, `system.cdc`, `relations.cdc`, and
 `trace_windows.cdc`.
 
 ## Native Language Target
@@ -66,8 +66,9 @@ installs a `cdc` runtime, writes `.cdc`, runs `.cdc`, tests `.cdc`, and ships
 of the desired semantic substrate.
 
 `kernel.cdc` is the first native self-hosting contract. It declares the terms,
-rules, capability surface, balanced-ternary carrier, 64-state bridge invariant,
-and remaining bootloader boundary that future passes must burn down. The end
+rules, capability surface, balanced-ternary carrier, and remaining bootloader
+boundary that future passes must burn down. `bridge64.cdc` is the explicit
+64-row `2^6 = 4^3` dyadic/triadic bridge codebook. The end
 state is not "Python runs `.cdc`"; it is "`.cdc` contains its own
 parser/reducer/witness semantics, with a minimal replaceable runtime beneath it."
 For this release, Python remains only as the deliberately temporary bootloader
@@ -424,14 +425,14 @@ The `system.cdc` native capability witnesses cover:
 | F | Gate/interfere/Core-fold, scale-gated operators, multiscale coherence under load |
 | G | balanced-ternary trace/window measurement, causal observer windows, projected boundaries |
 
-Local run result for v0.2.0:
+Local run result for v0.2.1:
 
 ```text
 1/1 Python bootloader file
-79/79 native .cdc expectations
+143/143 native .cdc expectations
 13/13 invariant declarations
 24/24 capability declarations
-72/72 native witness declarations
+136/136 native witness declarations
 ```
 
 The witnesses are native contract witnesses. They prove coverage of the listed

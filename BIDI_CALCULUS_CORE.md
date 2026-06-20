@@ -69,7 +69,9 @@ within each field. A module additionally carries static annotations
 (intrinsic frequency `ω̄`, prior `b̄⁰`, precision `π`, action gain) elided in the
 grammar. The canonical arity is `n = 6` with read cone `= v̄[1..3]`, write cone
 `= v̄[4..6]`. This is also the bootstrap bridge arity where the dyadic and
-triadic closure codebooks first meet: `2^6 = 4^3 = 64`.
+triadic closure codebooks first meet: `2^6 = 4^3 = 64`. `bridge64.cdc`
+declares all 64 rows explicitly, mapping a six-bit dyadic carrier state to
+three four-state slots.
 
 ---
 
@@ -282,9 +284,9 @@ the maximal-compression form.
 
 ## 9 · Conservativity & provenance
 
-The v0.2.0 repository expresses the term syntax, invariant registry, capability
+The v0.2.1 repository expresses the term syntax, invariant registry, capability
 surface, and witness suite in native `.cdc`: `kernel.cdc`, `laws.cdc`,
-`system.cdc`, `relations.cdc`, and `trace_windows.cdc`. The only Python file is
+`bridge64.cdc`, `system.cdc`, `relations.cdc`, and `trace_windows.cdc`. The only Python file is
 `cdc_boot.py`, a minimal loader/checker. The burn-down path is pinned in
 `NATIVE_SELF_HOSTING_MANDATE.md`.
 

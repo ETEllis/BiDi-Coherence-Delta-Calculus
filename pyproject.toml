@@ -1,6 +1,6 @@
 [project]
 name = "bidi-coherence-delta-calculus"
-version = "0.2.0"
+version = "0.2.1"
 description = "Native .cdc language sources, a minimal Python bootloader, native witness declarations, and paper source for BiDi Coherence-Delta Calculus."
 readme = "README.md"
 requires-python = ">=3.10"

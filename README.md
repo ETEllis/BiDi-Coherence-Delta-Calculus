@@ -110,7 +110,7 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Recursive window policy** — observer windows can carry local counters and projection/update policy without adding a binary observer or global clock.
 - **Balanced-ternary carrier** — committed values are `-1 / 0 / +1` around real equilibrium, not binary false/true labels.
 - **Existence viability** — frames persist by preserving bounded coherent continuity while retaining mode-appropriate transition capacity.
-- **64-state dyadic/triadic bridge** — native witness pins the `2^6 = 4^3 = 64` closure codebook for bootstrap/runtime bridge design.
+- **64-state dyadic/triadic bridge** — `bridge64.cdc` declares every `2^6 = 4^3 = 64` codebook row for bootstrap/runtime bridge design.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Native free-energy witnesses** — commits are guarded against Φ increase; continuous flow has explicit subset obligations.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
@@ -120,15 +120,15 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 Core metatheorems and bridge invariants are witnessed by native `.cdc`, with
 the finite discrete layer positioned as the first theorem-prover target.
 
-## Verification Status (v0.2.0)
+## Verification Status (v0.2.1)
 
 The package passes 100%:
 
 - 1/1 Python bootloader file: `cdc_boot.py`
-- 79/79 native `.cdc` expectations
+- 143/143 native `.cdc` expectations
 - 13/13 native invariant declarations
 - 24/24 native capability declarations
-- 72/72 native witness declarations
+- 136/136 native witness declarations
 - Paper compile through `tectonic` when available
 
 Run the full gate anytime:
@@ -147,7 +147,7 @@ kernel bidi stage=2 target=cdc
   bootloader read-source parse-lines collect-native-declarations verify-expectations report
   expect native substrate == cdc
   expect python-files == 1
-  expect witnesses >= 72
+  expect witnesses >= 136
 end
 ```
 

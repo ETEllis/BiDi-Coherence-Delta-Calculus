@@ -1,7 +1,7 @@
 # The `.cdc` Language
 ### Native source format for the Coherence-Delta Calculus
 
-`.cdc` is the native language surface for the calculus kernel. In v0.2.0 the
+`.cdc` is the native language surface for the calculus kernel. In v0.2.1 the
 checked surface is a native declaration and witness format: terms, reducer
 rules, invariants, capabilities, witnesses, and expectations are expressed in
 `.cdc`; Python is limited to the small `cdc_boot.py` loader/checker.
@@ -72,6 +72,7 @@ expect witness <witness-id>
 |---|---|
 | `kernel.cdc` | language terms, reducer rules, provided capabilities, bootloader boundary, and global expectations |
 | `laws.cdc` | invariant registry and 22 law/metatheorem witness declarations |
+| `bridge64.cdc` | explicit 64-row `2^6 = 4^3` dyadic/triadic bootstrap codebook |
 | `system.cdc` | 24 capability declarations and native witness handles |
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |

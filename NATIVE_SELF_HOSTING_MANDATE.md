@@ -17,7 +17,7 @@ substrate.
 
 ## Current Host Boundary
 
-As of v0.2.0, host code is restricted to one file:
+As of v0.2.1, host code is restricted to one file:
 
 - `cdc_boot.py`: minimal loader/checker for native `.cdc` declarations.
 
@@ -81,14 +81,15 @@ capability, and witness objects without a Python semantic registry.
 
 Encode the reducer as `.cdc` transition rules over explicit state records.
 
-Acceptance: native `.cdc` owns `kernel.cdc`, `system.cdc`, `laws.cdc`,
-`relations.cdc`, and trace/window witness scenarios through the native contract.
+Acceptance: native `.cdc` owns `kernel.cdc`, `laws.cdc`, `bridge64.cdc`,
+`system.cdc`, `relations.cdc`, and trace/window witness scenarios through the
+native contract.
 
 ### Gate 3: Native Witness Harness
 
 Move law, relation, acceptance, and trace/window witnesses into `.cdc`.
 
-Status: complete for v0.2.0. Verification now invokes `.cdc` files and checks
+Status: complete for v0.2.1. Verification now invokes `.cdc` files and checks
 their declared expectations.
 
 ### Gate 4: Host Loader Collapse
@@ -96,7 +97,7 @@ their declared expectations.
 Collapse former reducer, semantic-registry, law, acceptance, relation, and
 trace/window host modules into native `.cdc` sources.
 
-Status: complete for v0.2.0. The only remaining host artifact is `cdc_boot.py`,
+Status: complete for v0.2.1. The only remaining host artifact is `cdc_boot.py`,
 and its behavior is fully specified by `kernel.cdc` expectations.
 
 ### Gate 5: Host Removal Or Replacement

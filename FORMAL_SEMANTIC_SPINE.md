@@ -167,9 +167,9 @@ semantics back into Python.
 
 ### Native Witness Files
 
-`laws.cdc`, `system.cdc`, `relations.cdc`, and `trace_windows.cdc` should remain
-the native witness surface. Each witness declares the invariant or capability it
-discharges.
+`laws.cdc`, `bridge64.cdc`, `system.cdc`, `relations.cdc`, and
+`trace_windows.cdc` should remain the native witness surface. Each witness
+declares the invariant or capability it discharges.
 
 ### Paper
 
@@ -195,6 +195,8 @@ explicit Lipschitz/determinism assumptions.
 - `cdc_boot.py` remains a minimal loader/checker and does not accumulate reducer semantics.
 - `kernel.cdc` grows from contract declarations into native reducer
   clauses.
+- `bridge64.cdc` stays as the explicit finite bootstrap codebook and becomes the
+  first theorem-prover totality/uniqueness target.
 - relation witnesses cover angular phase, dimension projection, path endpoints,
   and `.cdc` nesting auto-cone installation.
 - trace/window witnesses cover passive observation, committing measurement,
