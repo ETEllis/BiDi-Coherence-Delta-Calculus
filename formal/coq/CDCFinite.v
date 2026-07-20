@@ -233,3 +233,19 @@ Theorem rotate_carrier_linear :
     rotate_carrier phi (interfere_carrier a b)
     = interfere_carrier (rotate_carrier phi a) (rotate_carrier phi b).
 Proof. intros [] [] []; reflexivity. Qed.
+
+Definition sheet_flip (s : bool) : bool := negb s.
+
+Fixpoint cover_turns (n : nat) (s : bool) : bool :=
+  match n with
+  | O => s
+  | S m => sheet_flip (cover_turns m s)
+  end.
+
+Theorem one_turn_inverts_sheet :
+  forall s, cover_turns 1 s <> s.
+Proof. intros []; discriminate. Qed.
+
+Theorem two_turns_restore_sheet :
+  forall s, cover_turns 2 s = s.
+Proof. intros []; reflexivity. Qed.

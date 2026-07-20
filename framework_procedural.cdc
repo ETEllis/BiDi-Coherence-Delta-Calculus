@@ -6,6 +6,7 @@
 # runtime through `run`, `compile`, and `interpret` modes.
 
 capability H2 label="procedural-framework"
+framework H2 label=procedural requires=cue,step,retry,consolidate,proceduralize,skilled-execution permits=flow,commit,nest,compile,interpret
 
 field procedural-field dt=0.125 gain=1.0 deadband=0.5
 
@@ -51,6 +52,7 @@ witness procedural-compile-native capability=H2 framework=procedural role=proced
 witness procedural-interpret-native capability=H2 framework=procedural role=skilled-execution interpret=procedural-ir-exec claim="compiled skill IR executes through the native interpreter path"
 
 expect capability H2
+expect framework H2 complete
 expect reducer procedural-cue-native
 expect reducer procedural-execute-native
 expect reducer procedural-retry-native

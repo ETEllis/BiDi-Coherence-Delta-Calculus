@@ -5,6 +5,7 @@
 # through `run` and `surface` modes. No new grammar, no host growth.
 
 capability H1 label="transition-framework"
+framework H1 label=transition requires=precondition,action,fire,block,hierarchy,log,observe,policy,state-key,tally permits=guard,flow,commit,nest,trace,measure,policy,bridge,counter
 
 field transition-field dt=0.125 gain=1.0 deadband=0.5
 field transition-blocked-field dt=0.125 gain=1.0 deadband=0.5
@@ -60,6 +61,7 @@ witness transition-state-key-native invariant=dyadic-triadic-closure capability=
 witness transition-tally-native capability=H1 framework=transition role=tally counter=transition-counter claim="net transition count is a local counter"
 
 expect capability H1
+expect framework H1 complete
 expect guard transition-precondition-native
 expect reducer transition-action-native
 expect reducer transition-fire-native

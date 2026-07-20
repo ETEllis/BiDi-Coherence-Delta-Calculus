@@ -5,6 +5,7 @@
 # Exercised by the C native runtime through `council` and `evolve` modes.
 
 capability H4 label="deliberative-framework"
+framework H4 label=deliberative requires=deliberate,enact permits=council,evolve
 
 field deliberative-field dt=0.125 gain=1.0 deadband=0.5
 
@@ -33,5 +34,6 @@ witness deliberative-quorum-native invariant=dyadic-triadic-closure capability=H
 witness deliberative-enactment-native capability=H4 framework=deliberative role=enact evolution=deliberative-enactment claim="an adopted decision is enacted as a bridge-coordinate source evolution and remembered in source"
 
 expect capability H4
+expect framework H4 complete
 expect council deliberative-quorum-native
 expect evolution deliberative-enactment-native

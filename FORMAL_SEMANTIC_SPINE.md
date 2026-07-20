@@ -115,6 +115,26 @@ Window policy is recursive but not foundational. It can update the sampling,
 commit, adaptation, or projected-state policy for a bounded window while still
 reducing through `flow`, `commit`, and `nest`.
 
+## Derived Universal Closure
+
+`universal-close` is a derived rule, not a fourth step kind. Its state record
+is the **lifted frame**:
+
+```text
+lifted-frame       (projected-phase mod 2*pi, winding count, Z2 sheet, holonomy)
+universal-record   the bridge coordinate computed from the closed frame's trace
+```
+
+The rule composes the three foundational steps with trace projection, council
+decision, and source evolution under one acceptance guard: reciprocal
+receptive/radiant cones active in one flow evaluation, half-turn projection
+return with sheet inversion, full 720-degree return with sheet restoration and
+winding two, holonomy agreement, accepted local commits, and record/decision
+coordinate equality — enacting only the runtime-computed record. The finite
+sheet-parity lemmas (one turn inverts the Z2 sheet, two turns restore it) are
+mechanized in `formal/lean/CDCFinite.lean` and `formal/coq/CDCFinite.v`;
+continuous frame transport and holonomy preservation remain queued.
+
 ## Typed Invariant Table
 
 Each invariant should have:
@@ -139,7 +159,8 @@ Each invariant should have:
 - `soundness`;
 - `local-confluence`;
 - `flow-additivity`;
-- `normalforms`.
+- `normalforms`;
+- `universal-closure`.
 
 ## Projection Targets
 

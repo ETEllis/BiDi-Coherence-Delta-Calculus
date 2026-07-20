@@ -133,6 +133,12 @@ where `commit(m, Â)` does, atomically:
 4. **guard** — if this would raise the local potential `Φ_m` (§6), **hold** instead;
 5. **latch** — each committed cell writes its persistent pole `σ`.
 
+Channels declare **causal cones**: a `receptive` cone carries influence into a
+frame and a `radiant` cone carries it outward, and a reciprocal pair may be
+simultaneously active within one flow evaluation. This is generic causal
+vocabulary; a physical light-cone reading is a specialization that would
+additionally require a metric and null-propagation constraints.
+
 `commit` is **total**: it either lowers `Φ_m` and admissibly latches, or holds. The
 event time is located off the realization grid by interpolation, so commits are
 event-driven, not clocked.
@@ -152,6 +158,29 @@ target dimensions. Their signed phase and coherence difference is the
 coherence-delta; distinct nesting paths are distinct reference frames. The same
 operator therefore serves three formal roles: invariant enforcement,
 reference-frame transfer, and free-energy exchange.
+
+### 4.4 Universal Operator `𝒰` (derived closure)
+
+`bidiγΔ` is **open** bidirectional transport between reference frames. The
+Universal Operator `𝒰` is its **closed, self-referential completion**: a
+higher-order guarded return map that evolves a scale-relative frame through
+simultaneously receptive and radiant angularly biased causal cones, performs
+its internal `flow`/`commit`/`nest` reductions, and accepts only when the
+lifted reference frame closes after **720°** with the declared holonomy and
+the resulting record is the state that gets enacted.
+
+`𝒰` is derived — `flow`, `commit`, and `nest` remain the only foundational
+small-step reductions; `𝒰` composes them with `trace`, `bridge`, `council`,
+and `evolve` under one acceptance guard. The lifted frame is a **double
+cover** of the projected phase: a record of projected phase modulo `2π`,
+winding count, Z2 sheet orientation, and accumulated holonomy. One turn
+returns the projection with an inverted sheet; only two turns restore both;
+the returned frame may retain declared angular holonomy `β`. The Möbius band
+is one geometric realization of this return path — a topology statement about
+the lifted frame, not the canonical operator name and not a claim that
+carrier states are physical spinors. The finite sheet-parity facts are
+mechanized in the Lean/Coq mirrors; the continuous holonomy theorem is a
+queued obligation.
 
 ---
 

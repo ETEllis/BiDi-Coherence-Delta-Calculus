@@ -13,6 +13,7 @@ invariant soundness statement="accepted commits do not increase local potential"
 invariant local-confluence statement="disjoint commits commute"
 invariant flow-additivity statement="flow composes over duration"
 invariant normalforms statement="localized committed modules are stable values"
+invariant universal-closure statement="a lifted frame closes only after two turns with declared holonomy and enacts its computed record"
 
 witness law-balanced-center invariant=balanced-ternary-carrier claim="balanced trit carrier sums to equilibrium"
 witness law-balanced-enumeration invariant=balanced-ternary-carrier claim="all 3^6 committed walks stay in carrier"
@@ -36,6 +37,7 @@ witness law-flow-additivity invariant=flow-additivity claim="split and combined 
 witness law-trace-order invariant=trace-order-locality claim="smooth phase motion needs no global tick"
 witness law-existence-spectrum invariant=existence-viability claim="passive through self-referential frames remain viable"
 witness law-normalforms invariant=normalforms claim="localized closures are stable normal forms"
+witness law-universal-closure invariant=universal-closure claim="one turn inverts the lifted sheet and two turns restore it"
 
 expect law gate-abelian
 expect law interfere-monoid
@@ -50,3 +52,4 @@ expect law local-confluence
 expect law flow-additivity
 expect law trace-order-locality
 expect law normalforms
+expect law universal-closure

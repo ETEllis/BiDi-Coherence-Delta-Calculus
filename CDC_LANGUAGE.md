@@ -35,10 +35,11 @@ C ABI for an eventual Emscripten build.
 ```ebnf
 program      = { directive } ;
 directive    = kernel | term | rule | provides | bootloader
-             | invariant | law | capability | witness
+             | invariant | law | capability | framework | witness
              | field | module | cell | channel | guard | counter
              | flow | commit | nest | trace | measure | policy | bridge
              | compile | interpret | proof | council | deliberate | evolve
+             | universal
              | expect | "end" ;
 
 kernel       = "kernel" name { kwarg } ;
@@ -50,6 +51,7 @@ bootloader   = "bootloader" name { name } ;
 invariant    = "invariant" key { kwarg } ;
 law          = "law" key { kwarg } ;
 capability   = "capability" key { kwarg } ;
+framework    = "framework" key { kwarg } ;
 witness      = "witness" key { kwarg } ;
 
 field        = "field" key { kwarg } ;
@@ -71,6 +73,7 @@ proof        = "proof" key { kwarg } ;
 council      = "council" key { kwarg } ;
 deliberate   = "deliberate" key { kwarg } ;
 evolve       = "evolve" key { kwarg } ;
+universal    = "universal" key { kwarg } ;
 
 expect       = "expect" predicate ;
 kwarg        = key "=" value ;
@@ -108,11 +111,30 @@ expect interpret <witness-id>
 expect proof <witness-id>
 expect council <witness-id>
 expect evolution <witness-id>
+expect universal <witness-id>
+expect frameworks >= N
+expect frameworks closed
+expect framework <framework-key> complete
 ```
 
 `expect law K` requires both an `invariant K` declaration and at least one native
 `witness ... invariant=K`. `expect capability C` requires both a
 `capability C` declaration and at least one native `witness ... capability=C`.
+
+A `framework` declaration is a typed role contract:
+
+```text
+framework H3 label=episodic requires=live,record,... permits=flow,commit,...
+```
+
+`expect framework K complete` requires that every role in `requires=` is bound
+by exactly one witness carrying `framework=<label> role=<role>`, that each such
+witness links to exactly one declared executable job, that the linked job's
+primitive kind is in `permits=` (`reducer=` links resolve to their declared
+`flow`/`commit`/`nest` kind; `council=` and `evolution=` links resolve through
+`deliberate` and `evolve` jobs), and that no witness carries an unknown or
+duplicate role. `expect frameworks closed` additionally rejects any witness in
+the whole tree whose `framework=` label has no `framework` declaration.
 `expect reducer W` requires witness `W` to link to a declared native reducer
 step through `witness ... reducer=<flow-or-commit-or-nest-id>`.
 `expect guard W`, `expect trace W`, `expect measure W`, `expect policy W`,
@@ -139,6 +161,7 @@ finite-proof, council, and source-evolution jobs.
 | `framework_procedural.cdc` | procedural framework (`H2`): cue, executed and retried steps, nest consolidation, self-referential compile/interpret proceduralization |
 | `framework_episodic.cdc` | episodic framework (`H3`): lived flow, committed record, archive consolidation, trace content, measured recall, bridge memory key, ordinal counter |
 | `framework_deliberative.cdc` | deliberative framework (`H4`): option modules, council quorum decision, bridge-coordinate enactment into source memory |
+| `framework_loop.cdc` | task-loop composition (`H5`) and Universal Operator instance (`U1`): two executed sense/act/integrate cycles plus lifted-cover turns over one shared state object, gate/record/recall/refine/key/decide/enact jobs, self-referential compile/interpret, and the `universal` 720° closure job |
 | `system.cdc` | 32 capability declarations and native witness handles |
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
@@ -172,6 +195,7 @@ field <name> dt=<real> gain=<real> deadband=<real>
 module <name> field=<field> belief=<real> prior=<real>
 cell <path> module=<module> theta=<real> amplitude=<real> omega=<real>
 channel <path-a> -> <path-b> delay=<real> weight=<real> angle=<real> lines=<i,j>
+channel <path-a> -> <path-b> id=<name> cone=<receptive|radiant> pair=<name> ...
 guard <name> cell=<path> expect-state=<open|closed>
 flow <name> field=<field> duration=<real>
 commit <name> module=<module>
@@ -187,7 +211,32 @@ proof <name> carrier=balanced-ternary arity=<int>
 council <name> field=<field> members=<module-list> quorum=<int>
 deliberate <name> council=<council>
 evolve <name> source=<path> output=<path> coordinate=<dyadic> append-witness=<id>
+universal <name> frame=<module> cover-cell=<path> cover=double half-step=<flow> full-step=<flow> receptive=<channel-id> radiant=<channel-id> record=<bridge> decision=<deliberate> enact=<evolve> expect-holonomy=<real> expect-coordinate=<dyadic> expect-status=<accepted|held> expect-reason=<reason>
 ```
 
 Those forms must continue to grow as native reducer clauses in `.cdc`, not by
 growing Python back into a runtime.
+
+## Universal Operator Form
+
+`universal` is a derived, higher-order job over `flow`, `commit`, and `nest`
+plus `trace`, `bridge`, `council`, and `evolve` — it is not a fourth
+foundational reduction. The C runtime's `universal` mode executes it over one
+live runtime object: it verifies that the named `receptive`/`radiant` channels
+form a reciprocal, angularly biased endpoint pair in the frame's field (both
+active in the same flow evaluation), runs the reducer steps, tracks a lifted
+double-cover frame on the cover cell (projected phase modulo 2π, winding
+count, Z2 sheet, accumulated holonomy), and accepts only when the half turn
+returns the projection with an inverted sheet, the full 720° turn restores
+both, measured holonomy matches the declaration, all local commits are
+accepted, and the runtime-computed record coordinate equals the runtime-
+computed council decision coordinate — which is then the coordinate enacted.
+Any failure returns `status=held` with one of: `cone-not-reciprocal`,
+`half-projection-mismatch`, `half-sheet-mismatch`, `full-projection-mismatch`,
+`full-sheet-mismatch`, `holonomy-mismatch`, `coordinate-mismatch`,
+`local-commit-held` — and no evolved output is created.
+
+The generic calculus vocabulary is **causal cone**: a channel's cone declares
+the direction of causal influence relative to its frame. A physical
+*light-cone* reading is a specialization that additionally requires a metric
+and null-propagation constraints; the language does not assume it.

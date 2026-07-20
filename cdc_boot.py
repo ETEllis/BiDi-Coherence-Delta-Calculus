@@ -15,6 +15,24 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
+WITNESS_LINK_FORMS = {
+    "reducer": ("flow", "commit", "nest"),
+    "guard": ("guard",),
+    "trace": ("trace",),
+    "measure": ("measure",),
+    "policy": ("policy",),
+    "bridge": ("bridge",),
+    "counter": ("counter",),
+    "compile": ("compile",),
+    "interpret": ("interpret",),
+    "council": ("deliberate",),
+    "evolution": ("evolve",),
+    "universal": ("universal",),
+}
+
+FORM_PRIMITIVES = {"deliberate": "council", "evolve": "evolve"}
+
+
 @dataclass
 class BootState:
     root: Path
@@ -25,6 +43,7 @@ class BootState:
     bootloader_steps: set[str] = field(default_factory=set)
     invariants: dict[str, dict[str, str]] = field(default_factory=dict)
     capabilities: dict[str, dict[str, str]] = field(default_factory=dict)
+    frameworks: dict[str, dict[str, str]] = field(default_factory=dict)
     witnesses: dict[str, dict[str, str]] = field(default_factory=dict)
     reducer_forms: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
     guard_steps: set[str] = field(default_factory=set)
@@ -39,6 +58,7 @@ class BootState:
     proof_steps: set[str] = field(default_factory=set)
     council_steps: set[str] = field(default_factory=set)
     evolution_steps: set[str] = field(default_factory=set)
+    universal_steps: set[str] = field(default_factory=set)
     expectations: list[tuple[str, list[str], str]] = field(default_factory=list)
 
 
@@ -103,6 +123,13 @@ def parse_file(state: BootState, path: Path) -> None:
             key = args[0]
             state.capabilities.setdefault(key, {})
             state.capabilities[key].update(attrs)
+        elif cmd == "framework":
+            if not args:
+                raise SyntaxError(f"{source}: framework requires a key")
+            key = args[0]
+            if key in state.frameworks:
+                raise SyntaxError(f"{source}: duplicate framework {key!r}")
+            state.frameworks[key] = {"source": source, **attrs}
         elif cmd == "witness":
             if not args:
                 raise SyntaxError(f"{source}: witness requires an id")
@@ -128,6 +155,7 @@ def parse_file(state: BootState, path: Path) -> None:
             "council",
             "deliberate",
             "evolve",
+            "universal",
         }:
             if not args:
                 raise SyntaxError(f"{source}: {cmd} requires an id")
@@ -158,6 +186,8 @@ def parse_file(state: BootState, path: Path) -> None:
                 state.council_steps.add(key)
             if cmd == "evolve":
                 state.evolution_steps.add(key)
+            if cmd == "universal":
+                state.universal_steps.add(key)
         elif cmd == "expect":
             state.expectations.append((source, rest, line))
         else:
@@ -170,6 +200,61 @@ def python_files(state: BootState) -> list[Path]:
 
 def witnesses_for(state: BootState, key: str, field: str) -> list[str]:
     return [wid for wid, attrs in state.witnesses.items() if attrs.get(field) == key]
+
+
+def resolve_witness_link(state: BootState, attrs: dict[str, str]) -> tuple[str | None, str]:
+    links = [link for link in WITNESS_LINK_FORMS if link in attrs]
+    if len(links) != 1:
+        return None, f"needs exactly one executable link (got {links or 'none'})"
+    link = links[0]
+    job = attrs[link]
+    for form in WITNESS_LINK_FORMS[link]:
+        if job in state.reducer_forms.get(form, {}):
+            return FORM_PRIMITIVES.get(form, form), f"{link}={job}"
+    return None, f"{link}={job} has no declared job"
+
+
+def check_framework_complete(state: BootState, key: str) -> tuple[bool, str]:
+    framework = state.frameworks.get(key)
+    if not framework:
+        return False, f"framework {key} complete (missing framework declaration)"
+    label = framework.get("label", "")
+    if not label:
+        return False, f"framework {key} complete (missing label)"
+    required = [role for role in framework.get("requires", "").split(",") if role]
+    permitted = {prim for prim in framework.get("permits", "").split(",") if prim}
+    if not required or not permitted:
+        return False, f"framework {key} complete (missing requires/permits contract)"
+    bound: dict[str, str] = {}
+    problems: list[str] = []
+    for wid, attrs in sorted(state.witnesses.items()):
+        if attrs.get("framework") != label:
+            continue
+        role = attrs.get("role", "")
+        if not role:
+            problems.append(f"{wid} missing role")
+            continue
+        if role not in required:
+            problems.append(f"{wid} carries unknown role {role}")
+            continue
+        if role in bound:
+            problems.append(f"role {role} duplicated by {wid}")
+            continue
+        primitive, link_detail = resolve_witness_link(state, attrs)
+        if primitive is None:
+            problems.append(f"{wid} {link_detail}")
+            continue
+        if primitive not in permitted:
+            problems.append(f"{wid} role {role} uses unpermitted primitive {primitive}")
+            continue
+        bound[role] = wid
+    missing = [role for role in required if role not in bound]
+    if missing:
+        problems.append(f"missing roles {missing}")
+    detail = f"roles {len(bound)}/{len(required)}"
+    if problems:
+        detail += "; " + "; ".join(problems)
+    return not problems, f"framework {key} complete ({detail})"
 
 
 def compare(got: int | str, op: str, want: int | str) -> bool:
@@ -200,7 +285,17 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
         got = 1 if state.bootloader_steps else 0
         return compare(got, op, want), f"host-debt {op} {want} (got {got})"
 
-    if head in {"terms", "rules", "invariants", "witnesses", "capabilities"}:
+    if head == "frameworks" and args[1:] == ["closed"]:
+        labels = {fw.get("label", "") for fw in state.frameworks.values()}
+        orphans = sorted({
+            attrs["framework"]
+            for attrs in state.witnesses.values()
+            if "framework" in attrs and attrs["framework"] not in labels
+        })
+        detail = f"orphan bindings {orphans}" if orphans else f"{len(labels)} labels"
+        return not orphans, f"frameworks closed ({detail})"
+
+    if head in {"terms", "rules", "invariants", "witnesses", "capabilities", "frameworks"}:
         op, want = args[1], int(args[2])
         collections = {
             "terms": state.terms,
@@ -208,6 +303,7 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
             "invariants": state.invariants,
             "witnesses": state.witnesses,
             "capabilities": state.capabilities,
+            "frameworks": state.frameworks,
         }
         got = len(collections[head])
         return compare(got, op, want), f"{head} {op} {want} (got {got})"
@@ -226,6 +322,9 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
         linked = witnesses_for(state, key, "capability")
         return key in state.capabilities and bool(linked), f"capability {key} (witnesses {len(linked)})"
 
+    if head == "framework" and len(args) == 3 and args[2] == "complete":
+        return check_framework_complete(state, args[1])
+
     if head == "witness":
         wid = args[1]
         return wid in state.witnesses, f"witness {wid}"
@@ -240,7 +339,7 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
         detail = f"step {step}" if step else "missing reducer link"
         return ok, f"reducer {wid} ({detail})"
 
-    if head in {"guard", "trace", "measure", "policy", "bridge", "counter"}:
+    if head in {"guard", "trace", "measure", "policy", "bridge", "counter", "universal"}:
         wid = args[1]
         witness = state.witnesses.get(wid)
         if not witness:
@@ -253,6 +352,7 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
             "policy": state.policy_steps,
             "bridge": state.bridge_steps,
             "counter": state.counter_steps,
+            "universal": state.universal_steps,
         }
         ok = bool(step and step in step_sets[head])
         detail = f"job {step}" if step else f"missing {head} link"
@@ -334,7 +434,7 @@ def report(state: BootState) -> bool:
     print("-" * 74)
     print(f"  {passed}/{len(state.expectations)} expectations met")
     print(f"  {len(state.terms)} terms, {len(state.rules)} rules, {len(state.invariants)} invariants")
-    print(f"  {len(state.capabilities)} capabilities, {len(state.witnesses)} native witnesses")
+    print(f"  {len(state.capabilities)} capabilities, {len(state.frameworks)} frameworks, {len(state.witnesses)} native witnesses")
     print("=" * 74)
     return passed == len(state.expectations)
 

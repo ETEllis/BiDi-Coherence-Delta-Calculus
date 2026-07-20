@@ -7,6 +7,7 @@
 # `surface` modes, with recall cross-checked by the C bridge runtime.
 
 capability H3 label="episodic-framework"
+framework H3 label=episodic requires=live,record,consolidate,aperture,content,recall,key,ordinal,policy permits=flow,commit,nest,guard,trace,measure,policy,bridge,counter
 
 field episodic-field dt=0.125 gain=1.0 deadband=0.5
 
@@ -51,6 +52,7 @@ witness episodic-ordinal-native invariant=trace-order-locality capability=H3 fra
 witness episodic-policy-native invariant=trace-order-locality capability=H3 framework=episodic role=policy policy=episodic-policy claim="the recording policy samples locally and adapts recursively within the window"
 
 expect capability H3
+expect framework H3 complete
 expect reducer episodic-live-native
 expect reducer episodic-record-native
 expect reducer episodic-consolidate-native
