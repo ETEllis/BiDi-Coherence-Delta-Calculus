@@ -433,6 +433,41 @@ grep -q "native interpret ok ops=4 flow=1 commit=2 nest=1 source=framework_proce
   echo "procedural framework skilled-execution check failed" >&2
   exit 1
 }
+episodic_run="$(build/cdc_native_runtime run framework_episodic.cdc)"
+echo "$episodic_run"
+grep -q "commit=episodic-record .*trits=++0 .*balance=admissible .*status=accepted .*reason=none" <<<"$episodic_run" || {
+  echo "episodic framework record check failed" >&2
+  exit 1
+}
+grep -q "nest=episodic-consolidate .*parent-belief=0.666667 .*child-prior=0.666667" <<<"$episodic_run" || {
+  echo "episodic framework consolidation check failed" >&2
+  exit 1
+}
+episodic_surface="$(build/cdc_native_runtime surface framework_episodic.cdc)"
+echo "$episodic_surface"
+grep -q "trace=episodic-trace .*trits=++00-+ .*events=4" <<<"$episodic_surface" || {
+  echo "episodic framework content check failed" >&2
+  exit 1
+}
+grep -q "bridge=episodic-key .*dyadic=110011 .*triadic=303" <<<"$episodic_surface" || {
+  echo "episodic framework key check failed" >&2
+  exit 1
+}
+grep -q "counter=episodic-ordinal .*final=1" <<<"$episodic_surface" || {
+  echo "episodic framework ordinal check failed" >&2
+  exit 1
+}
+
+episodic_recall_by_content="$(build/cdc_bridge_runtime lookup-dyadic bridge64.cdc 110011)"
+case "$episodic_recall_by_content" in
+  *"index=51"*"triadic=303"*) echo "$episodic_recall_by_content" ;;
+  *) echo "episodic recall by content failed: $episodic_recall_by_content" >&2; exit 1 ;;
+esac
+episodic_recall_by_key="$(build/cdc_bridge_runtime lookup-triadic bridge64.cdc 303)"
+case "$episodic_recall_by_key" in
+  *"index=51"*"dyadic=110011"*) echo "$episodic_recall_by_key" ;;
+  *) echo "episodic recall by key failed: $episodic_recall_by_key" >&2; exit 1 ;;
+esac
 
 echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="
