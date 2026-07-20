@@ -21,6 +21,7 @@
 #define MAX_POLICIES 32
 #define MAX_BRIDGES 32
 #define MAX_COUNTERS 32
+#define MAX_UNIVERSALS 8
 #define LINE_MAX_BYTES 1024
 #define PI 3.14159265358979323846
 
@@ -60,6 +61,9 @@ typedef struct {
 typedef struct {
     char source[64];
     char target[64];
+    char id[64];
+    char cone[16];
+    char pair[64];
     double weight;
     double delay;
     double angle;
@@ -75,7 +79,7 @@ typedef struct {
     char child[64];
     double duration;
     double tolerance;
-    char expect_theta_cell[64];
+    char expect_theta_cell[128];
     double expect_theta;
     char expect_trits[64];
     char expect_balance[32];
@@ -223,6 +227,47 @@ typedef struct {
 } CounterJob;
 
 typedef struct {
+    char id[64];
+    char frame[64];
+    char cover_cell[64];
+    char cover[16];
+    char half_step[64];
+    char full_step[64];
+    char receptive[64];
+    char radiant[64];
+    char record[64];
+    char decision[64];
+    char enact[64];
+    double expect_holonomy;
+    int has_expect_holonomy;
+    char expect_half_projection[16];
+    char expect_half_sheet[16];
+    char expect_full_projection[16];
+    char expect_full_sheet[16];
+    char expect_coordinate[32];
+    char expect_status[16];
+    char expect_reason[40];
+    double tolerance;
+} UniversalJob;
+
+typedef struct {
+    char frame[64];
+    char receptive_angle[32];
+    char radiant_angle[32];
+    char holonomy[32];
+    char half_projection[16];
+    char half_sheet[16];
+    char full_projection[16];
+    char full_sheet[16];
+    int winding;
+    char record_coordinate[32];
+    char decision_coordinate[32];
+    char enacted_coordinate[32];
+    char status[16];
+    char reason[40];
+} UniversalResult;
+
+typedef struct {
     Field fields[MAX_FIELDS];
     Module modules[MAX_MODULES];
     Cell cells[MAX_CELLS];
@@ -239,6 +284,7 @@ typedef struct {
     PolicyJob policies[MAX_POLICIES];
     SurfaceBridgeJob bridges[MAX_BRIDGES];
     CounterJob counters[MAX_COUNTERS];
+    UniversalJob universals[MAX_UNIVERSALS];
     int field_count;
     int module_count;
     int cell_count;
@@ -255,6 +301,7 @@ typedef struct {
     int policy_count;
     int bridge_count;
     int counter_count;
+    int universal_count;
 } Runtime;
 
 static void fail(const char *message) {
@@ -421,6 +468,9 @@ static void add_channel(Runtime *rt, const char *line) {
     channel->weight = cdc_read_double_attr(line, "weight", 1.0);
     channel->delay = cdc_read_double_attr(line, "delay", 0.0);
     channel->angle = cdc_read_double_attr(line, "angle", 0.0);
+    cdc_copy_attr(line, "id", channel->id, sizeof(channel->id), "");
+    cdc_copy_attr(line, "cone", channel->cone, sizeof(channel->cone), "");
+    cdc_copy_attr(line, "pair", channel->pair, sizeof(channel->pair), "");
     cdc_copy_attr(line, "lines", channel->lines, sizeof(channel->lines), "*");
     if (!find_cell(rt, channel->source) || !find_cell(rt, channel->target)) {
         fail("channel references unknown source or target cell");
@@ -619,6 +669,37 @@ static void add_surface_bridge(Runtime *rt, const char *line) {
     cdc_copy_attr(line, "expect-triadic", bridge->expect_triadic, sizeof(bridge->expect_triadic), "");
 }
 
+static void add_universal(Runtime *rt, const char *line) {
+    UniversalJob *job;
+    char holonomy_text[64];
+    if (rt->universal_count >= MAX_UNIVERSALS) {
+        fail("too many universal jobs");
+    }
+    job = &rt->universals[rt->universal_count++];
+    memset(job, 0, sizeof(*job));
+    cdc_first_token_after(line, "universal ", job->id, sizeof(job->id));
+    cdc_copy_attr(line, "frame", job->frame, sizeof(job->frame), "");
+    cdc_copy_attr(line, "cover-cell", job->cover_cell, sizeof(job->cover_cell), "");
+    cdc_copy_attr(line, "cover", job->cover, sizeof(job->cover), "double");
+    cdc_copy_attr(line, "half-step", job->half_step, sizeof(job->half_step), "");
+    cdc_copy_attr(line, "full-step", job->full_step, sizeof(job->full_step), "");
+    cdc_copy_attr(line, "receptive", job->receptive, sizeof(job->receptive), "");
+    cdc_copy_attr(line, "radiant", job->radiant, sizeof(job->radiant), "");
+    cdc_copy_attr(line, "record", job->record, sizeof(job->record), "");
+    cdc_copy_attr(line, "decision", job->decision, sizeof(job->decision), "");
+    cdc_copy_attr(line, "enact", job->enact, sizeof(job->enact), "");
+    job->has_expect_holonomy = cdc_read_attr(line, "expect-holonomy", holonomy_text, sizeof(holonomy_text));
+    job->expect_holonomy = cdc_read_double_attr(line, "expect-holonomy", 0.0);
+    cdc_copy_attr(line, "expect-half-projection", job->expect_half_projection, sizeof(job->expect_half_projection), "");
+    cdc_copy_attr(line, "expect-half-sheet", job->expect_half_sheet, sizeof(job->expect_half_sheet), "");
+    cdc_copy_attr(line, "expect-full-projection", job->expect_full_projection, sizeof(job->expect_full_projection), "");
+    cdc_copy_attr(line, "expect-full-sheet", job->expect_full_sheet, sizeof(job->expect_full_sheet), "");
+    cdc_copy_attr(line, "expect-coordinate", job->expect_coordinate, sizeof(job->expect_coordinate), "");
+    cdc_copy_attr(line, "expect-status", job->expect_status, sizeof(job->expect_status), "");
+    cdc_copy_attr(line, "expect-reason", job->expect_reason, sizeof(job->expect_reason), "");
+    job->tolerance = cdc_read_double_attr(line, "tolerance", 0.000001);
+}
+
 static void add_counter(Runtime *rt, const char *line) {
     CounterJob *counter;
     if (rt->counter_count >= MAX_COUNTERS) {
@@ -681,6 +762,8 @@ static void parse_source(Runtime *rt, const char *path) {
             add_deliberation(rt, line);
         } else if (cdc_starts_with(line, "evolve ")) {
             add_evolution(rt, line);
+        } else if (cdc_starts_with(line, "universal ")) {
+            add_universal(rt, line);
         }
     }
     fclose(fp);
@@ -1299,32 +1382,37 @@ static void run_policies(Runtime *rt) {
     }
 }
 
+static void execute_surface_bridge(Runtime *rt, SurfaceBridgeJob *bridge,
+                                   char trits[128], char dyadic[7], char triadic[4], int *index) {
+    TraceJob *trace = find_trace(rt, bridge->trace);
+    if (!trace) {
+        fail("surface bridge references unknown trace");
+    }
+    if (bridge->via[0] && strcmp(bridge->via, "bridge64") != 0) {
+        fail("surface bridge currently supports bridge64");
+    }
+    trace_trits(rt, trace, trits, 128);
+    trits_to_occupancy6(trits, dyadic);
+    *index = dyadic6_to_index(dyadic);
+    triadic_from_index64(*index, triadic);
+    if (bridge->expect_dyadic[0]) {
+        cdc_expect_string(dyadic, bridge->expect_dyadic, "surface bridge dyadic expectation mismatch");
+    }
+    if (bridge->expect_triadic[0]) {
+        cdc_expect_string(triadic, bridge->expect_triadic, "surface bridge triadic expectation mismatch");
+    }
+}
+
 static void run_surface_bridges(Runtime *rt) {
     for (int i = 0; i < rt->bridge_count; i++) {
         SurfaceBridgeJob *bridge = &rt->bridges[i];
-        TraceJob *trace = find_trace(rt, bridge->trace);
         char trits[128];
         char dyadic[7];
         char triadic[4];
         int index;
-        if (!trace) {
-            fail("surface bridge references unknown trace");
-        }
-        if (bridge->via[0] && strcmp(bridge->via, "bridge64") != 0) {
-            fail("surface bridge currently supports bridge64");
-        }
-        trace_trits(rt, trace, trits, sizeof(trits));
-        trits_to_occupancy6(trits, dyadic);
-        index = dyadic6_to_index(dyadic);
-        triadic_from_index64(index, triadic);
-        if (bridge->expect_dyadic[0]) {
-            cdc_expect_string(dyadic, bridge->expect_dyadic, "surface bridge dyadic expectation mismatch");
-        }
-        if (bridge->expect_triadic[0]) {
-            cdc_expect_string(triadic, bridge->expect_triadic, "surface bridge triadic expectation mismatch");
-        }
+        execute_surface_bridge(rt, bridge, trits, dyadic, triadic, &index);
         printf("bridge=%s trace=%s via=%s trits=%s dyadic=%s triadic=%s\n",
-               bridge->id, trace->id, bridge->via, trits, dyadic, triadic);
+               bridge->id, bridge->trace, bridge->via, trits, dyadic, triadic);
     }
 }
 
@@ -1354,54 +1442,64 @@ static void run_surface(Runtime *rt, const char *path) {
            rt->policy_count, rt->bridge_count, rt->counter_count, path);
 }
 
+static void execute_deliberation(Runtime *rt, Deliberation *deliberation,
+                                 char trits[128], char dyadic[7], char triadic[4],
+                                 int *occupancy, int *quorum, char decision[32]) {
+    Council *council = find_council(rt, deliberation->council);
+    char members[256];
+    int index;
+    char *cursor;
+    if (!council) {
+        fail("deliberation references unknown council");
+    }
+    trits[0] = '\0';
+    *occupancy = 0;
+    snprintf(members, sizeof(members), "%s", council->members);
+    cursor = strtok(members, ",");
+    while (cursor) {
+        Module *member = find_module(rt, cursor);
+        if (!member) {
+            fail("council member references unknown module");
+        }
+        append_module_trits(rt, member, trits, 128);
+        cursor = strtok(NULL, ",");
+    }
+    trits_to_occupancy6(trits, dyadic);
+    for (int j = 0; j < 6; j++) {
+        if (dyadic[j] == '1') {
+            (*occupancy)++;
+        }
+    }
+    index = dyadic6_to_index(dyadic);
+    triadic_from_index64(index, triadic);
+    *quorum = council->quorum;
+    snprintf(decision, 32, "%s", *occupancy >= council->quorum ? "adopt" : "hold");
+    if (council->expect_decision[0]) {
+        cdc_expect_string(decision, council->expect_decision, "council decision expectation mismatch");
+    }
+    if (council->expect_dyadic[0]) {
+        cdc_expect_string(dyadic, council->expect_dyadic, "council dyadic expectation mismatch");
+    }
+    if (council->expect_triadic[0]) {
+        cdc_expect_string(triadic, council->expect_triadic, "council triadic expectation mismatch");
+    }
+}
+
 static void run_council(Runtime *rt, const char *path) {
     if (rt->deliberation_count == 0) {
         fail("source has no council deliberation");
     }
     for (int i = 0; i < rt->deliberation_count; i++) {
         Deliberation *deliberation = &rt->deliberations[i];
-        Council *council = find_council(rt, deliberation->council);
-        char members[256];
-        char trits[128] = "";
+        char trits[128];
         char dyadic[7];
         char triadic[4];
         char decision[32];
-        int occupancy = 0;
-        int index;
-        char *cursor;
-        if (!council) {
-            fail("deliberation references unknown council");
-        }
-        snprintf(members, sizeof(members), "%s", council->members);
-        cursor = strtok(members, ",");
-        while (cursor) {
-            Module *member = find_module(rt, cursor);
-            if (!member) {
-                fail("council member references unknown module");
-            }
-            append_module_trits(rt, member, trits, sizeof(trits));
-            cursor = strtok(NULL, ",");
-        }
-        trits_to_occupancy6(trits, dyadic);
-        for (int j = 0; j < 6; j++) {
-            if (dyadic[j] == '1') {
-                occupancy++;
-            }
-        }
-        index = dyadic6_to_index(dyadic);
-        triadic_from_index64(index, triadic);
-        snprintf(decision, sizeof(decision), "%s", occupancy >= council->quorum ? "adopt" : "hold");
-        if (council->expect_decision[0]) {
-            cdc_expect_string(decision, council->expect_decision, "council decision expectation mismatch");
-        }
-        if (council->expect_dyadic[0]) {
-            cdc_expect_string(dyadic, council->expect_dyadic, "council dyadic expectation mismatch");
-        }
-        if (council->expect_triadic[0]) {
-            cdc_expect_string(triadic, council->expect_triadic, "council triadic expectation mismatch");
-        }
+        int occupancy;
+        int quorum;
+        execute_deliberation(rt, deliberation, trits, dyadic, triadic, &occupancy, &quorum, decision);
         printf("council=%s deliberation=%s trits=%s dyadic=%s triadic=%s occupancy=%d quorum=%d decision=%s\n",
-               council->id, deliberation->id, trits, dyadic, triadic, occupancy, council->quorum, decision);
+               deliberation->council, deliberation->id, trits, dyadic, triadic, occupancy, quorum, decision);
     }
     printf("native council ok deliberations=%d source=%s\n", rt->deliberation_count, path);
 }
@@ -1454,6 +1552,342 @@ static void run_evolution(Runtime *rt, const char *path) {
                job->id, job->coordinate, job->source, job->output, job->append_witness);
     }
     printf("native evolution ok jobs=%d source=%s\n", rt->evolution_count, path);
+}
+
+static Channel *find_channel_by_id(Runtime *rt, const char *id) {
+    for (int i = 0; i < rt->channel_count; i++) {
+        if (strcmp(rt->channels[i].id, id) == 0) {
+            return &rt->channels[i];
+        }
+    }
+    return NULL;
+}
+
+static SurfaceBridgeJob *find_bridge_job(Runtime *rt, const char *id) {
+    for (int i = 0; i < rt->bridge_count; i++) {
+        if (strcmp(rt->bridges[i].id, id) == 0) {
+            return &rt->bridges[i];
+        }
+    }
+    return NULL;
+}
+
+static Deliberation *find_deliberation(Runtime *rt, const char *id) {
+    for (int i = 0; i < rt->deliberation_count; i++) {
+        if (strcmp(rt->deliberations[i].id, id) == 0) {
+            return &rt->deliberations[i];
+        }
+    }
+    return NULL;
+}
+
+static EvolutionJob *find_evolution_job(Runtime *rt, const char *id) {
+    for (int i = 0; i < rt->evolution_count; i++) {
+        if (strcmp(rt->evolutions[i].id, id) == 0) {
+            return &rt->evolutions[i];
+        }
+    }
+    return NULL;
+}
+
+static Step *find_step(Runtime *rt, const char *id) {
+    for (int i = 0; i < rt->step_count; i++) {
+        if (strcmp(rt->steps[i].id, id) == 0) {
+            return &rt->steps[i];
+        }
+    }
+    return NULL;
+}
+
+static void universal_hold(UniversalResult *res, const char *reason) {
+    snprintf(res->status, sizeof(res->status), "held");
+    snprintf(res->reason, sizeof(res->reason), "%s", reason);
+}
+
+/* The lifted frame is a double cover: projected phase lives modulo 2*pi while
+   winding parity carries the Z2 sheet, so one turn returns the projection with
+   an inverted sheet and only two turns restore both. */
+static void evaluate_cover(double theta, double theta0, double tolerance,
+                           char *projection, size_t projection_size,
+                           char *sheet, size_t sheet_size, int *winding) {
+    double gap = fmod(theta - theta0, 2.0 * PI);
+    if (gap < 0.0) {
+        gap += 2.0 * PI;
+    }
+    if (gap > PI) {
+        gap = 2.0 * PI - gap;
+    }
+    *winding = (int)floor((theta - theta0) / (2.0 * PI) + 0.5);
+    snprintf(projection, projection_size, "%s", gap <= tolerance ? "returned" : "displaced");
+    snprintf(sheet, sheet_size, "%s", (*winding % 2 == 0) ? "restored" : "inverted");
+}
+
+static int universal_step_kind_ok(Step *step) {
+    return step && step->kind == STEP_FLOW;
+}
+
+static void run_universal_enactment(EvolutionJob *enact, UniversalJob *job, UniversalResult *res) {
+    FILE *in = fopen(enact->source, "r");
+    FILE *out;
+    char line[LINE_MAX_BYTES];
+    if (!in) {
+        fail("universal enactment source could not be opened");
+    }
+    out = fopen(enact->output, "w");
+    if (!out) {
+        fclose(in);
+        fail("universal enactment output could not be opened");
+    }
+    while (fgets(line, sizeof(line), in)) {
+        fputs(line, out);
+    }
+    fprintf(out, "\n# universal closure %s enacted computed coordinate %s\n", job->id, res->record_coordinate);
+    fprintf(out,
+            "witness %s invariant=universal-closure coordinate=%s winding=%d sheet=%s holonomy=%s status=%s claim=\"universal operator closed the lifted frame and enacted its computed record\"\n",
+            enact->append_witness, res->record_coordinate, res->winding, res->full_sheet,
+            res->holonomy, res->status);
+    fclose(in);
+    fclose(out);
+    if (enact->expect_contains[0] && !file_contains(enact->output, enact->expect_contains)) {
+        fail("universal enactment output missing expected text");
+    }
+    snprintf(res->enacted_coordinate, sizeof(res->enacted_coordinate), "%s", res->record_coordinate);
+}
+
+static void universal_parity_check(Runtime *snapshot, Runtime *live, double tolerance) {
+    int ops = 0;
+    for (int i = 0; i < snapshot->step_count; i++) {
+        Step *step = &snapshot->steps[i];
+        if (step->kind == STEP_FLOW) {
+            FlowResult flow;
+            execute_flow(snapshot, step, &flow);
+        } else if (step->kind == STEP_COMMIT) {
+            CommitResult commit;
+            execute_commit(snapshot, step, &commit);
+        } else {
+            NestResult nest;
+            execute_nest(snapshot, step, &nest);
+        }
+        ops++;
+    }
+    for (int i = 0; i < snapshot->cell_count; i++) {
+        if (!cdc_close_enough(snapshot->cells[i].theta, live->cells[i].theta, tolerance)) {
+            fail("universal interpreter parity theta mismatch");
+        }
+    }
+    for (int i = 0; i < snapshot->module_count; i++) {
+        if (!cdc_close_enough(snapshot->modules[i].belief, live->modules[i].belief, tolerance) ||
+            !cdc_close_enough(snapshot->modules[i].prior, live->modules[i].prior, tolerance)) {
+            fail("universal interpreter parity belief mismatch");
+        }
+    }
+    printf("universal-parity ops=%d ok\n", ops);
+}
+
+static int execute_universal(Runtime *rt, UniversalJob *job, UniversalResult *res, Runtime *snapshot) {
+    Module *frame = find_module(rt, job->frame);
+    Cell *cover = find_cell(rt, job->cover_cell);
+    Channel *receptive = find_channel_by_id(rt, job->receptive);
+    Channel *radiant = find_channel_by_id(rt, job->radiant);
+    SurfaceBridgeJob *record = find_bridge_job(rt, job->record);
+    Deliberation *decision = find_deliberation(rt, job->decision);
+    EvolutionJob *enact = find_evolution_job(rt, job->enact);
+    Step *half = find_step(rt, job->half_step);
+    Step *full = find_step(rt, job->full_step);
+    double theta0;
+    double holonomy;
+    int frame_flow = 0;
+    int winding = 0;
+
+    memset(res, 0, sizeof(*res));
+    snprintf(res->frame, sizeof(res->frame), "%s", job->frame);
+    snprintf(res->status, sizeof(res->status), "accepted");
+    snprintf(res->reason, sizeof(res->reason), "none");
+    snprintf(res->half_projection, sizeof(res->half_projection), "unchecked");
+    snprintf(res->half_sheet, sizeof(res->half_sheet), "unchecked");
+    snprintf(res->full_projection, sizeof(res->full_projection), "unchecked");
+    snprintf(res->full_sheet, sizeof(res->full_sheet), "unchecked");
+    snprintf(res->record_coordinate, sizeof(res->record_coordinate), "-");
+    snprintf(res->decision_coordinate, sizeof(res->decision_coordinate), "-");
+    snprintf(res->enacted_coordinate, sizeof(res->enacted_coordinate), "-");
+
+    if (!frame || !cover) {
+        fail("universal job references unknown frame or cover cell");
+    }
+    if (!receptive || !radiant) {
+        fail("universal job references unknown receptive or radiant channel");
+    }
+    if (!record || !decision || !enact) {
+        fail("universal job references unknown record, decision, or enact job");
+    }
+    if (!universal_step_kind_ok(half) || !universal_step_kind_ok(full)) {
+        fail("universal half/full steps must be declared flow steps");
+    }
+    if (strcmp(job->cover, "double") != 0) {
+        fail("universal cover currently supports double");
+    }
+    snprintf(res->receptive_angle, sizeof(res->receptive_angle), "%.6f", receptive->angle);
+    snprintf(res->radiant_angle, sizeof(res->radiant_angle), "%.6f", radiant->angle);
+    holonomy = receptive->angle + radiant->angle;
+    snprintf(res->holonomy, sizeof(res->holonomy), "%.6f", holonomy);
+
+    if (strcmp(receptive->cone, "receptive") != 0 || strcmp(radiant->cone, "radiant") != 0 ||
+        receptive->pair[0] == '\0' || strcmp(receptive->pair, radiant->pair) != 0 ||
+        strcmp(receptive->source, radiant->target) != 0 ||
+        strcmp(receptive->target, radiant->source) != 0 ||
+        receptive->angle == 0.0 || radiant->angle == 0.0 ||
+        !cell_in_field(rt, find_cell(rt, receptive->source), frame->field) ||
+        !cell_in_field(rt, find_cell(rt, receptive->target), frame->field)) {
+        universal_hold(res, "cone-not-reciprocal");
+        return 0;
+    }
+    for (int i = 0; i < rt->step_count; i++) {
+        if (rt->steps[i].kind == STEP_FLOW && strcmp(rt->steps[i].field, frame->field) == 0) {
+            frame_flow = 1;
+        }
+    }
+    if (!frame_flow) {
+        universal_hold(res, "cone-not-reciprocal");
+        return 0;
+    }
+
+    if (snapshot) {
+        *snapshot = *rt;
+    }
+    theta0 = cover->theta;
+
+    for (int i = 0; i < rt->step_count; i++) {
+        Step *step = &rt->steps[i];
+        if (step->kind == STEP_FLOW) {
+            FlowResult flow;
+            execute_flow(rt, step, &flow);
+        } else if (step->kind == STEP_COMMIT) {
+            CommitResult commit;
+            execute_commit(rt, step, &commit);
+            if (strcmp(commit.status, "accepted") != 0) {
+                universal_hold(res, "local-commit-held");
+                return 0;
+            }
+        } else {
+            NestResult nest;
+            execute_nest(rt, step, &nest);
+        }
+        if (strcmp(step->id, job->half_step) == 0) {
+            evaluate_cover(cover->theta, theta0, job->tolerance,
+                           res->half_projection, sizeof(res->half_projection),
+                           res->half_sheet, sizeof(res->half_sheet), &winding);
+            if (strcmp(res->half_projection, "returned") != 0) {
+                universal_hold(res, "half-projection-mismatch");
+                return 0;
+            }
+            if (strcmp(res->half_sheet, "inverted") != 0) {
+                universal_hold(res, "half-sheet-mismatch");
+                return 0;
+            }
+        }
+        if (strcmp(step->id, job->full_step) == 0) {
+            evaluate_cover(cover->theta, theta0, job->tolerance,
+                           res->full_projection, sizeof(res->full_projection),
+                           res->full_sheet, sizeof(res->full_sheet), &winding);
+            res->winding = winding;
+            if (strcmp(res->full_projection, "returned") != 0) {
+                universal_hold(res, "full-projection-mismatch");
+                return 0;
+            }
+            if (strcmp(res->full_sheet, "restored") != 0) {
+                universal_hold(res, "full-sheet-mismatch");
+                return 0;
+            }
+            if (winding != 2) {
+                universal_hold(res, "full-projection-mismatch");
+                return 0;
+            }
+        }
+    }
+
+    if (job->has_expect_holonomy &&
+        !cdc_close_enough(holonomy, job->expect_holonomy, job->tolerance)) {
+        universal_hold(res, "holonomy-mismatch");
+        return 0;
+    }
+
+    {
+        char trits[128];
+        char record_dyadic[7];
+        char record_triadic[4];
+        char decision_trits[128];
+        char decision_dyadic[7];
+        char decision_triadic[4];
+        char decision_word[32];
+        int record_index;
+        int occupancy;
+        int quorum;
+        execute_surface_bridge(rt, record, trits, record_dyadic, record_triadic, &record_index);
+        snprintf(res->record_coordinate, sizeof(res->record_coordinate), "%s", record_dyadic);
+        execute_deliberation(rt, decision, decision_trits, decision_dyadic, decision_triadic,
+                             &occupancy, &quorum, decision_word);
+        snprintf(res->decision_coordinate, sizeof(res->decision_coordinate), "%s", decision_dyadic);
+        if (strcmp(decision_word, "adopt") != 0 ||
+            strcmp(record_dyadic, decision_dyadic) != 0) {
+            universal_hold(res, "coordinate-mismatch");
+            return 0;
+        }
+    }
+
+    if (job->expect_coordinate[0]) {
+        cdc_expect_string(res->record_coordinate, job->expect_coordinate,
+                          "universal computed coordinate expectation mismatch");
+    }
+    return 1;
+}
+
+static void run_universal(Runtime *rt, const char *path) {
+    if (rt->universal_count == 0) {
+        fail("source has no universal job");
+    }
+    for (int i = 0; i < rt->universal_count; i++) {
+        UniversalJob *job = &rt->universals[i];
+        UniversalResult res;
+        Runtime snapshot;
+        int accepted = execute_universal(rt, job, &res, &snapshot);
+        if (accepted) {
+            universal_parity_check(&snapshot, rt, job->tolerance);
+            run_universal_enactment(find_evolution_job(rt, job->enact), job, &res);
+            printf("universal-enactment=%s coordinate=%s output=%s appended=%s\n",
+                   job->enact, res.enacted_coordinate,
+                   find_evolution_job(rt, job->enact)->output,
+                   find_evolution_job(rt, job->enact)->append_witness);
+        }
+        printf("universal=%s frame=%s receptive=%s radiant=%s holonomy=%s half-projection=%s half-sheet=%s full-projection=%s full-sheet=%s winding=%d record=%s decision=%s enacted=%s status=%s reason=%s\n",
+               job->id, res.frame, res.receptive_angle, res.radiant_angle, res.holonomy,
+               res.half_projection, res.half_sheet, res.full_projection, res.full_sheet,
+               res.winding, res.record_coordinate, res.decision_coordinate,
+               res.enacted_coordinate, res.status, res.reason);
+        if (job->expect_status[0]) {
+            if (!is_commit_status(job->expect_status)) {
+                fail("unknown universal status expectation");
+            }
+            cdc_expect_string(res.status, job->expect_status, "universal status expectation mismatch");
+        }
+        if (strcmp(res.status, "held") == 0 && job->expect_reason[0]) {
+            cdc_expect_string(res.reason, job->expect_reason, "universal reason expectation mismatch");
+        }
+        if (accepted) {
+            if (job->expect_half_projection[0]) {
+                cdc_expect_string(res.half_projection, job->expect_half_projection, "universal half projection expectation mismatch");
+            }
+            if (job->expect_half_sheet[0]) {
+                cdc_expect_string(res.half_sheet, job->expect_half_sheet, "universal half sheet expectation mismatch");
+            }
+            if (job->expect_full_projection[0]) {
+                cdc_expect_string(res.full_projection, job->expect_full_projection, "universal full projection expectation mismatch");
+            }
+            if (job->expect_full_sheet[0]) {
+                cdc_expect_string(res.full_sheet, job->expect_full_sheet, "universal full sheet expectation mismatch");
+            }
+        }
+    }
+    printf("native universal ok jobs=%d source=%s\n", rt->universal_count, path);
 }
 
 static void collect_replay_data(const char *reducer_path, const char *surface_path, ReplayData *data) {
@@ -1547,13 +1981,29 @@ static void collect_replay_data(const char *reducer_path, const char *surface_pa
     data->bridge_index = index;
 }
 
-int cdc_native_replay_json(const char *reducer_path, const char *surface_path, char *out, size_t out_size) {
+int cdc_native_replay_json(const char *reducer_path, const char *surface_path,
+                           const char *universal_path, char *out, size_t out_size) {
     ReplayData data;
+    UniversalResult universal;
+    int has_universal = 0;
     int written;
+    int appended;
     if (!out || out_size == 0) {
         return -1;
     }
     collect_replay_data(reducer_path, surface_path, &data);
+    if (universal_path && universal_path[0]) {
+        Runtime universal_runtime;
+        parse_source(&universal_runtime, universal_path);
+        if (universal_runtime.universal_count == 0) {
+            fail("replay universal source has no universal job");
+        }
+        if (execute_universal(&universal_runtime, &universal_runtime.universals[0], &universal, NULL)) {
+            snprintf(universal.enacted_coordinate, sizeof(universal.enacted_coordinate),
+                     "%s", universal.record_coordinate);
+        }
+        has_universal = 1;
+    }
     written = snprintf(
         out,
         out_size,
@@ -1588,8 +2038,7 @@ int cdc_native_replay_json(const char *reducer_path, const char *surface_path, c
         "    \"dyadic\": \"%s\",\n"
         "    \"triadic\": \"%s\",\n"
         "    \"index\": \"%d\"\n"
-        "  }\n"
-        "}",
+        "  }",
         data.theta_display,
         data.theta_raw,
         data.channel_weight,
@@ -1612,12 +2061,55 @@ int cdc_native_replay_json(const char *reducer_path, const char *surface_path, c
     if (written < 0 || (size_t)written >= out_size) {
         return -1;
     }
-    return written;
+    if (has_universal) {
+        appended = snprintf(
+            out + written,
+            out_size - (size_t)written,
+            ",\n"
+            "  \"universal\": {\n"
+            "    \"operator\": \"U720\",\n"
+            "    \"frame\": \"%s\",\n"
+            "    \"receptiveAngle\": \"%s\",\n"
+            "    \"radiantAngle\": \"%s\",\n"
+            "    \"holonomy\": \"%s\",\n"
+            "    \"halfProjection\": \"%s\",\n"
+            "    \"halfSheet\": \"%s\",\n"
+            "    \"fullProjection\": \"%s\",\n"
+            "    \"fullSheet\": \"%s\",\n"
+            "    \"recordCoordinate\": \"%s\",\n"
+            "    \"decisionCoordinate\": \"%s\",\n"
+            "    \"enactedCoordinate\": \"%s\",\n"
+            "    \"status\": \"%s\",\n"
+            "    \"reason\": \"%s\"\n"
+            "  }",
+            universal.frame,
+            universal.receptive_angle,
+            universal.radiant_angle,
+            universal.holonomy,
+            universal.half_projection,
+            universal.half_sheet,
+            universal.full_projection,
+            universal.full_sheet,
+            universal.record_coordinate,
+            universal.decision_coordinate,
+            universal.enacted_coordinate,
+            universal.status,
+            universal.reason);
+        if (appended < 0 || (size_t)(written + appended) >= out_size) {
+            return -1;
+        }
+        written += appended;
+    }
+    appended = snprintf(out + written, out_size - (size_t)written, "\n}");
+    if (appended < 0 || (size_t)(written + appended) >= out_size) {
+        return -1;
+    }
+    return written + appended;
 }
 
-static void run_replay(const char *reducer_path, const char *surface_path) {
-    char json[4096];
-    if (cdc_native_replay_json(reducer_path, surface_path, json, sizeof(json)) < 0) {
+static void run_replay(const char *reducer_path, const char *surface_path, const char *universal_path) {
+    char json[6144];
+    if (cdc_native_replay_json(reducer_path, surface_path, universal_path, json, sizeof(json)) < 0) {
         fail("replay JSON buffer too small");
     }
     printf("%s\n", json);
@@ -1632,15 +2124,16 @@ static void usage(void) {
     fprintf(stderr, "  cdc_native_runtime surface native_surface.cdc\n");
     fprintf(stderr, "  cdc_native_runtime council council_bridge.cdc\n");
     fprintf(stderr, "  cdc_native_runtime evolve council_bridge.cdc\n");
-    fprintf(stderr, "  cdc_native_runtime replay native_reducer.cdc native_surface.cdc\n");
+    fprintf(stderr, "  cdc_native_runtime universal framework_loop.cdc\n");
+    fprintf(stderr, "  cdc_native_runtime replay native_reducer.cdc native_surface.cdc [framework_loop.cdc]\n");
     exit(2);
 }
 
 #ifndef CDC_NATIVE_NO_MAIN
 int main(int argc, char **argv) {
     Runtime runtime;
-    if (argc == 4 && strcmp(argv[1], "replay") == 0) {
-        run_replay(argv[2], argv[3]);
+    if ((argc == 4 || argc == 5) && strcmp(argv[1], "replay") == 0) {
+        run_replay(argv[2], argv[3], argc == 5 ? argv[4] : NULL);
         return 0;
     }
     if (argc != 3) {
@@ -1661,6 +2154,8 @@ int main(int argc, char **argv) {
         run_council(&runtime, argv[2]);
     } else if (strcmp(argv[1], "evolve") == 0) {
         run_evolution(&runtime, argv[2]);
+    } else if (strcmp(argv[1], "universal") == 0) {
+        run_universal(&runtime, argv[2]);
     } else {
         usage();
     }

@@ -29,5 +29,21 @@
     "dyadic": "101101",
     "triadic": "231",
     "index": "45"
+  },
+  "universal": {
+    "operator": "U720",
+    "frame": "agent",
+    "receptiveAngle": "0.375000",
+    "radiantAngle": "-0.250000",
+    "holonomy": "0.125000",
+    "halfProjection": "returned",
+    "halfSheet": "inverted",
+    "fullProjection": "returned",
+    "fullSheet": "restored",
+    "recordCoordinate": "110101",
+    "decisionCoordinate": "110101",
+    "enactedCoordinate": "110101",
+    "status": "accepted",
+    "reason": "none"
   }
 }

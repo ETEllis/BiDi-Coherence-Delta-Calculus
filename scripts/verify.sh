@@ -259,13 +259,13 @@ grep -q "native surface ok guards=1 traces=1 measures=1 policies=1 bridges=1 cou
   echo "native surface summary check failed" >&2
   exit 1
 }
-native_replay="$(build/cdc_native_runtime replay native_reducer.cdc native_surface.cdc)"
+native_replay="$(build/cdc_native_runtime replay native_reducer.cdc native_surface.cdc framework_loop.cdc)"
 echo "$native_replay"
 echo "$native_replay" > build/demo-replay.json
 assert_fresh_file \
   build/demo-replay.json \
   demo/replay.json \
-  "build/cdc_native_runtime replay native_reducer.cdc native_surface.cdc > demo/replay.json"
+  "build/cdc_native_runtime replay native_reducer.cdc native_surface.cdc framework_loop.cdc > demo/replay.json"
 
 echo
 echo "== Runtime replay demo contract =="
@@ -331,6 +331,14 @@ projected_bridge = match(
     projection,
     "projected bridge",
 )
+
+universal = replay.get("universal")
+if not universal:
+    raise SystemExit("demo replay is missing the universal operator block")
+if universal["operator"] != "U720" or universal["status"] != "accepted":
+    raise SystemExit("demo replay universal block is not an accepted U720 result")
+if not (universal["recordCoordinate"] == universal["decisionCoordinate"] == universal["enactedCoordinate"]):
+    raise SystemExit("demo replay universal coordinates do not agree")
 
 checks = [
     (replay["flow"]["thetaCouncilBRaw"], theta_raw, "flow raw theta"),
@@ -505,17 +513,25 @@ grep -q "nest=loop-integrate-2 .*parent-belief=1.333333 .*child-prior=1.333333" 
   echo "loop cycle-2 cumulative integration check failed" >&2
   exit 1
 }
-grep -q "native reducer ok steps=6 flow=2 commit=2 nest=2 source=framework_loop.cdc" <<<"$loop_run" || {
+grep -q "flow=loop-turn-half .*theta loop-cover.phase=6.283185" <<<"$loop_run" || {
+  echo "loop half-turn cover check failed" >&2
+  exit 1
+}
+grep -q "flow=loop-turn-full .*theta loop-cover.phase=12.566371" <<<"$loop_run" || {
+  echo "loop full-turn cover check failed" >&2
+  exit 1
+}
+grep -q "native reducer ok steps=8 flow=4 commit=2 nest=2 source=framework_loop.cdc" <<<"$loop_run" || {
   echo "loop two-cycle summary check failed" >&2
   exit 1
 }
 loop_interpret="$(build/cdc_native_runtime interpret framework_loop.cdc)"
-grep -q "native interpret ok ops=6 flow=2 commit=2 nest=2 source=framework_loop.cdc" <<<"$loop_interpret" || {
+grep -q "native interpret ok ops=8 flow=4 commit=2 nest=2 source=framework_loop.cdc" <<<"$loop_interpret" || {
   echo "loop skilled-execution check failed" >&2
   exit 1
 }
 loop_compile="$(build/cdc_native_runtime compile framework_loop.cdc)"
-grep -q "native compile ok jobs=1 ops=6 source=framework_loop.cdc" <<<"$loop_compile" || {
+grep -q "native compile ok jobs=1 ops=8 source=framework_loop.cdc" <<<"$loop_compile" || {
   echo "loop proceduralization check failed" >&2
   exit 1
 }
@@ -546,6 +562,61 @@ case "$loop_recall" in
   *"index=53"*"triadic=311"*) echo "$loop_recall" ;;
   *) echo "loop recorded-coordinate recall failed: $loop_recall" >&2; exit 1 ;;
 esac
+
+echo
+echo "== Universal operator closure =="
+universal_run="$(build/cdc_native_runtime universal framework_loop.cdc)"
+echo "$universal_run"
+grep -q "universal=loop-u720 .*holonomy=0.125000 .*half-projection=returned .*half-sheet=inverted .*full-projection=returned .*full-sheet=restored .*winding=2 .*record=110101 .*decision=110101 .*enacted=110101 .*status=accepted .*reason=none" <<<"$universal_run" || {
+  echo "universal closure acceptance check failed" >&2
+  exit 1
+}
+grep -q "universal-parity ops=8 ok" <<<"$universal_run" || {
+  echo "universal interpreter parity check failed" >&2
+  exit 1
+}
+grep -q "^witness loop-decision-memory invariant=universal-closure coordinate=110101 winding=2 sheet=restored holonomy=0.125000 status=accepted" build/enacted_loop.cdc || {
+  echo "universal enactment is missing the appended universal-closure witness" >&2
+  exit 1
+}
+
+sed -e '/^universal /s/full-step=loop-turn-full/full-step=loop-turn-half/' \
+    -e '/^universal /s/expect-status=accepted expect-reason=none/expect-status=held expect-reason=full-sheet-mismatch/' \
+    framework_loop.cdc > build/fixture_360_only.cdc
+universal_360="$(build/cdc_native_runtime universal build/fixture_360_only.cdc)"
+echo "$universal_360"
+grep -q "universal=loop-u720 .*winding=1 .*status=held .*reason=full-sheet-mismatch" <<<"$universal_360" || {
+  echo "universal 360-only fixture did not hold with full-sheet-mismatch" >&2
+  exit 1
+}
+
+sed -e 's/^channel agent.a -> context.b id=loop-radiant/channel agent.a -> context.c id=loop-radiant/' \
+    -e '/^universal /s/expect-status=accepted expect-reason=none/expect-status=held expect-reason=cone-not-reciprocal/' \
+    framework_loop.cdc > build/fixture_nonreciprocal.cdc
+universal_cone="$(build/cdc_native_runtime universal build/fixture_nonreciprocal.cdc)"
+echo "$universal_cone"
+grep -q "universal=loop-u720 .*status=held .*reason=cone-not-reciprocal" <<<"$universal_cone" || {
+  echo "universal nonreciprocal fixture did not hold with cone-not-reciprocal" >&2
+  exit 1
+}
+
+rm -f build/universal_mismatch_output.cdc
+sed -e '/^council loop-council/s/members=agent,context/members=context,agent/' \
+    -e '/^council loop-council/s/expect-dyadic=110101/expect-dyadic=101110/' \
+    -e '/^council loop-council/s/expect-triadic=311/expect-triadic=232/' \
+    -e '/^evolve loop-enact/s|output=build/enacted_loop.cdc|output=build/universal_mismatch_output.cdc|' \
+    -e '/^universal /s/expect-status=accepted expect-reason=none/expect-status=held expect-reason=coordinate-mismatch/' \
+    framework_loop.cdc > build/fixture_mismatch.cdc
+universal_mismatch="$(build/cdc_native_runtime universal build/fixture_mismatch.cdc)"
+echo "$universal_mismatch"
+grep -q "universal=loop-u720 .*record=110101 .*decision=101110 .*status=held .*reason=coordinate-mismatch" <<<"$universal_mismatch" || {
+  echo "universal mismatch fixture did not hold with coordinate-mismatch" >&2
+  exit 1
+}
+if [ -e build/universal_mismatch_output.cdc ]; then
+  echo "universal mismatch fixture must not create evolved output" >&2
+  exit 1
+fi
 
 echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="

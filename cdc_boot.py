@@ -27,6 +27,7 @@ WITNESS_LINK_FORMS = {
     "interpret": ("interpret",),
     "council": ("deliberate",),
     "evolution": ("evolve",),
+    "universal": ("universal",),
 }
 
 FORM_PRIMITIVES = {"deliberate": "council", "evolve": "evolve"}
@@ -57,6 +58,7 @@ class BootState:
     proof_steps: set[str] = field(default_factory=set)
     council_steps: set[str] = field(default_factory=set)
     evolution_steps: set[str] = field(default_factory=set)
+    universal_steps: set[str] = field(default_factory=set)
     expectations: list[tuple[str, list[str], str]] = field(default_factory=list)
 
 
@@ -153,6 +155,7 @@ def parse_file(state: BootState, path: Path) -> None:
             "council",
             "deliberate",
             "evolve",
+            "universal",
         }:
             if not args:
                 raise SyntaxError(f"{source}: {cmd} requires an id")
@@ -183,6 +186,8 @@ def parse_file(state: BootState, path: Path) -> None:
                 state.council_steps.add(key)
             if cmd == "evolve":
                 state.evolution_steps.add(key)
+            if cmd == "universal":
+                state.universal_steps.add(key)
         elif cmd == "expect":
             state.expectations.append((source, rest, line))
         else:
@@ -334,7 +339,7 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
         detail = f"step {step}" if step else "missing reducer link"
         return ok, f"reducer {wid} ({detail})"
 
-    if head in {"guard", "trace", "measure", "policy", "bridge", "counter"}:
+    if head in {"guard", "trace", "measure", "policy", "bridge", "counter", "universal"}:
         wid = args[1]
         witness = state.witnesses.get(wid)
         if not witness:
@@ -347,6 +352,7 @@ def eval_expect(state: BootState, args: list[str]) -> tuple[bool, str]:
             "policy": state.policy_steps,
             "bridge": state.bridge_steps,
             "counter": state.counter_steps,
+            "universal": state.universal_steps,
         }
         ok = bool(step and step in step_sets[head])
         detail = f"job {step}" if step else f"missing {head} link"

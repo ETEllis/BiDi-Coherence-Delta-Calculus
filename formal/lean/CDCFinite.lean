@@ -188,4 +188,18 @@ theorem rotateCarrier_linear (phi a b : Trit) :
       = interfereCarrier (rotateCarrier phi a) (rotateCarrier phi b) := by
   cases phi <;> cases a <;> cases b <;> rfl
 
+def sheetFlip : Bool -> Bool
+  | true => false
+  | false => true
+
+def coverTurns : Nat -> Bool -> Bool
+  | 0, s => s
+  | n + 1, s => sheetFlip (coverTurns n s)
+
+theorem one_turn_inverts_sheet (s : Bool) : coverTurns 1 s ≠ s := by
+  cases s <;> decide
+
+theorem two_turns_restore_sheet (s : Bool) : coverTurns 2 s = s := by
+  cases s <;> rfl
+
 end CDCFinite

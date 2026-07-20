@@ -3,9 +3,11 @@
 
 kernel bidi stage=2 target=cdc
   term cell channel module field counter trace window measurement bridge policy
+  term lifted-frame universal-record
 
   rule flow commit nest relation trace trace-order window measure adapt synchronize
   rule existence-viability dyadic-triadic-closure invariant-check witness-check
+  rule universal-close
 
   provides parser-state reducer-state witness-state trace-window-state
   provides balanced-ternary-carrier angular-phase path-relation invariant-gate
@@ -17,6 +19,7 @@ kernel bidi stage=2 target=cdc
   provides existence-viability agency-spectrum
   provides transition-framework procedural-framework episodic-framework deliberative-framework
   provides framework-contract task-loop-composition
+  provides universal-operator radiant-receptive-cones lifted-720-closure phase-holonomy
   provides native-witness-suite native-capability-suite native-self-hosting-contract
 
   bootloader read-source parse-lines collect-native-declarations verify-expectations report
@@ -25,11 +28,11 @@ kernel bidi stage=2 target=cdc
   expect host-debt <= 1
   expect python-files == 1
   expect bootloader minimal == true
-  expect terms >= 10
-  expect rules >= 14
-  expect invariants >= 13
-  expect witnesses >= 4809
-  expect capabilities >= 37
+  expect terms >= 12
+  expect rules >= 15
+  expect invariants >= 14
+  expect witnesses >= 4811
+  expect capabilities >= 38
   expect frameworks >= 5
   expect frameworks closed
   expect provides parser-state reducer-state witness-state trace-window-state
@@ -42,5 +45,6 @@ kernel bidi stage=2 target=cdc
   expect provides existence-viability agency-spectrum
   expect provides transition-framework procedural-framework episodic-framework deliberative-framework
   expect provides framework-contract task-loop-composition
+  expect provides universal-operator radiant-receptive-cones lifted-720-closure phase-holonomy
   expect provides native-witness-suite native-capability-suite native-self-hosting-contract
 end
