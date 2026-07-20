@@ -101,10 +101,15 @@ root = Path(".")
 identity = root / "assets" / "identity"
 svgs = [
     identity / "mobius-embodied-mark.svg",
+    identity / "mobius-u-operator.svg",
     identity / "mobius-u-wordmark-dark.svg",
     identity / "mobius-u-wordmark-light.svg",
     identity / "mobius-u-code-sigil.svg",
     identity / "mobius-u-code-sigil-dark.svg",
+    identity / "mobius-ius-relational.svg",
+    identity / "mobius-bi-seed.svg",
+    identity / "mobius-bidi-kernel.svg",
+    identity / "mobius-bidi-delta.svg",
 ]
 
 for path in svgs:
@@ -125,7 +130,7 @@ for path in identity.glob("mobius-u-wordmark-*.svg"):
             raise SystemExit(f"wordmark missing identity invariant {token!r}: {path}")
 
 motion_text = (root / "demo" / "mobius-identity.html").read_text(encoding="utf-8")
-for token in ("PRESENCE", "ONE-TURN LOCK", "RESTORATION", "prefers-reduced-motion", "0.125 rad"):
+for token in ("PRESENCE", "ONE-TURN LOCK", "RESTORATION", "BIDI-DELTA EXTRACTION", "prefers-reduced-motion", "0.125 rad", "master-video", "mobius-identity-master.mp4", "stageFrames"):
     if token not in motion_text:
         raise SystemExit(f"motion lab missing contract token {token!r}")
 
@@ -134,12 +139,16 @@ docs = [
     root / "docs" / "identity" / "MOBIUS_U_GEOMETRY_SPEC.md",
     root / "docs" / "identity" / "MOBIUS_U_MOTION_SPEC.md",
     root / "docs" / "identity" / "MOBIUS_U_MIGRATION_AUDIT.md",
+    root / "docs" / "identity" / "MOBIUS_U_BLENDER_PIPELINE.md",
+    root / "docs" / "identity" / "MOBIUS_U_INTEGRATION.md",
 ]
 if not all(path.is_file() for path in docs):
     raise SystemExit("identity documentation set is incomplete")
 
 print(f"mobius identity assets: ok ({len(svgs)} svg, {len(docs)} contracts, 1 motion lab)")
 PY
+
+run_step ./scripts/verify_identity_3d.sh
 
 echo
 echo "== Native .cdc contract and witness suite =="

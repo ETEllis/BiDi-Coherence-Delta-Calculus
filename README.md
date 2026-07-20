@@ -28,11 +28,15 @@ CDC is the language. The calculus is the kernel semantics.
 
 The repository now also carries a non-breaking **Möbi𝒰s identity candidate**:
 Möbius is the embodied product, `𝒰` is the Universal Operator, and CDC remains
-the formal kernel and canonical `.cdc` source contract. The identity assets and
-motion study do not rename the package or syntax. See
+the formal kernel and canonical `.cdc` source contract. A validated Blender
+master keeps one Möbius topology across its `ö`, `𝒰`, and `Δ` projections and
+decomposes the name's central `bi` into the `bidiΔ` kernel mark. The identity
+assets and motion study do not rename the package or syntax. See
 [`docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md`](docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md)
-and open [`demo/mobius-identity.html`](demo/mobius-identity.html) locally for the
-interactive one-turn/two-turn study.
+[`docs/identity/MOBIUS_U_BLENDER_PIPELINE.md`](docs/identity/MOBIUS_U_BLENDER_PIPELINE.md),
+and [`docs/identity/MOBIUS_U_INTEGRATION.md`](docs/identity/MOBIUS_U_INTEGRATION.md),
+then open [`demo/mobius-identity.html`](demo/mobius-identity.html) locally for
+the interactive one-turn/two-turn study.
 
 That gives the project two separate success stories:
 

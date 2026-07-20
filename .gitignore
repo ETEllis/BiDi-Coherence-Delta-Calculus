@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+*.blend1
 .DS_Store
 .pytest_cache/
 .mypy_cache/
