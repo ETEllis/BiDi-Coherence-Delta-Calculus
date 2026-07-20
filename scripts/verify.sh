@@ -374,6 +374,41 @@ grep -q "self-evolution-bridge" build/evolved_native_reducer.cdc || {
 }
 
 echo
+echo "== Native task frameworks =="
+transition_run="$(build/cdc_native_runtime run framework_transition.cdc)"
+echo "$transition_run"
+grep -q "flow=transition-action .*theta fsm.s1=0.250000" <<<"$transition_run" || {
+  echo "transition framework action check failed" >&2
+  exit 1
+}
+grep -q "commit=transition-fire .*trits=+0- .*balance=admissible .*status=accepted .*reason=none" <<<"$transition_run" || {
+  echo "transition framework fired-transition check failed" >&2
+  exit 1
+}
+grep -q "commit=transition-blocked .*trits=-+0 .*balance=violated .*status=held .*reason=balance-violation" <<<"$transition_run" || {
+  echo "transition framework blocked-transition check failed" >&2
+  exit 1
+}
+grep -q "nest=transition-lift .*parent-belief=0.666667 .*child-prior=0.666667" <<<"$transition_run" || {
+  echo "transition framework hierarchy check failed" >&2
+  exit 1
+}
+transition_surface="$(build/cdc_native_runtime surface framework_transition.cdc)"
+echo "$transition_surface"
+grep -q "guard=transition-guard .*state=open" <<<"$transition_surface" || {
+  echo "transition framework precondition check failed" >&2
+  exit 1
+}
+grep -q "bridge=transition-bridge .*dyadic=101110 .*triadic=232" <<<"$transition_surface" || {
+  echo "transition framework state-key check failed" >&2
+  exit 1
+}
+grep -q "counter=transition-counter .*final=1" <<<"$transition_surface" || {
+  echo "transition framework tally check failed" >&2
+  exit 1
+}
+
+echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="
 if require_or_skip lean "Lean finite carrier/algebra proof check"; then
   run_step lean formal/lean/CDCFinite.lean
