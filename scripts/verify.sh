@@ -486,6 +486,68 @@ grep -q "^witness deliberative-decision-memory invariant=dyadic-triadic-closure 
 }
 
 echo
+echo "== Native task-loop composition =="
+loop_run="$(build/cdc_native_runtime run framework_loop.cdc)"
+echo "$loop_run"
+grep -q "flow=loop-sense-1 .*theta agent.b=0.250000" <<<"$loop_run" || {
+  echo "loop cycle-1 sense check failed" >&2
+  exit 1
+}
+grep -q "nest=loop-integrate-1 .*parent-belief=0.666667" <<<"$loop_run" || {
+  echo "loop cycle-1 integration check failed" >&2
+  exit 1
+}
+grep -q "flow=loop-sense-2 .*theta agent.b=0.492228" <<<"$loop_run" || {
+  echo "loop cycle-2 carried-state sense check failed" >&2
+  exit 1
+}
+grep -q "nest=loop-integrate-2 .*parent-belief=1.333333 .*child-prior=1.333333" <<<"$loop_run" || {
+  echo "loop cycle-2 cumulative integration check failed" >&2
+  exit 1
+}
+grep -q "native reducer ok steps=6 flow=2 commit=2 nest=2 source=framework_loop.cdc" <<<"$loop_run" || {
+  echo "loop two-cycle summary check failed" >&2
+  exit 1
+}
+loop_interpret="$(build/cdc_native_runtime interpret framework_loop.cdc)"
+grep -q "native interpret ok ops=6 flow=2 commit=2 nest=2 source=framework_loop.cdc" <<<"$loop_interpret" || {
+  echo "loop skilled-execution check failed" >&2
+  exit 1
+}
+loop_compile="$(build/cdc_native_runtime compile framework_loop.cdc)"
+grep -q "native compile ok jobs=1 ops=6 source=framework_loop.cdc" <<<"$loop_compile" || {
+  echo "loop proceduralization check failed" >&2
+  exit 1
+}
+loop_surface="$(build/cdc_native_runtime surface framework_loop.cdc)"
+echo "$loop_surface"
+grep -q "bridge=loop-key .*dyadic=110101 .*triadic=311" <<<"$loop_surface" || {
+  echo "loop key check failed" >&2
+  exit 1
+}
+grep -q "counter=loop-cycle .*final=2" <<<"$loop_surface" || {
+  echo "loop cycle-count check failed" >&2
+  exit 1
+}
+loop_council="$(build/cdc_native_runtime council framework_loop.cdc)"
+echo "$loop_council"
+grep -q "council=loop-council .*dyadic=110101 .*triadic=311 .*occupancy=4 .*quorum=4 .*decision=adopt" <<<"$loop_council" || {
+  echo "loop decision check failed" >&2
+  exit 1
+}
+loop_enactment="$(build/cdc_native_runtime evolve framework_loop.cdc)"
+echo "$loop_enactment"
+grep -q "^witness loop-decision-memory invariant=dyadic-triadic-closure coordinate=110101" build/enacted_loop.cdc || {
+  echo "enacted loop output is missing the appended decision-memory witness" >&2
+  exit 1
+}
+loop_recall="$(build/cdc_bridge_runtime lookup-dyadic bridge64.cdc 110101)"
+case "$loop_recall" in
+  *"index=53"*"triadic=311"*) echo "$loop_recall" ;;
+  *) echo "loop recorded-coordinate recall failed: $loop_recall" >&2; exit 1 ;;
+esac
+
+echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="
 if require_or_skip lean "Lean finite carrier/algebra proof check"; then
   run_step lean formal/lean/CDCFinite.lean
