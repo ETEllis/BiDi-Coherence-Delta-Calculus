@@ -3,20 +3,54 @@
 The kernel gives the calculus its verbs: `flow`, `commit`, `nest`, `guard`,
 `trace`, `measure`, `policy`, `bridge`, `counter`, `compile`, `interpret`,
 `council`, `evolve`. This layer gives those verbs task-shaped names. Each
-framework is a **binding plus an executed exemplar**, not new machinery:
+framework is a **binding plus an executed exemplar plus a typed contract**,
+not new machinery:
 
-- no new grammar directives;
-- no new host code (`cdc_boot.py` and the C runtimes are untouched);
+- the exemplar layer required no new grammar and no host growth — frameworks
+  use only pre-existing checked directives;
+- the contract layer adds exactly one declarative registry directive
+  (`framework <key> label=... requires=... permits=...`) whose role contract
+  is enforced by the bootloader; the C runtimes remain untouched and skip the
+  directive, and the checker follows the bootloader's existing deletion gate
+  (native/C parity replaces it, per `NATIVE_SELF_HOSTING_MANDATE.md`);
 - every binding witness links to a job the C native runtime actually executes;
 - every exemplar ships with deterministic expectations checked by
   `./scripts/verify.sh`.
 
-A framework file therefore has three sections: a capability registry entry
-(`H1`–`H4`), a runnable exemplar with `expect-*` values, and binding witnesses
-whose `framework=`/`role=` attributes name the pattern while their job links
-(`guard=`, `reducer=`, `trace=`, `measure=`, `policy=`, `bridge=`, `counter=`,
-`compile=`, `interpret=`, `council=`, `evolution=`) keep every claim attached
-to executed behavior.
+A framework file therefore has four sections: a capability registry entry
+(`H1`–`H5`), a `framework` role contract, a runnable exemplar with `expect-*`
+values, and binding witnesses whose `framework=`/`role=` attributes name the
+pattern while their job links (`guard=`, `reducer=`, `trace=`, `measure=`,
+`policy=`, `bridge=`, `counter=`, `compile=`, `interpret=`, `council=`,
+`evolution=`) keep every claim attached to executed behavior.
+
+## The Framework Contract
+
+`framework=` and `role=` are not free-floating metadata: each framework
+declares its taxonomy as native semantics, and `cdc_boot.py` enforces it.
+
+```text
+framework H3 label=episodic requires=live,record,consolidate,aperture,content,recall,key,ordinal,policy permits=flow,commit,nest,guard,trace,measure,policy,bridge,counter
+expect framework H3 complete
+```
+
+`expect framework <key> complete` fails unless all of the following hold:
+
+1. **completeness** — every role in `requires=` is bound by a witness;
+2. **uniqueness** — no role is bound twice;
+3. **no orphan roles** — every `framework=<label>` witness carries a role from
+   `requires=`;
+4. **exactly one executable link** per binding witness;
+5. **link existence** — the linked job is declared in the tree (`reducer=`
+   links resolve to their declared `flow`/`commit`/`nest` kind, `council=`
+   through `deliberate`, `evolution=` through `evolve`);
+6. **role-primitive compatibility** — the resolved primitive kind is in
+   `permits=`.
+
+`expect frameworks closed` (in `kernel.cdc`) additionally rejects any witness
+anywhere in the tree whose `framework=` label has no `framework` declaration,
+and `expect frameworks >= 5` pins the registry floor. The taxonomy is
+therefore contract-checked, not documentation.
 
 ## The Generic Task Loop
 
@@ -140,6 +174,43 @@ build/cdc_native_runtime council framework_deliberative.cdc
 build/cdc_native_runtime evolve framework_deliberative.cdc
 ```
 
+## The Loop Composition (`framework_loop.cdc`, capability `H5`)
+
+The generic task loop is not only a valid composition of checked slices — it
+is executed as one continuous composition over one shared state object.
+`framework_loop.cdc` declares a single organism (an `agent` module inside a
+`context` module's field) and runs **two full sense → act → integrate cycles
+in one runtime invocation**:
+
+| cycle | sense | act | integrate |
+|---|---|---|---|
+| 1 | `agent.b` phase moves 0 → 0.25 | commit `++0` accepted | context belief 0 → 0.666667 |
+| 2 | phase moves 0.25 → 0.492228 (`0.25·cos(0.25)` from the *carried* phase) | commit `++0` accepted | belief accumulates to 1.333333 |
+
+The second cycle's expectations are unreachable without the first cycle's
+mutations, so carried state is what the gate checks — the loop runs, it is
+not merely diagrammed. The same organism then proceduralizes (`compile` /
+`interpret` re-execute both cycles as IR), gates on its open crossing cell,
+records its configuration (`++0+0-`), recalls its agent state, refines by
+recursive policy, projects its record to a key (`110101` → `311`), deliberates
+over its own modules (occupancy 4 at quorum 4 → adopt), and enacts the
+decision into source memory. The adopted coordinate **equals** the recorded
+key: what the organism records is what it decides.
+
+```bash
+build/cdc_native_runtime run framework_loop.cdc        # two cycles, one state object
+build/cdc_native_runtime compile framework_loop.cdc    # the loop as reducer IR
+build/cdc_native_runtime interpret framework_loop.cdc  # the loop re-executed as IR
+build/cdc_native_runtime surface framework_loop.cdc    # gate, record, recall, refine, key, count
+build/cdc_native_runtime council framework_loop.cdc    # decide on the recorded coordinate
+build/cdc_native_runtime evolve framework_loop.cdc     # enact into build/enacted_loop.cdc
+```
+
+The loop is contract-checked as framework `H5` with sixteen required roles
+spanning every permitted primitive, including the recurrence roles
+(`recur-sense`, `recur-act`, `recur-integrate`) that pin the carried-state
+cycle.
+
 ## Writing Your Own Instance
 
 1. Declare state with existing forms: `field`, `module`, `cell`, `channel`.
@@ -148,9 +219,11 @@ build/cdc_native_runtime evolve framework_deliberative.cdc
    against the field deadband; commits walk cells in declaration order under
    the nonnegative-balance barrier; a traced field needs exactly six cells to
    project through `bridge64`).
-3. Add one binding witness per role, linked to its job, and `expect` lines so
-   `cdc_boot.py` enforces the linkage.
-4. Execute the file through the matching runtime modes and wire the checked
+3. Declare the `framework` contract — `requires=` your roles, `permits=` the
+   primitive kinds they may bind — and add `expect framework <key> complete`.
+4. Add one binding witness per role, linked to its job, and `expect` lines so
+   `cdc_boot.py` enforces both the linkage and the role contract.
+5. Execute the file through the matching runtime modes and wire the checked
    output into `scripts/verify.sh`.
 
 ## Honest Boundaries
@@ -171,17 +244,29 @@ claimed:
   patch.
 - **Council/evolve generalization** into the main reducer and trace/window
   policy layer remains queued in the matrix, unchanged by this layer.
+- **The loop composition spans four runtime invocations** over one declared
+  source: the reducer chain (both cycles), the surface pass, the council pass,
+  and the enactment pass. A single-process executor that fuses all modes over
+  one live state object — and unbounded cycle iteration — are queued, not
+  claimed.
+- **The framework-contract checker lives in the bootloader** and shares its
+  deletion gate: it must reach native/C parity before the Python host can be
+  removed.
 
 ## Registry
 
-| capability | framework | file |
-|---|---|---|
-| `H1` | transition | `framework_transition.cdc` |
-| `H2` | procedural | `framework_procedural.cdc` |
-| `H3` | episodic | `framework_episodic.cdc` |
-| `H4` | deliberative | `framework_deliberative.cdc` |
+| capability | framework | roles | file |
+|---|---|---|---|
+| `H1` | transition | 10 | `framework_transition.cdc` |
+| `H2` | procedural | 6 | `framework_procedural.cdc` |
+| `H3` | episodic | 9 | `framework_episodic.cdc` |
+| `H4` | deliberative | 2 | `framework_deliberative.cdc` |
+| `H5` | loop | 16 | `framework_loop.cdc` |
 
-The kernel contract requires all four through `provides`/`expect provides`
+The kernel contract requires all five through `provides`/`expect provides`
 (`transition-framework procedural-framework episodic-framework
-deliberative-framework`) and the raised capability and witness floors in
-`kernel.cdc`.
+deliberative-framework framework-contract task-loop-composition`), the
+framework registry floor and closure (`expect frameworks >= 5`,
+`expect frameworks closed`), and the raised capability and witness floors in
+`kernel.cdc`. Every framework's role contract is individually enforced by its
+`expect framework <key> complete` line.

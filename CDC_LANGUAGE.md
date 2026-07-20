@@ -35,7 +35,7 @@ C ABI for an eventual Emscripten build.
 ```ebnf
 program      = { directive } ;
 directive    = kernel | term | rule | provides | bootloader
-             | invariant | law | capability | witness
+             | invariant | law | capability | framework | witness
              | field | module | cell | channel | guard | counter
              | flow | commit | nest | trace | measure | policy | bridge
              | compile | interpret | proof | council | deliberate | evolve
@@ -50,6 +50,7 @@ bootloader   = "bootloader" name { name } ;
 invariant    = "invariant" key { kwarg } ;
 law          = "law" key { kwarg } ;
 capability   = "capability" key { kwarg } ;
+framework    = "framework" key { kwarg } ;
 witness      = "witness" key { kwarg } ;
 
 field        = "field" key { kwarg } ;
@@ -108,11 +109,29 @@ expect interpret <witness-id>
 expect proof <witness-id>
 expect council <witness-id>
 expect evolution <witness-id>
+expect frameworks >= N
+expect frameworks closed
+expect framework <framework-key> complete
 ```
 
 `expect law K` requires both an `invariant K` declaration and at least one native
 `witness ... invariant=K`. `expect capability C` requires both a
 `capability C` declaration and at least one native `witness ... capability=C`.
+
+A `framework` declaration is a typed role contract:
+
+```text
+framework H3 label=episodic requires=live,record,... permits=flow,commit,...
+```
+
+`expect framework K complete` requires that every role in `requires=` is bound
+by exactly one witness carrying `framework=<label> role=<role>`, that each such
+witness links to exactly one declared executable job, that the linked job's
+primitive kind is in `permits=` (`reducer=` links resolve to their declared
+`flow`/`commit`/`nest` kind; `council=` and `evolution=` links resolve through
+`deliberate` and `evolve` jobs), and that no witness carries an unknown or
+duplicate role. `expect frameworks closed` additionally rejects any witness in
+the whole tree whose `framework=` label has no `framework` declaration.
 `expect reducer W` requires witness `W` to link to a declared native reducer
 step through `witness ... reducer=<flow-or-commit-or-nest-id>`.
 `expect guard W`, `expect trace W`, `expect measure W`, `expect policy W`,
@@ -139,6 +158,7 @@ finite-proof, council, and source-evolution jobs.
 | `framework_procedural.cdc` | procedural framework (`H2`): cue, executed and retried steps, nest consolidation, self-referential compile/interpret proceduralization |
 | `framework_episodic.cdc` | episodic framework (`H3`): lived flow, committed record, archive consolidation, trace content, measured recall, bridge memory key, ordinal counter |
 | `framework_deliberative.cdc` | deliberative framework (`H4`): option modules, council quorum decision, bridge-coordinate enactment into source memory |
+| `framework_loop.cdc` | task-loop composition (`H5`): two executed sense/act/integrate cycles over one shared state object, plus gate/record/recall/refine/key/decide/enact jobs and self-referential compile/interpret |
 | `system.cdc` | 32 capability declarations and native witness handles |
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
