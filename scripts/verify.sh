@@ -374,6 +374,118 @@ grep -q "self-evolution-bridge" build/evolved_native_reducer.cdc || {
 }
 
 echo
+echo "== Native task frameworks =="
+transition_run="$(build/cdc_native_runtime run framework_transition.cdc)"
+echo "$transition_run"
+grep -q "flow=transition-action .*theta fsm.s1=0.250000" <<<"$transition_run" || {
+  echo "transition framework action check failed" >&2
+  exit 1
+}
+grep -q "commit=transition-fire .*trits=+0- .*balance=admissible .*status=accepted .*reason=none" <<<"$transition_run" || {
+  echo "transition framework fired-transition check failed" >&2
+  exit 1
+}
+grep -q "commit=transition-blocked .*trits=-+0 .*balance=violated .*status=held .*reason=balance-violation" <<<"$transition_run" || {
+  echo "transition framework blocked-transition check failed" >&2
+  exit 1
+}
+grep -q "nest=transition-lift .*parent-belief=0.666667 .*child-prior=0.666667" <<<"$transition_run" || {
+  echo "transition framework hierarchy check failed" >&2
+  exit 1
+}
+transition_surface="$(build/cdc_native_runtime surface framework_transition.cdc)"
+echo "$transition_surface"
+grep -q "guard=transition-guard .*state=open" <<<"$transition_surface" || {
+  echo "transition framework precondition check failed" >&2
+  exit 1
+}
+grep -q "bridge=transition-bridge .*dyadic=101110 .*triadic=232" <<<"$transition_surface" || {
+  echo "transition framework state-key check failed" >&2
+  exit 1
+}
+grep -q "counter=transition-counter .*final=1" <<<"$transition_surface" || {
+  echo "transition framework tally check failed" >&2
+  exit 1
+}
+procedural_run="$(build/cdc_native_runtime run framework_procedural.cdc)"
+echo "$procedural_run"
+grep -q "commit=procedural-execute .*trits=0+- .*balance=admissible .*status=accepted .*reason=none" <<<"$procedural_run" || {
+  echo "procedural framework step check failed" >&2
+  exit 1
+}
+grep -q "commit=procedural-retry .*trits=-+0 .*balance=violated .*status=held .*reason=balance-violation" <<<"$procedural_run" || {
+  echo "procedural framework retry check failed" >&2
+  exit 1
+}
+grep -q "nest=procedural-consolidate .*parent-belief=0.666667 .*child-prior=0.666667" <<<"$procedural_run" || {
+  echo "procedural framework consolidation check failed" >&2
+  exit 1
+}
+procedural_compile="$(build/cdc_native_runtime compile framework_procedural.cdc)"
+echo "$procedural_compile"
+grep -q "native compile ok jobs=1 ops=4 source=framework_procedural.cdc" <<<"$procedural_compile" || {
+  echo "procedural framework proceduralization check failed" >&2
+  exit 1
+}
+procedural_interpret="$(build/cdc_native_runtime interpret framework_procedural.cdc)"
+echo "$procedural_interpret"
+grep -q "native interpret ok ops=4 flow=1 commit=2 nest=1 source=framework_procedural.cdc" <<<"$procedural_interpret" || {
+  echo "procedural framework skilled-execution check failed" >&2
+  exit 1
+}
+episodic_run="$(build/cdc_native_runtime run framework_episodic.cdc)"
+echo "$episodic_run"
+grep -q "commit=episodic-record .*trits=++0 .*balance=admissible .*status=accepted .*reason=none" <<<"$episodic_run" || {
+  echo "episodic framework record check failed" >&2
+  exit 1
+}
+grep -q "nest=episodic-consolidate .*parent-belief=0.666667 .*child-prior=0.666667" <<<"$episodic_run" || {
+  echo "episodic framework consolidation check failed" >&2
+  exit 1
+}
+episodic_surface="$(build/cdc_native_runtime surface framework_episodic.cdc)"
+echo "$episodic_surface"
+grep -q "trace=episodic-trace .*trits=++00-+ .*events=4" <<<"$episodic_surface" || {
+  echo "episodic framework content check failed" >&2
+  exit 1
+}
+grep -q "bridge=episodic-key .*dyadic=110011 .*triadic=303" <<<"$episodic_surface" || {
+  echo "episodic framework key check failed" >&2
+  exit 1
+}
+grep -q "counter=episodic-ordinal .*final=1" <<<"$episodic_surface" || {
+  echo "episodic framework ordinal check failed" >&2
+  exit 1
+}
+
+episodic_recall_by_content="$(build/cdc_bridge_runtime lookup-dyadic bridge64.cdc 110011)"
+case "$episodic_recall_by_content" in
+  *"index=51"*"triadic=303"*) echo "$episodic_recall_by_content" ;;
+  *) echo "episodic recall by content failed: $episodic_recall_by_content" >&2; exit 1 ;;
+esac
+episodic_recall_by_key="$(build/cdc_bridge_runtime lookup-triadic bridge64.cdc 303)"
+case "$episodic_recall_by_key" in
+  *"index=51"*"dyadic=110011"*) echo "$episodic_recall_by_key" ;;
+  *) echo "episodic recall by key failed: $episodic_recall_by_key" >&2; exit 1 ;;
+esac
+deliberative_council="$(build/cdc_native_runtime council framework_deliberative.cdc)"
+echo "$deliberative_council"
+grep -q "council=deliberative-council .*dyadic=111101 .*triadic=331 .*occupancy=5 .*quorum=4 .*decision=adopt" <<<"$deliberative_council" || {
+  echo "deliberative framework quorum check failed" >&2
+  exit 1
+}
+deliberative_enactment="$(build/cdc_native_runtime evolve framework_deliberative.cdc)"
+echo "$deliberative_enactment"
+grep -q "evolution=deliberative-enactment coordinate=111101" <<<"$deliberative_enactment" || {
+  echo "deliberative framework enactment check failed" >&2
+  exit 1
+}
+grep -q "^witness deliberative-decision-memory invariant=dyadic-triadic-closure coordinate=111101" build/enacted_decision.cdc || {
+  echo "enacted decision output is missing the appended decision-memory witness" >&2
+  exit 1
+}
+
+echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="
 if require_or_skip lean "Lean finite carrier/algebra proof check"; then
   run_step lean formal/lean/CDCFinite.lean

@@ -16,7 +16,7 @@ verification.
 |---|---|---|
 | proved | Mechanized in Lean/Rocq/Coq or exhaustively checked by the native finite proof checker | finite `n=6` carrier counts and finite algebraic mirrors |
 | witnessed | Declared as a native `.cdc` invariant, law, capability, or witness link | semantic registry, reducer links, trace/window links, bridge witnesses |
-| runtime-checked | Executed by the C runtimes or freshness checks in `scripts/verify.sh` | shared native parser/expectation core, bridge lookup/generation, reducer flow/accepted commit/held commit/nest, replay JSON, surface/council/evolve, paper compile |
+| runtime-checked | Executed by the C runtimes or freshness checks in `scripts/verify.sh` | shared native parser/expectation core, bridge lookup/generation, reducer flow/accepted commit/held commit/nest, replay JSON, surface/council/evolve, task-framework exemplars, paper compile |
 | queued | Explicit formalization or product parity work not yet claimed as proved | continuous flow theorem, arbitrary `n=3k` bridge proof/generator, self-hosted reducer, live WASM parity |
 
 | Claim | Current native witness | Formal obligation |
@@ -46,6 +46,10 @@ verification.
 | native compile/proof path | `native_reducer.cdc` declares compile/proof jobs; `runtime/cdc_native_runtime.c` emits reducer IR and exhaustively checks finite carrier counts | self-host the compiler/reducer in `.cdc`; extract or port proof obligations to Lean/Coq/Kani |
 | council deliberation | `council_bridge.cdc` declares a source-level council and deliberation; `runtime/cdc_native_runtime.c` projects member trits into dyadic/triadic bridge coordinates and checks the expected decision | generalize council semantics into the main reducer and trace/window policy layer |
 | bridge-coordinate source evolution | `council_bridge.cdc` declares an `evolve` job; `runtime/cdc_native_runtime.c` writes a copied `.cdc` source with the requested bridge-coordinate witness and verification checks containment | replace copy/append pilot with typed native source-transform semantics |
+| transition framework | `framework_transition.cdc` declares capability `H1` with guard/flow/commit/nest/trace/measure/policy/bridge/counter binding witnesses; `scripts/verify.sh` executes the exemplar through run and surface modes | typed transition-system semantics over the commit relation |
+| procedural framework | `framework_procedural.cdc` declares capability `H2` with cue/step/retry/consolidate witnesses plus self-referential compile and interpret jobs; the gate executes run, compile, and interpret modes | procedure IR beyond flow/commit/nest op kinds; self-hosted compiler path |
+| episodic framework | `framework_episodic.cdc` declares capability `H3` with live/record/consolidate/aperture/content/recall/key/ordinal witnesses; the gate executes run and surface modes and cross-checks bidirectional bridge64 recall | persistent cross-run episode store and multi-episode window algebra |
+| deliberative framework | `framework_deliberative.cdc` declares capability `H4` with quorum and enactment witnesses; the gate checks the adopted coordinate and requires the appended decision-memory witness in the evolved copy | generalize council semantics into the main reducer and trace/window policy layer |
 | native language center | `kernel.cdc` declares terms, rules, capabilities, witness counts, and one-file Python boundary | native reducer and proof checker expressed in `.cdc` |
 
 ## First Mechanized Target

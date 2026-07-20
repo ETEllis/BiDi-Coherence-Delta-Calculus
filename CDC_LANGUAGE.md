@@ -135,6 +135,10 @@ finite-proof, council, and source-evolution jobs.
 | `native_reducer.cdc` | source-declared field/module/cell/channel state plus reducer, compile, interpret, and finite-proof jobs consumed by the C native runtime |
 | `native_surface.cdc` | source-declared guard, trace, measure, policy, bridge, and counter jobs consumed by the C native runtime |
 | `council_bridge.cdc` | source-declared council deliberation and bridge-coordinate source-evolution jobs |
+| `framework_transition.cdc` | transition framework (`H1`): guard precondition, flow action, fired/blocked commits, nest hierarchy, trace log, bridge state key, counter tally |
+| `framework_procedural.cdc` | procedural framework (`H2`): cue, executed and retried steps, nest consolidation, self-referential compile/interpret proceduralization |
+| `framework_episodic.cdc` | episodic framework (`H3`): lived flow, committed record, archive consolidation, trace content, measured recall, bridge memory key, ordinal counter |
+| `framework_deliberative.cdc` | deliberative framework (`H4`): option modules, council quorum decision, bridge-coordinate enactment into source memory |
 | `system.cdc` | 32 capability declarations and native witness handles |
 | `relations.cdc` | angular, projected, cross-scale, detuning, and overlap relation witness handles |
 | `trace_windows.cdc` | balanced-ternary trace/window, local-counter, coupled-observer, and recursive-policy witness handles |
