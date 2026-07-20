@@ -278,9 +278,9 @@ permitting localized count is $51$.
 
 Together, the four bridge/carrier/existence/trace invariants, four algebraic
 invariants, and five reduction invariants make the 13-key semantic registry
-exercised by the native bootloader. The witness suite reports 13/13 invariant
-keys, 234/234 native \texttt{.cdc} expectations, 4809/4809 native witnesses,
-37/37 capability declarations, and 5/5 framework role contracts enforced for
+exercised by the native bootloader. The witness suite reports 14/14 invariant
+keys, 238/238 native \texttt{.cdc} expectations, 4811/4811 native witnesses,
+38/38 capability declarations, and 5/5 framework role contracts enforced for
 completeness, uniqueness, closure, and role-primitive compatibility. The bridge
 runtime also compiles as C and consumes
 \texttt{bridge64.cdc} for lookup, trace-coordinate projection, generated
@@ -301,7 +301,24 @@ bootloader-enforced role contracts, and \nolinkurl{framework_loop.cdc} runs
 the generic task loop as one continuous composition -- two sense/act/integrate
 cycles over one shared state object whose second-cycle expectations are
 reachable only through carried state, followed by record, recall, decision,
-and enactment jobs over the same source.
+and enactment jobs over the same source. The same file is the first executable
+instance of the Universal Operator: the \texttt{universal} runtime mode holds
+one live runtime object through reducer execution, trace/bridge projection,
+council decision, closure validation, and enactment, accepting only when
+reciprocal angularly biased receptive/radiant causal cones are concurrently
+active, a lifted double-cover frame (projected phase modulo $2\pi$, winding
+count, $\mathbb{Z}_2$ sheet, accumulated holonomy) returns its projection with
+an inverted sheet after one turn and restores both only after $720^{\circ}$,
+measured holonomy matches the declaration, and the runtime-computed record
+coordinate equals the runtime-computed decision coordinate that is then
+enacted. Three negative fixtures hold with precise reasons and create no
+evolved output. The operator is derived over flow/commit/nest rather than a
+fourth foundational reduction; the finite sheet-parity facts are mechanized in
+the Lean and Coq mirrors; the M\"obius/double-cover picture is a topological
+realization of the return path, not a physical spinor claim; and a physical
+light-cone reading, a continuous holonomy theorem, and any gravity
+application remain explicitly queued obligations, since the generic calculus
+speaks only of causal cones without a metric or null-propagation constraints.
 \texttt{runtime/cdc\_source.c} factors the shared native \texttt{.cdc}
 line parser, typed attribute reader, and primitive expectation checks used by
 the bridge and reducer runtimes; this is not yet full bootloader parity.
@@ -369,7 +386,7 @@ The repository contains:
 \item \texttt{native\_surface.cdc}: source-declared guard, trace, measure, policy, bridge, and counter jobs;
 \item \texttt{council\_bridge.cdc}: source-declared council deliberation and bridge-coordinate source-evolution jobs;
 \item task frameworks (\nolinkurl{FRAMEWORKS.md}): \texttt{framework\_transition.cdc}, \texttt{framework\_procedural.cdc}, \texttt{framework\_episodic.cdc}, and \texttt{framework\_deliberative.cdc} with bootloader-enforced role contracts;
-\item \texttt{framework\_loop.cdc}: the generic task loop executed as one two-cycle composition over shared state;
+\item \texttt{framework\_loop.cdc}: the generic task loop executed as one two-cycle composition over shared state, and the first executable Universal Operator instance with 720-degree lifted-frame closure, holonomy check, and guarded enactment;
 \item shared native source core: common \texttt{.cdc} line/attribute parser and primitive expectation assertions;
 \item bridge runtime: verifies codebooks and emits the interactive SVG;
 \item native runtime: runs reducer, IR, proof, council, evolution, and replay jobs;

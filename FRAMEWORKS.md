@@ -206,10 +206,47 @@ build/cdc_native_runtime council framework_loop.cdc    # decide on the recorded 
 build/cdc_native_runtime evolve framework_loop.cdc     # enact into build/enacted_loop.cdc
 ```
 
-The loop is contract-checked as framework `H5` with sixteen required roles
+The loop is contract-checked as framework `H5` with seventeen required roles
 spanning every permitted primitive, including the recurrence roles
 (`recur-sense`, `recur-act`, `recur-integrate`) that pin the carried-state
-cycle.
+cycle and the `close` role bound to the Universal Operator.
+
+### The Universal Operator (`universal`, capability `U1`)
+
+`bidiγΔ` is the calculus's **open** bidirectional transport between reference
+frames. The Universal Operator `𝒰` is its **closed, self-referential
+completion** — a higher-order guarded return map, derived over
+`flow`/`commit`/`nest` plus `trace`, `bridge`, `council`, and `evolve`, never
+a fourth foundational reduction. The loop file is its first executable
+instance:
+
+```bash
+build/cdc_native_runtime universal framework_loop.cdc
+```
+
+One `universal` mode invocation holds **one live runtime object** through
+reducer execution, surface trace and bridge projection, council decision,
+closure validation, and enactment. Acceptance requires all of: the
+`receptive`/`radiant` channels form a reciprocal, angularly biased endpoint
+pair active in the same flow evaluation (holonomy `0.375 − 0.25 = 0.125`);
+the lifted double-cover frame (projected phase mod 2π, winding count, Z2
+sheet) returns its projection with an **inverted** sheet after 360° and
+restores both only after **720°**; all local commits are accepted; and the
+runtime-computed record coordinate equals the runtime-computed decision
+coordinate — independently computed from live state, never compared as
+repeated literals. Only then is that computed coordinate enacted, with a
+`universal-closure` witness carrying coordinate, winding, sheet, and holonomy.
+Interpreter parity runs against a copy of the initial runtime snapshot, never
+the live object.
+
+The gate also proves the guard guards: a 360°-only fixture holds with
+`full-sheet-mismatch`, a nonreciprocal cone fixture holds with
+`cone-not-reciprocal`, and a record/decision mismatch fixture holds with
+`coordinate-mismatch` and creates no evolved output. The finite sheet-parity
+claims — one turn inverts the Z2 sheet, two turns restore it — are mechanized
+in the Lean and Coq mirrors. The Möbius/double-cover picture is a topological
+realization of the return path, not a claim that carrier states are physical
+spinors, and the continuous holonomy theorem remains a queued obligation.
 
 ## Writing Your Own Instance
 
@@ -252,6 +289,10 @@ claimed:
 - **The framework-contract checker lives in the bootloader** and shares its
   deletion gate: it must reach native/C parity before the Python host can be
   removed.
+- **Universal closure is finite and discrete where it is claimed.** The sheet
+  parity is proved; the executed 720° fixture is runtime-checked. Continuous
+  frame transport, a continuous holonomy theorem, scale-equivariance, and any
+  physical light-cone or gravity reading are queued, not claimed.
 
 ## Registry
 
@@ -261,7 +302,7 @@ claimed:
 | `H2` | procedural | 6 | `framework_procedural.cdc` |
 | `H3` | episodic | 9 | `framework_episodic.cdc` |
 | `H4` | deliberative | 2 | `framework_deliberative.cdc` |
-| `H5` | loop | 16 | `framework_loop.cdc` |
+| `H5` | loop (+ `U1` universal closure) | 17 | `framework_loop.cdc` |
 
 The kernel contract requires all five through `provides`/`expect provides`
 (`transition-framework procedural-framework episodic-framework

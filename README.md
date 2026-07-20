@@ -133,6 +133,7 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Native task frameworks** — `framework_transition.cdc`, `framework_procedural.cdc`, `framework_episodic.cdc`, and `framework_deliberative.cdc` bind state-change, procedural-memory, episodic-memory, and decision patterns onto executed kernel jobs, registered as capabilities `H1`–`H4` (see `FRAMEWORKS.md`).
 - **Typed framework contracts** — each framework declares `requires=` roles and `permits=` primitives; `expect framework <key> complete` enforces role completeness, uniqueness, orphan closure, and role-primitive compatibility in the bootloader.
 - **Executed task-loop composition** — `framework_loop.cdc` (`H5`) runs the sense → act → integrate loop twice over one shared state object, with second-cycle expectations reachable only through carried state, then records, recalls, decides, and enacts from the same source.
+- **Universal Operator `𝒰`** — the guarded, scale-relative closure of `bidiγΔ`: where `bidiγΔ` is open bidirectional transport between reference frames, `universal` is its closed lifted return — reciprocal receptive/radiant angularly biased causal cones active in one flow evaluation, internal flow/commit/nest reductions, a double-cover lifted frame (projected phase mod 2π, winding, Z2 sheet, holonomy) that closes only after 720°, and enactment of the runtime-computed record. Derived over `flow`/`commit`/`nest` — not a fourth foundational reduction. The finite sheet-parity claims (one turn inverts, two turns restore) are mechanized in Lean and Coq; the Möbius/double-cover picture is a topological realization, not a claim that carrier states are physical spinors.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Native guard witnesses** — commit-time guards report `accepted`, `held`, or `degraded` status plus a reason such as `none`, `balance-violation`, `energy-increase`, or `deadband-jitter`; continuous free-energy descent remains scoped to witnessed subset obligations.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
@@ -149,16 +150,17 @@ The package passes 100% through `./scripts/verify.sh`. CI runs the stricter
 `./scripts/verify.sh --require-formal` gate in `.github/workflows/ci.yml`:
 
 - 1/1 Python bootloader file: `cdc_boot.py`
-- 234/234 native `.cdc` expectations
-- 13/13 native invariant declarations
-- 37/37 native capability declarations
+- 238/238 native `.cdc` expectations
+- 14/14 native invariant declarations
+- 38/38 native capability declarations
 - 5/5 native framework contracts with enforced role completeness
-- 4809/4809 native witness declarations
+- 4811/4811 native witness declarations
 - C bridge runtime compile, lookup, trace-coordinate, generated higher-arity codebook, and interactive grid/SVG checks
 - C native reducer runtime run/compile/interpret/proof/surface/council/evolve/replay checks, including explicit accepted and held commit statuses
 - C native task-framework checks: transition, procedural, episodic (with bidirectional codebook recall), and deliberative exemplars from the four `framework_*.cdc` files
 - C native task-loop composition: `framework_loop.cdc` executes two sense/act/integrate cycles over one shared state object, then proceduralizes, records, recalls, decides, and enacts from the same source
 - Bootloader-enforced framework role contracts: `framework` declarations with `requires=`/`permits=` checked for completeness, uniqueness, closure, and role-primitive compatibility
+- Universal Operator closure: the `universal` runtime mode runs the whole loop over one live state object, checks reciprocal receptive/radiant cones, 720-degree lifted-frame closure with holonomy 0.125, record/decision coordinate agreement, and enacts only after acceptance — with three held negative fixtures (360-only, nonreciprocal cone, coordinate mismatch)
 - Shared C `.cdc` parser/expectation core linked into both native runtimes and compile-checked for the WASM export path
 - Native replay JSON freshness for `demo/replay.json` and the one-screen demo embed
 - WASM replay export surface compile check, with live `emcc` link when Emscripten is available
@@ -190,7 +192,7 @@ kernel bidi stage=2 target=cdc
   bootloader read-source parse-lines collect-native-declarations verify-expectations report
   expect native substrate == cdc
   expect python-files == 1
-  expect witnesses >= 4809
+  expect witnesses >= 4811
 end
 ```
 
@@ -282,6 +284,8 @@ build/cdc_native_runtime council framework_deliberative.cdc  # options -> quorum
 build/cdc_native_runtime evolve framework_deliberative.cdc   # decision enacted as source memory
 build/cdc_native_runtime run framework_loop.cdc              # the whole loop: two cycles, one state object
 build/cdc_native_runtime interpret framework_loop.cdc        # the whole loop re-executed as compiled IR
+build/cdc_native_runtime universal framework_loop.cdc        # U720 closure: one live state through reduce,
+                                                             # record, decide, closure checks, and enactment
 ```
 
 Each framework also declares a typed contract (`framework <key> requires=...
