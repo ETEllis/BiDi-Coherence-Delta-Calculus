@@ -130,6 +130,7 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Native full-surface runtime** — `native_surface.cdc` exercises guard, trace, measure, policy, bridge, and counter forms through the same C runtime.
 - **Native compile/interpreter/proof path** — the same runtime emits reducer IR, executes that IR through an interpreter path, and exhaustively checks the finite n=6 balanced-ternary walk spectrum.
 - **Council + self-evolution scenario** — `council_bridge.cdc` deliberates across modules into a bridge coordinate and writes a bridge-coordinate witness into an evolved `.cdc` source copy.
+- **Native task frameworks** — `framework_transition.cdc`, `framework_procedural.cdc`, `framework_episodic.cdc`, and `framework_deliberative.cdc` bind state-change, procedural-memory, episodic-memory, and decision patterns onto executed kernel jobs, registered as capabilities `H1`–`H4` (see `FRAMEWORKS.md`).
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Native guard witnesses** — commit-time guards report `accepted`, `held`, or `degraded` status plus a reason such as `none`, `balance-violation`, `energy-increase`, or `deadband-jitter`; continuous free-energy descent remains scoped to witnessed subset obligations.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.
@@ -146,12 +147,13 @@ The package passes 100% through `./scripts/verify.sh`. CI runs the stricter
 `./scripts/verify.sh --require-formal` gate in `.github/workflows/ci.yml`:
 
 - 1/1 Python bootloader file: `cdc_boot.py`
-- 177/177 native `.cdc` expectations
+- 209/209 native `.cdc` expectations
 - 13/13 native invariant declarations
-- 32/32 native capability declarations
-- 4766/4766 native witness declarations
+- 36/36 native capability declarations
+- 4793/4793 native witness declarations
 - C bridge runtime compile, lookup, trace-coordinate, generated higher-arity codebook, and interactive grid/SVG checks
 - C native reducer runtime run/compile/interpret/proof/surface/council/evolve/replay checks, including explicit accepted and held commit statuses
+- C native task-framework checks: transition, procedural, episodic (with bidirectional codebook recall), and deliberative exemplars from the four `framework_*.cdc` files
 - Shared C `.cdc` parser/expectation core linked into both native runtimes and compile-checked for the WASM export path
 - Native replay JSON freshness for `demo/replay.json` and the one-screen demo embed
 - WASM replay export surface compile check, with live `emcc` link when Emscripten is available
@@ -257,6 +259,27 @@ claimed.
 `cdc_boot.py` only indexes those declarations and verifies their witness links;
 it does not execute the reducer.
 
+## Task Frameworks
+
+Four generalizable task frameworks bind practical task vocabulary onto the
+kernel primitives without any new grammar or host code — each is a `.cdc`
+file with a capability registry entry, binding witnesses linked to executed
+jobs, and a deterministic exemplar checked by the verification gate:
+
+```bash
+build/cdc_native_runtime run framework_transition.cdc        # state change: guard, act, fire, block, lift
+build/cdc_native_runtime surface framework_transition.cdc
+build/cdc_native_runtime compile framework_procedural.cdc    # skills: declarative source -> reducer IR
+build/cdc_native_runtime interpret framework_procedural.cdc  # skilled execution through the IR path
+build/cdc_native_runtime run framework_episodic.cdc          # episodes: live, record, consolidate
+build/cdc_native_runtime surface framework_episodic.cdc      # recall, key, ordinal
+build/cdc_native_runtime council framework_deliberative.cdc  # options -> quorum -> decision coordinate
+build/cdc_native_runtime evolve framework_deliberative.cdc   # decision enacted as source memory
+```
+
+The binding tables, the generic task loop, and the explicitly queued
+obligations are documented in `FRAMEWORKS.md`.
+
 Lean and Coq mirrors of the finite carrier and algebraic law proof live in
 `formal/lean/CDCFinite.lean` and `formal/coq/CDCFinite.v`. `./scripts/verify.sh`
 runs them automatically when the corresponding toolchain is installed.
@@ -284,6 +307,7 @@ small-step relations for flow/commit/nest, and expanded Lean/Coq/Kani proofs) is
 Claim-to-witness-to-proof tracking is in `VERIFICATION_OBLIGATION_MATRIX.md`.
 The observer/measurement extension is documented in `TERNARY_TRACE_WINDOW_SEMANTICS.md`.
 The native self-hosting mandate is documented in `NATIVE_SELF_HOSTING_MANDATE.md`.
+The task-framework layer is documented in `FRAMEWORKS.md`.
 
 Current work delivers a compact, verified substrate — not production scaling, biological completeness, or a finished physics theory.
 

@@ -15,6 +15,7 @@ kernel bidi stage=2 target=cdc
   provides observer-window-coupling recursive-window-policy shared-state-commit
   provides council-deliberation bridge-coordinate-self-evolution
   provides existence-viability agency-spectrum
+  provides transition-framework procedural-framework episodic-framework deliberative-framework
   provides native-witness-suite native-capability-suite native-self-hosting-contract
 
   bootloader read-source parse-lines collect-native-declarations verify-expectations report
@@ -26,8 +27,8 @@ kernel bidi stage=2 target=cdc
   expect terms >= 10
   expect rules >= 14
   expect invariants >= 13
-expect witnesses >= 4766
-  expect capabilities >= 32
+expect witnesses >= 4793
+  expect capabilities >= 36
   expect provides parser-state reducer-state witness-state trace-window-state
   expect provides balanced-ternary-carrier angular-phase path-relation invariant-gate
   expect provides dyadic-triadic-bridge closure-64 closure-512 closure-4096
@@ -36,5 +37,6 @@ expect witnesses >= 4766
   expect provides observer-window-coupling recursive-window-policy shared-state-commit
   expect provides council-deliberation bridge-coordinate-self-evolution
   expect provides existence-viability agency-spectrum
+  expect provides transition-framework procedural-framework episodic-framework deliberative-framework
   expect provides native-witness-suite native-capability-suite native-self-hosting-contract
 end
