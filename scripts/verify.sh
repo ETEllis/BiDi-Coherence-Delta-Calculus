@@ -468,6 +468,22 @@ case "$episodic_recall_by_key" in
   *"index=51"*"dyadic=110011"*) echo "$episodic_recall_by_key" ;;
   *) echo "episodic recall by key failed: $episodic_recall_by_key" >&2; exit 1 ;;
 esac
+deliberative_council="$(build/cdc_native_runtime council framework_deliberative.cdc)"
+echo "$deliberative_council"
+grep -q "council=deliberative-council .*dyadic=111101 .*triadic=331 .*occupancy=5 .*quorum=4 .*decision=adopt" <<<"$deliberative_council" || {
+  echo "deliberative framework quorum check failed" >&2
+  exit 1
+}
+deliberative_enactment="$(build/cdc_native_runtime evolve framework_deliberative.cdc)"
+echo "$deliberative_enactment"
+grep -q "evolution=deliberative-enactment coordinate=111101" <<<"$deliberative_enactment" || {
+  echo "deliberative framework enactment check failed" >&2
+  exit 1
+}
+grep -q "^witness deliberative-decision-memory invariant=dyadic-triadic-closure coordinate=111101" build/enacted_decision.cdc || {
+  echo "enacted decision output is missing the appended decision-memory witness" >&2
+  exit 1
+}
 
 echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="
