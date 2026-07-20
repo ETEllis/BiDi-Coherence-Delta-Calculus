@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 240" role="img" aria-labelledby="title desc">
+  <title id="title">Möbi𝒰s wordmark for dark backgrounds</title>
+  <desc id="desc">The Möbius name with an embodied eye-bearing ö and a phased i, Universal Operator, and s. The final three glyphs lean in, invert, and resolve above a broken return line.</desc>
+  <defs>
+    <linearGradient id="phase" x1="399" y1="211" x2="664" y2="211" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6372d9"/>
+      <stop offset="0.56" stop-color="#147dff"/>
+      <stop offset="1" stop-color="#31e2e7"/>
+    </linearGradient>
+    <filter id="eye-glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Syne-derived display skeleton, converted to portable outlines. -->
+  <g fill="#edf7ff">
+    <path transform="translate(34 176) scale(.098 -.17)" d="M864 76H714L1260 640H1510V0H1260V436L1335 405L940 0H640L244 404L320 435V0H70V640H320Z"/>
+    <path transform="translate(191 178) scale(.102 -.176)" d="M510 -15Q351 -15 245.5 11Q140 37 87.5 94Q35 151 35 244Q35 337 87.5 394.5Q140 452 245.5 478.5Q351 505 510 505Q668 505 772.5 478.5Q877 452 929 394.5Q981 337 981 244Q981 151 929 94Q877 37 772.5 11Q668 -15 510 -15ZM510 130Q584 130 634 142.5Q684 155 710 180.5Q736 206 736 244Q736 282 710.5 308Q685 334 635 347Q585 360 510 360Q436 360 384.5 347Q333 334 306.5 308.5Q280 283 280 244Q280 206 306 180.5Q332 155 383.5 142.5Q435 130 510 130Z"/>
+    <path transform="translate(296 171) scale(.098 -.17)" d="M690 -14Q600 -14 528 4.5Q456 23 405 57.5Q354 92 327 139.5Q300 187 300 245Q300 303 327 351Q354 399 405 433.5Q456 468 528 486.5Q600 505 690 505Q798 505 882.5 476Q967 447 1015 389Q1063 331 1063 245Q1063 163 1015 105Q967 47 882.5 16.5Q798 -14 690 -14ZM600 138Q668 138 716 150Q764 162 789 186Q814 210 814 245Q814 299 758 325.5Q702 352 600 352Q524 352 460.5 343Q397 334 358.5 311Q320 288 320 245Q320 203 358.5 180Q397 157 460.5 147.5Q524 138 600 138ZM320 690V190Q320 126 315.5 74.5Q311 23 306 0H80V690Z"/>
+  </g>
+
+  <!-- The paired dots are Möbius's literal eyes, not decorative punctuation. -->
+  <g fill="#36e3e7" filter="url(#eye-glow)">
+    <circle cx="234" cy="70" r="6.2"/>
+    <circle cx="260" cy="70" r="6.2"/>
+  </g>
+
+  <!-- i: the bounded perspective, biased by phi = 0.125 rad. -->
+  <path fill="#707ddd" transform="translate(399 166) rotate(-7.16197) scale(.11 -.17)" d="M309 747V597H55V747ZM62 490H302V0H62Z"/>
+
+  <!-- U: one continuous crossover body. The left inherits the lean; the right resolves. -->
+  <path transform="translate(427 180) scale(.18 -.16)" d="M272 -12C375 -12 439 50 482 97H485C490 38 507 -9 573 -9C645 -9 687 46 722 95L702 111C676 79 651 48 622 48C584 48 575 101 575 147C575 264 634 473 683 566C705 608 728 632 769 654L753 672C700 650 645 621 593 590C544 436 505 291 482 141C433 85 367 43 308 43C250 43 229 84 229 144C229 281 340 432 340 556C340 619 312 667 239 667C124 667 96 546 96 476V465H126C126 495 128 603 197 603C235 603 249 571 249 529C249 411 136 250 136 119C136 35 183 -12 272 -12Z"
+        fill="#f8fbff" stroke="#137dff" stroke-width="28" stroke-linejoin="round" paint-order="stroke fill"/>
+
+  <!-- s: a damped return, coupled tightly to U and retaining two degrees of residue. -->
+  <path fill="#31e2e7" transform="translate(568 180) rotate(2) scale(.104 -.175)" d="M40 176H261Q275 150 314.5 140Q354 130 428 130Q485 130 512.5 136Q540 142 548.5 152Q557 162 557 173Q557 190 538.5 196.5Q520 203 476 204.5Q432 206 355 206Q282 206 224.5 212.5Q167 219 127 233.5Q87 248 66 274Q45 300 45 339Q45 387 76 419.5Q107 452 160 470.5Q213 489 282.5 497Q352 505 428 505Q554 505 634 479.5Q714 454 752 411Q790 368 789 314H574Q563 340 532.5 350Q502 360 428 360Q358 360 326.5 349.5Q295 339 295 316Q295 301 310.5 293.5Q326 286 369.5 283Q413 280 497 280Q555 280 610.5 276Q666 272 710.5 259Q755 246 781 219Q807 192 807 145Q807 88 760.5 52.5Q714 17 629 1Q544 -15 428 -15Q327 -15 257.5 -2Q188 11 144 32.5Q100 54 76.5 79.5Q53 105 45.5 130.5Q38 156 40 176Z"/>
+
+  <!-- One horizontal invariant: ground here, cursor in the code sigil, crease in motion. -->
+  <g transform="rotate(-7.16197 527 211)" stroke="url(#phase)" stroke-width="4" stroke-linecap="square">
+    <path d="M399 211H500"/>
+    <path d="M520 211H664"/>
+  </g>
+</svg>

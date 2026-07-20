@@ -1,8 +1,12 @@
-# BiDi Coherence-Delta Calculus
-
 <p align="center">
-  <img src="assets/bidi-cdc-icon.svg" alt="BiDi Coherence-Delta Calculus logo" width="140">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/identity/mobius-u-wordmark-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/identity/mobius-u-wordmark-light.svg">
+    <img src="assets/identity/mobius-u-wordmark-light.svg" alt="Möbi𝒰s identity wordmark" width="560">
+  </picture>
 </p>
+
+# BiDi Coherence-Delta Calculus
 
 <p align="center">
   <strong>A native language with a formal coherence-calculus kernel</strong><br>
@@ -21,6 +25,14 @@ or measurement interface without adding a binary observer primitive.
 ## Center Of Gravity
 
 CDC is the language. The calculus is the kernel semantics.
+
+The repository now also carries a non-breaking **Möbi𝒰s identity candidate**:
+Möbius is the embodied product, `𝒰` is the Universal Operator, and CDC remains
+the formal kernel and canonical `.cdc` source contract. The identity assets and
+motion study do not rename the package or syntax. See
+[`docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md`](docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md)
+and open [`demo/mobius-identity.html`](demo/mobius-identity.html) locally for the
+interactive one-turn/two-turn study.
 
 That gives the project two separate success stories:
 
