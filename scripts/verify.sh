@@ -407,6 +407,32 @@ grep -q "counter=transition-counter .*final=1" <<<"$transition_surface" || {
   echo "transition framework tally check failed" >&2
   exit 1
 }
+procedural_run="$(build/cdc_native_runtime run framework_procedural.cdc)"
+echo "$procedural_run"
+grep -q "commit=procedural-execute .*trits=0+- .*balance=admissible .*status=accepted .*reason=none" <<<"$procedural_run" || {
+  echo "procedural framework step check failed" >&2
+  exit 1
+}
+grep -q "commit=procedural-retry .*trits=-+0 .*balance=violated .*status=held .*reason=balance-violation" <<<"$procedural_run" || {
+  echo "procedural framework retry check failed" >&2
+  exit 1
+}
+grep -q "nest=procedural-consolidate .*parent-belief=0.666667 .*child-prior=0.666667" <<<"$procedural_run" || {
+  echo "procedural framework consolidation check failed" >&2
+  exit 1
+}
+procedural_compile="$(build/cdc_native_runtime compile framework_procedural.cdc)"
+echo "$procedural_compile"
+grep -q "native compile ok jobs=1 ops=4 source=framework_procedural.cdc" <<<"$procedural_compile" || {
+  echo "procedural framework proceduralization check failed" >&2
+  exit 1
+}
+procedural_interpret="$(build/cdc_native_runtime interpret framework_procedural.cdc)"
+echo "$procedural_interpret"
+grep -q "native interpret ok ops=4 flow=1 commit=2 nest=1 source=framework_procedural.cdc" <<<"$procedural_interpret" || {
+  echo "procedural framework skilled-execution check failed" >&2
+  exit 1
+}
 
 echo
 echo "== Lean/Coq finite carrier and algebraic proofs =="
