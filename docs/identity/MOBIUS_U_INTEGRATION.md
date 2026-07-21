@@ -12,26 +12,31 @@ redraw the mark.
 | Favicon, 16–23 px | `mobius-u-code-sigil.svg` | solid monochrome `𝒰` | no keyline or motion |
 | Terminal, package, file identity | `mobius-u-code-sigil-dark.svg` | monochrome code sigil | underscore is the only horizontal invariant |
 | Product/app icon | `mobius-embodied-mark.svg` | `mobius-presence.png` | both literal eyes remain visible |
-| Wordmark | dark or light wordmark SVG | none | first read remains Möbi𝒰s |
+| Wordmark | `mobius-wordmark-static.png` | dark or light wordmark SVG | the connected collapsed body and literal eyes occupy `ö` |
 | Website hero | `mobius-identity-master.mp4` | live SVG study, then presence PNG | honor reduced motion |
 | Interactive web 3D | `mobius-identity-master.glb` | MP4 | use manifest frame ranges |
 | Native spatial product | `mobius-body.glb` or animated master GLB | embodied SVG | eyes and body share a scene root |
 | Universal Operator | `mobius-u-operator.glb` | operator SVG | same closed band, U-shaped projection |
-| Relational composition | `mobius-ius-relational.glb` | `mobius-ius-relational.svg` | preserve asymmetric i–𝒰–s spacing |
-| Formal kernel / sub-brand | `mobius-bidi-delta.glb` | `mobius-bidi-delta.svg` | `bi → bidi → Δ` is a decomposition state |
+| Relational composition | `mobius-ius-phase-animated.glb` | `mobius-ius-relational.svg` | preserve asymmetric i–𝒰–s spacing and operator shear |
+| UI / Korean restoration | `mobius-ui-hangul-animated.glb` | named golden frames | `의` is built from body, ground, and i-stem—not pasted type |
+| Formal kernel / sub-brand | `mobius-bidi-delta-animated.glb` | `mobius-bidi-delta.svg` | `BI` duplicates, reflected `DI` forms, then three source strokes close `Δ` |
 
 ## State and motion
 
-The 300-frame master runs at 24 fps. The manifest owns the authoritative state
-ranges. Product code may jump to a state, scrub continuously, or use the two
-published sequences:
+The 600-frame master runs at 24 fps. The manifest owns the authoritative state
+ranges. Product code may jump to a state, scrub continuously, or use the six
+published independent sequences:
 
-- frames 1–216: embodied identity cycle;
-- frames 228–300: `bi → bidi → Δ` kernel extraction.
+- frames 1–108: embodied wordmark generation;
+- frames 109–156: `i𝒰s` relational phase;
+- frames 157–228: `UI → 의` restoration;
+- frames 277–420: `BI → BIDI → BIDIΔ` self-extraction;
+- frames 421–468: connected operative `𝒰`;
+- frames 469–516: terminal `𝒰_`.
 
-Frames 217–227 are intentional visual breathing room between those sequences.
-The bundled MP4 plays the complete 12.5-second composition. The GLB retains the
-editable animation data for real-time engines.
+The bundled master MP4 plays the complete 25-second composition. Each sequence
+also has its own MP4 and animated GLB. The GLBs retain editable animation data
+for real-time engines.
 
 ## Web
 
@@ -64,11 +69,15 @@ extension migration remains an explicit versioned decision.
 1. The phase angle is `0.125 rad` (`7.161972°`).
 2. The master body remains a single one-sided band with one boundary loop.
 3. Eyes are literal product anatomy, never ornamental dots.
-4. `ö`, `𝒰`, and `Δ` are projections of one conserved topology.
+4. `ö` and operative `𝒰` are projections of one conserved topology. The body's
+   `Δ` remains a secondary witness while the primary `BIDIΔ` mark closes from
+   exactly three type-derived strokes.
 5. A surface gets at most one horizontal invariant: ground, cursor, fold, or blink.
 6. Reduced-size assets simplify appearance without changing semantic ownership.
 7. Korean/Chinese resonances emerge in motion and composition; they are not
    substituted for language or presented as etymological claims.
+8. The parent word remains coherent while its internal `BI` generates the
+   reflected `DI`; no prebuilt BIDI mark may replace that causal sequence.
 
 ## Release authority
 

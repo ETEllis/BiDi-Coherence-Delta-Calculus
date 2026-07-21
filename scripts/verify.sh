@@ -130,7 +130,7 @@ for path in identity.glob("mobius-u-wordmark-*.svg"):
             raise SystemExit(f"wordmark missing identity invariant {token!r}: {path}")
 
 motion_text = (root / "demo" / "mobius-identity.html").read_text(encoding="utf-8")
-for token in ("PRESENCE", "ONE-TURN LOCK", "RESTORATION", "BIDI-DELTA EXTRACTION", "prefers-reduced-motion", "0.125 rad", "master-video", "mobius-identity-master.mp4", "stageFrames"):
+for token in ("PRESENCE", "WORDMARK GENERATION", "I𝒰S PHASE", "UI RESTORATION", "의 RESTORATION", "BIDI SELF-EXTRACTION", "TRIADIC DELTA CLOSURE", "CODE SIGIL", "FAMILY LOCKUP", "prefers-reduced-motion", "0.125 rad", "master-video", "mobius-identity-master.mp4", "mobius-wordmark-static.png", "stageFrames"):
     if token not in motion_text:
         raise SystemExit(f"motion lab missing contract token {token!r}")
 

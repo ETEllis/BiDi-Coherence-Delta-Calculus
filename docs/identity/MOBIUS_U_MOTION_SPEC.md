@@ -1,63 +1,111 @@
 # Möbi𝒰s Motion Specification
 
-The animation is a product-state transition, not a logo reveal pasted onto the
-product. It must keep the body continuous and the eyes present.
+The animation is a causal product-state system, not a montage of finished logo
+assets. Every derived identity must be traceable to visible geometry already
+inside `Möbi𝒰s`.
 
-## Eight states
+## Master derivation
 
-1. **Presence** — the closed `ö` rests on the surface; eyes blink and track.
-2. **Attention** — gaze converges, the body biases by `φ`, and the seam becomes
-   legible.
-3. **Operative projection** — the closed return moves into depth and retraces
-   the front path, so the same band reads as `𝒰` without cutting its topology.
-4. **One-turn lock** — the static `Möbi𝒰s` wordmark holds on the inverted sheet;
-   `i𝒰` and the Korean components remain reflected by design.
-5. **Frame flip** — the ground stroke becomes a crease and the interaction
-   changes from inside the interface to on the device surface.
-6. **Second-turn restoration** — `UI` restores, then the components pass through
-   a brief correctly ordered `의` state.
-7. **Return** — the ribbon re-closes into `ö`; the seam retains one breath of
-   phase residue before rest.
-8. **BiDi-Delta extraction** — the central `bi` duplicates through the shared
-   inversion plane into `bidi`; the same body enters `DeltaProjection` beside
-   it. Only one ground stroke remains visible across the resulting surface.
+```text
+embodied ö
+  → Möbi𝒰s
+  → i𝒰s
+  → UI
+  → 의
+  → Möbi𝒰s
+  → BI + reflected DI
+  → BIDI + three type-native strokes
+  → BIDIΔ
+  → embodied 𝒰
+  → 𝒰_
+  → coherent family lockup
+```
 
-## Timing
+The defining kernel extraction is literal:
 
-- Full loop: `10–12 s` for a brand/system study; product-triggered transitions
-  may be `900–1400 ms` without the long hold states.
-- `의` recognition tests: `200 ms`, `320 ms`, and `450 ms` with eased arrival.
-- The one-turn lock should hold long enough to be the canonical static frame.
-- Eyes move continuously across the morph; they never fade out or merge.
+```text
+MöBI𝒰s → BI + mirror(BI) → BI + DI → BIDI → BIDIΔ
+```
 
-## Motion tiers
+- The source word remains present and coherent while generating its kernel.
+- All four `BIDI` letters are live descendants of the source `B` and `I`.
+- The duplicate `B` crosses `scale.x = 0` and becomes the reflected `D`; no D
+  asset is substituted.
+- The duplicate `I` remains invariant beside it.
+- Delta is exactly three flat, complementary strokes derived from the `M`
+  stem, the `i` stem, and the phase ground. The strokes detach, travel, rotate,
+  and close geometrically into one triangle.
+- The connected body's `DeltaProjection` remains a secondary topological
+  witness. It is not the primary `BIDIΔ` logo.
 
-### Static
+## Twelve master states
 
-- one-turn wordmark;
-- Level-2 reflected `의` components;
-- phase ground;
-- endpoint color polarity.
+The authoritative Blender master is 600 frames at 24 fps, or 25 seconds.
 
-### Kinetic
+| State | Frames | Meaning |
+|---|---:|---|
+| `PRESENCE` | 1–35 | Closed Möbius body rests on the surface; literal eyes blink and track. |
+| `WORDMARK_GENERATION` | 36–84 | The connected body collapses into the `ö` slot while `M`, `b`, `i`, `𝒰`, `s`, and the phase ground assemble around it. |
+| `ONE_TURN_WORDMARK` | 85–108 | Canonical static wordmark holds on the inverted sheet. |
+| `IUS_PHASE` | 109–156 | `i𝒰s` isolates: perspective leans in, the operator shears across its own width, and `s` resolves. |
+| `UI_RESTORATION` | 157–192 | `i𝒰` crosses the sheet and swaps into readable `UI`. |
+| `HANGUL_RESTORATION` | 193–228 | The Latin glyphs release into structural `의`: ribbon `ㅇ`, phase-ground `ㅡ`, i-stem `ㅣ`. |
+| `RETURN_TO_WORDMARK` | 229–276 | The same components reassemble the embodied wordmark. |
+| `BIDI_SELF_EXTRACTION` | 277–348 | The internal `BI` duplicates; the second `B` reflects into `D`; the four descendants settle as `BIDI`. |
+| `DELTA_TRIADIC_CLOSURE` | 349–420 | Three source strokes detach and couple into the closed `Δ` beside `BIDI`. |
+| `OPERATOR_U` | 421–468 | The connected body opens into operative `𝒰` while both eyes persist. |
+| `CODE_SIGIL` | 469–516 | The typographic operator resolves into terminal-ready `𝒰_`; the phase ground becomes a live cursor. |
+| `FAMILY_LOCKUP` | 517–600 | Parent wordmark, generated kernel, and code sigil hold as one derivable family. |
 
-- continuous `ö ↔ 𝒰` deformation;
-- UI restoration;
-- `의` flash-frame;
-- reference-frame flip;
-- full dark → indigo → white → cyan temperature progression;
-- blink/wink behavior and return residue.
-- `bi → bidi → Δ` formal-kernel decomposition.
+## Canonical static artifact
+
+The public still is frame 84 of the same rig. It must not use the flat SVG `O`.
+The connected, collapsed Möbius ribbon and its literal eyes occupy the `ö` slot
+inside the word. The `i𝒰s` phase ground and the operator upright produce the
+orthogonal surface/side reading: the circular aperture is bounded without an
+extra decorative bracket—an intentional squaring of the circle.
+
+The source frame is rendered both as:
+
+- `mobius-wordmark-generated.png`, a square semantic witness; and
+- `mobius-wordmark-static.png`, the production 1440 × 420 lockup.
+
+## Korean construction
+
+`의` is structural, never pasted text:
+
+- `ㅇ` is the conserved Möbius body in its closed projection;
+- `ㅡ` is the phase-ground stroke;
+- `ㅣ` is a separately traceable bar derived from `Glyph_I`.
+
+The correctly ordered composition appears only after the UI sheet restoration.
+This makes its legibility a consequence of the motion law rather than an
+annotation on the logo.
+
+## Independent sequences
+
+The master publishes independently usable GLB and MP4 projections for:
+
+- embodied wordmark generation;
+- `i𝒰s` relational phase;
+- `UI → 의` restoration;
+- `BI → BIDI → BIDIΔ` extraction;
+- connected operative `𝒰`;
+- terminal `𝒰_`.
+
+Frame ranges and filenames belong to
+`assets/identity/3d/identity-manifest.json`; consumers must not duplicate them.
 
 ## Accessibility
 
-`prefers-reduced-motion: reduce` freezes the system at the one-turn wordmark.
-The frame meanings remain available as text and the code sigil remains static.
-No information depends on a blink, a color transition, or a sub-second frame.
+`prefers-reduced-motion: reduce` freezes at frame 84, the embodied one-turn
+wordmark. Each deeper state is also available as a named still and accessible
+text. No semantic claim depends solely on a blink, hue, or sub-second flash.
 
-## Prototype contract
+## Release law
 
-`demo/mobius-identity.html` remains the lightweight scrubber and reduced-motion
-fallback. The authoritative deformation is now the Blender master and its
-animated GLB. The HTML path interpolation must never be cited as topology
-evidence; it is a two-dimensional control surface for the same semantic states.
+The release gate samples the actual Blender scene at semantic frames. It fails
+unless the body is seated in the `ö` slot, `i𝒰s` carries the operator shear,
+`UI` changes order and sheet orientation, `의` has structural lineage, the
+source word survives BIDI extraction, the D has negative x-scale, and the three
+Delta strokes close within geometric tolerance.

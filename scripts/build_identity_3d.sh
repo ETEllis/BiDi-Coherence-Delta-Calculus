@@ -12,13 +12,13 @@ fi
 mkdir -p build/identity-blender
 BUILD_LOG="build/identity-blender/build.log"
 
-echo "+ $MOBIUS_BLENDER_BIN --background --factory-startup --python tools/blender/build_mobius_identity.py"
+echo "+ $MOBIUS_BLENDER_BIN --background --factory-startup --python tools/blender/build_mobius_glyph_identity.py"
 "$MOBIUS_BLENDER_BIN" --background --factory-startup \
-  --python tools/blender/build_mobius_identity.py 2>&1 | tee "$BUILD_LOG"
+  --python tools/blender/build_mobius_glyph_identity.py 2>&1 | tee "$BUILD_LOG"
 
 # Blender can return zero after a Python exception, so the build is fail-closed
 # on the explicit completion witness rather than process status alone.
-grep -q '\[mobius-identity\] build complete' "$BUILD_LOG" || {
+grep -q '\[mobius-glyph-identity\] build complete' "$BUILD_LOG" || {
   echo "Blender identity build did not emit its completion witness" >&2
   exit 1
 }

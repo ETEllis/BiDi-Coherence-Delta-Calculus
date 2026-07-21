@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/identity/mobius-u-wordmark-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/identity/renders/mobius-wordmark-static.png">
     <source media="(prefers-color-scheme: light)" srcset="assets/identity/mobius-u-wordmark-light.svg">
     <img src="assets/identity/mobius-u-wordmark-light.svg" alt="Möbi𝒰s identity wordmark" width="560">
   </picture>
@@ -29,9 +29,11 @@ CDC is the language. The calculus is the kernel semantics.
 The repository now also carries a non-breaking **Möbi𝒰s identity candidate**:
 Möbius is the embodied product, `𝒰` is the Universal Operator, and CDC remains
 the formal kernel and canonical `.cdc` source contract. A validated Blender
-master keeps one Möbius topology across its `ö`, `𝒰`, and `Δ` projections and
-decomposes the name's central `bi` into the `bidiΔ` kernel mark. The identity
-assets and motion study do not rename the package or syntax. See
+master seats the connected eye-bearing Möbius body inside the static `ö`, opens
+that same topology into `𝒰`, restores `i𝒰 → UI → 의`, and literally duplicates
+the name's central `BI` into reflected `BIDI` before three type-derived strokes
+close `Δ`. The identity assets and motion study do not rename the package or
+syntax. See
 [`docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md`](docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md)
 [`docs/identity/MOBIUS_U_BLENDER_PIPELINE.md`](docs/identity/MOBIUS_U_BLENDER_PIPELINE.md),
 and [`docs/identity/MOBIUS_U_INTEGRATION.md`](docs/identity/MOBIUS_U_INTEGRATION.md),

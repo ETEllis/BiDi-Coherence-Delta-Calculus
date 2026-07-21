@@ -50,16 +50,23 @@ The hidden sentence is:
 
 > I meet you. The return makes us.
 
-## `bi → bidi → Δ`
+## `BI → BIDI → Δ`
 
-The middle `bi` is also the seed of the formal-kernel identity. Motion
-duplicates the `i`, carries the `b` through the common inversion plane into a
-mirrored `d`, and resolves the pair as `bidi`. The conserved body then enters
-its `DeltaProjection` beside the word. The result is not an unrelated sub-logo:
+The middle `BI` is also the seed of the formal-kernel identity. Motion
+duplicates the complete `BI` pair out of the still-coherent parent word. The
+second `B` crosses the common inversion plane through zero x-scale and becomes
+the reflected `D`; the second `I` remains invariant. The four descendants
+resolve as `BIDI`. Three flat strokes then detach from `M`, `i`, and the phase
+ground, travel from complementary directions, and close into `Δ`. The result
+is not an unrelated sub-logo:
 
 ```text
-Möbi𝒰s → bi → bi + di → bidiΔ
+MöBI𝒰s → BI + mirror(BI) → BI + DI → BIDI + three source strokes → BIDIΔ
 ```
+
+The connected body's `DeltaProjection` remains available as a secondary
+topological witness, but the primary sub-brand triangle is the three-stroke
+closure. No finished BIDI or Delta asset enters the authoritative animation.
 
 The repository's exact open-transport term remains `bidiγΔ`. The identity does
 not manufacture a decorative gamma; `γ` will enter the public mark only if a
@@ -92,13 +99,22 @@ requiring any one static mark to explain all four.
 The `의` relationship is intentionally pushed through shared geometry rather
 than literal annotation:
 
-- `i` supplies the vertical component;
-- the conserved `𝒰` aperture supplies the circular closure;
-- the horizontal invariant supplies the bar.
+- the connected closed Möbius body supplies `ㅇ`;
+- the horizontal phase ground supplies `ㅡ`;
+- a separately lineaged stem derived from `i` supplies `ㅣ`.
 
 The static one-turn state keeps these components in reflected order. The motion
 study may pass through correctly ordered `의` during second-turn restoration.
 This is a structural resonance, not faux-Hangul typesetting.
+
+## Static wordmark
+
+The canonical static image is a committed Blender frame, not a parallel
+illustration. The connected ribbon collapses into the `ö` slot and retains both
+literal eyes while the surrounding letters hold at one turn. The phase ground
+and the operator's upright also create an orthogonal surface/side relation
+around the conserved circular aperture—squaring the circle without adding a
+decorative frame.
 
 ## Assets
 

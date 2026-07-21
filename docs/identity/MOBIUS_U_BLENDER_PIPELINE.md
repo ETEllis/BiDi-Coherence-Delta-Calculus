@@ -5,7 +5,8 @@
 The versioned generator is authoritative:
 
 ```text
-tools/blender/build_mobius_identity.py
+tools/blender/build_mobius_glyph_identity.py
+    ↳ tools/blender/build_mobius_identity.py (topology foundation)
     ↓
 assets/identity/3d/mobius-identity-master.blend
     ↓
@@ -56,7 +57,9 @@ deterministic gate.
 ./scripts/release_identity_3d.sh
 ```
 
-The build wrapper requires an explicit completion witness because Blender can
+The glyph generator owns the 600-frame type, restoration, extraction, and
+family rig. The topology foundation owns the connected band mesh and shared
+projection helpers. The build wrapper requires an explicit completion witness because Blender can
 return a zero process status after a Python traceback. The validator reopens
 the master and checks topology rather than trusting construction intent.
 
@@ -66,14 +69,19 @@ A release is green only when all of the following hold:
 
 1. The body has Euler characteristic `0`, one boundary component, and one
    reversed seam.
-2. `Basis`, `UProjection`, and `DeltaProjection` share the identical mesh.
+2. `Basis`, `UProjection`, and secondary `DeltaProjection` share the identical mesh.
 3. Both literal eyes exist and carry animation.
 4. Every GLB has a valid glTF 2 header and remains below `5 MB`.
-5. Every selected render is a `960 × 960` PNG.
+5. Ten semantic golden frames are distinct `960 × 960` PNGs, and the embodied
+   static wordmark is a `1440 × 420` production PNG.
 6. The manifest checksums every stable generated artifact.
-7. The component family includes embodied body, standalone `𝒰`, `i𝒰s`, `𝒰_`,
-   and `bidiΔ` surfaces.
-8. The complete calculus verification suite and `git diff --check` remain green.
+7. The component family includes animated wordmark, `i𝒰s`, `UI → 의`, literal
+   `BI → BIDI → BIDIΔ`, connected standalone `𝒰`, and `𝒰_` projections.
+8. `BIDI` is made from four descendants of the source `B/I`; the D is a
+   negative-x reflection and no finished kernel SVG enters the master.
+9. Delta is exactly three lineaged type strokes whose endpoints close within
+   tolerance; the connected body's Delta projection is secondary only.
+10. The complete calculus verification suite and `git diff --check` remain green.
 
 ## Product integration
 

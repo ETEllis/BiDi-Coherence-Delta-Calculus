@@ -28,6 +28,25 @@ grep -q 'MOBIUS_IDENTITY_FRAME_RENDER_PASS' "$LOG" || {
   -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -movflags +faststart \
   "$OUTPUT"
 
+encode_clip() {
+  local name="$1"
+  local start="$2"
+  local duration="$3"
+  "$MOBIUS_FFMPEG_BIN" -hide_banner -loglevel warning -y \
+    -ss "$start" -i "$OUTPUT" -t "$duration" -an \
+    -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -movflags +faststart \
+    "assets/identity/motion/$name"
+}
+
+# Independent, causally complete projection clips. Times are exact frame
+# ranges from the 24 fps Blender master, not editorial approximations.
+encode_clip "mobius-wordmark.mp4" 0 4.5
+encode_clip "mobius-ius.mp4" 4.5 2
+encode_clip "mobius-ui-hangul.mp4" 6.5 3
+encode_clip "mobius-bidi-delta.mp4" 11.5 6
+encode_clip "mobius-operator-u.mp4" 17.5 2
+encode_clip "mobius-code-sigil.mp4" 19.5 2
+
 MOBIUS_FINALIZE_MOTION=1 "$MOBIUS_BLENDER_BIN" --background "$MASTER" \
   --python tools/blender/render_mobius_identity.py 2>&1 | tee -a "$LOG"
 grep -q 'MOBIUS_IDENTITY_MOTION_RENDER_PASS' "$LOG" || {

@@ -12,8 +12,12 @@ rename the package, the `.cdc` source format, or the formal paper.
 - `mobius-u-operator.svg` — standalone operator without the code cursor.
 - `mobius-ius-relational.svg` — independent `i𝒰s` relational lockup.
 - `mobius-bi-seed.svg` — the `bi` source extracted from the name.
-- `mobius-bidi-kernel.svg` — the mirrored/duplicated `bidi` kernel word.
-- `mobius-bidi-delta.svg` — portable BiDi-Delta sub-brand lockup.
+- `mobius-bidi-kernel.svg` — portable fallback for the generated `bidi` kernel
+  word; it is never imported into the authoritative Blender derivation.
+- `mobius-bidi-delta.svg` — portable fallback for the generated BiDi-Delta
+  sub-brand lockup.
+- `renders/mobius-wordmark-static.png` — canonical embodied still: the connected
+  ribbon and literal eyes occupy the `ö` slot inside the type.
 
 The word skeleton begins from the original Möbius landing-page family, Syne,
 then converts the visible characters to portable outlines. The `𝒰`, eyes,
@@ -29,10 +33,13 @@ motion study lives at `demo/mobius-identity.html`.
 
 `3d/mobius-identity-master.blend` is generated from the versioned Blender
 scripts in `tools/blender/`. It owns one continuous Möbius topology and the
-`ö`, `𝒰`, and `Δ` projection states. `3d/identity-manifest.json` maps the master
-and the independently consumable GLBs for product, web, code, and kernel use.
-The selected transparent key-state renders are in `renders/`; the encoded
-12.5-second reference sequence is in `motion/`.
+`ö`, `𝒰`, and secondary topological `Δ` projection states. The glyph rig adds
+the full wordmark, `i𝒰s`, structural `UI → 의`, literal
+`BI + reflected DI → BIDI`, three-stroke `Δ`, standalone `𝒰`, and `𝒰_`.
+`3d/identity-manifest.json` maps the master and the independently consumable
+GLBs for product, web, code, and kernel use. The selected transparent key-state
+renders are in `renders/`; the encoded 25-second master and six independent
+sequences are in `motion/`.
 
 Build and verify the full package with:
 
