@@ -27,6 +27,10 @@ phase trajectory, spacing, and return line are engineered identity geometry.
 The dark-surface hierarchy is cobalt-indigo `Möb`, phase-indigo `i`, a white
 operator core with electric-blue keyline, and relational cyan `s`; white is a
 compression event, not the default alphabet color.
+The `M`, `b`, and `s` outlines preserve true open counters after Blender
+triangulation, while `𝒰s` resolves at a controlled near-tangent as one
+relational field. The M-derived Delta edge is seeded on the letter's actual
+inner diagonal before it peels outward.
 The operator skeleton begins from the STIX Two Math script `𝒰` so it remains
 mathematically recognizable, then receives the identity keyline, scale, and
 optical placement. No live font is loaded by the assets.

@@ -79,6 +79,10 @@ extension migration remains an explicit versioned decision.
 8. The parent word remains visible while its internal `BI` vacates and projects
    the reflected `DI`; parent `BI` restores only after closure, and no prebuilt
    BIDI mark may replace that causal sequence.
+9. The M-derived Delta edge must visibly seed on the source glyph's inner
+   diagonal before detaching; a free-floating third bar is not conformant.
+10. `𝒰_` retains a right-hand cursor overhang both standalone and inside the
+    resolved Delta lockup, where it must remain clear of the triangle base.
 
 ## Release authority
 

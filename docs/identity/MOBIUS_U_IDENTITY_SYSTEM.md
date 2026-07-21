@@ -46,7 +46,9 @@ The form law is **lean in → invert → resolve**. The color law is cobalt-indi
 substrate → phase-indigo `i` → white/electric-blue `𝒰` → cyan `s`. White is
 reserved for the compression hinge rather than washing across the alphabet.
 The spacing intentionally leaves encounter tension between `i` and `𝒰`, then
-couples `𝒰` tightly to `s`.
+brings `𝒰` and `s` to one controlled near-tangent. Their distinct open spaces
+remain visible, but their opposing curves behave as complementary hemispheres
+of the same `us` event rather than adjacent typographic parts.
 
 The hidden sentence is:
 
@@ -59,8 +61,9 @@ vacates the live `BI` slots inside the parent word and transfers those exact
 forms outward as a source pair. That pair projects a second `BI`: its copied
 `B` crosses the common inversion plane through zero x-scale and crystallizes
 as reflected `D`, while copied `I` remains invariant. Only after the four
-descendants settle as `BIDI` do three flat strokes detach from `M`, `i`, and
-the phase ground, travel from complementary directions, and close into `Δ`.
+descendants settle as `BIDI` does the first Delta edge highlight and peel from
+the actual right-inner diagonal of `M`; the `i` and phase-ground edges then
+travel from their natural sources and all three close into `Δ`.
 The original `BI` then resolves back into its parent slots. The result is not
 an unrelated sub-logo:
 

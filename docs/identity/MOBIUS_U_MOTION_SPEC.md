@@ -55,7 +55,7 @@ The authoritative Blender master is 600 frames at 24 fps, or 25 seconds.
 | `HANGUL_RESTORATION` | 193–228 | The Latin glyphs release into structural `의`: ribbon `ㅇ`, phase-ground `ㅡ`, i-stem `ㅣ`. |
 | `RETURN_TO_WORDMARK` | 229–276 | The same components reassemble the embodied wordmark. |
 | `BIDI_SELF_EXTRACTION` | 277–368 | The live `BI` vacates Möbi𝒰s and projects outward. A second pair grows from that source; its `B` collapses through zero, reverses sheet sign, and crystallizes with invariant `i` as `DI`, settling as `BIDI`. |
-| `DELTA_TRIADIC_CLOSURE` | 369–420 | Only after BIDI settles, three source strokes detach and couple into the closed `Δ`. The original `BI` then resolves back into its evacuated parent-word slots. |
+| `DELTA_TRIADIC_CLOSURE` | 369–420 | Only after BIDI settles, the first edge illuminates the actual inner diagonal of `M` and peels outward; the natural `i` and phase-ground edges join it and close `Δ`. The original `BI` then resolves back into its evacuated parent-word slots. |
 | `OPERATOR_U` | 421–468 | The connected body opens into operative `𝒰` while both eyes persist. |
 | `CODE_SIGIL` | 469–516 | The typographic operator resolves into terminal-ready `𝒰_`; the phase ground becomes a live cursor. |
 | `FAMILY_LOCKUP` | 517–600 | Parent wordmark, generated kernel, and code sigil hold as one derivable family. |
@@ -99,7 +99,9 @@ shallow extrusion without bleaching these roles into near-white surfaces.
 
 The same law governs the derived BIDI and three complementary Delta strokes.
 The code cursor is right-biased beneath `𝒰`, giving `𝒰_` a deliberate terminal
-overhang rather than the appearance of a centered pedestal.
+overhang rather than the appearance of a centered pedestal. In the family
+lockup the sigil scales and lifts inside `Δ`, preserving that overhang above the
+triangle base without colliding with either edge.
 
 ## Independent sequences
 

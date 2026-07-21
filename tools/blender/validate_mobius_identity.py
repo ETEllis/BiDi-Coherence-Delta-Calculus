@@ -265,6 +265,18 @@ def main() -> None:
     if visible(objects["Glyph_B"]) or visible(objects["Glyph_I"]) or not visible(word_root):
         fail("parent word did not preserve the visible BI vacancy during crystallization")
 
+    # Frame 372: the M-derived Delta edge must be visibly seated on the M's
+    # actual inner diagonal before it peels away. This forbids a detached bar
+    # simply materializing beside the word.
+    set_frame(scene, 372)
+    m_seed = objects["DeltaStroke_A_From_M"]
+    if not visible(m_seed) or m_seed.get("source_edge") != "Glyph_M:right-inner-diagonal":
+        fail("M-derived Delta edge lacks a visible inner-diagonal seed")
+    if (m_seed.matrix_world.translation - objects["Glyph_M"].matrix_world.translation).length > 0.95:
+        fail("M-derived Delta edge is not seated within the source glyph")
+    if abs(m_seed.rotation_euler.z - math.radians(60.0)) > math.radians(1.0):
+        fail("M-derived Delta seed does not share the M inner-diagonal angle")
+
     # Frame 408: exactly three source strokes close one triangle next to BIDI.
     set_frame(scene, 408)
     strokes = [objects[name] for name in ("DeltaStroke_A_From_M", "DeltaStroke_B_From_i", "DeltaStroke_C_From_Ground")]
@@ -296,8 +308,20 @@ def main() -> None:
     if not visible(objects["CodeSigilRig"]) or not visible(objects["OperatorU_Standalone"]) or not visible(objects["CodeCursor_From_PhaseGround"]):
         fail("terminal-ready 𝒰_ frame is incomplete")
     cursor_overhang = objects["CodeCursor_From_PhaseGround"].matrix_world.translation.x - objects["OperatorU_Standalone"].matrix_world.translation.x
-    if cursor_overhang < 0.82:
+    if cursor_overhang < 0.98:
         fail("code cursor lacks the intentional right-hand terminal overhang")
+
+    # In the resolved family lockup, the same overhang remains present inside
+    # Delta but lifts clear of its base and stays within the triangle's span.
+    set_frame(scene, 576)
+    cursor = objects["CodeCursor_From_PhaseGround"]
+    delta_base = objects["DeltaStroke_C_From_Ground"]
+    cursor_ends = bar_endpoints(cursor)
+    base_ends = bar_endpoints(delta_base)
+    if cursor.matrix_world.translation.y - delta_base.matrix_world.translation.y < 0.22:
+        fail("resolved code cursor clashes with the Delta base")
+    if max(point.x for point in cursor_ends) > max(point.x for point in base_ends) + 0.05:
+        fail("resolved code cursor overhang escapes the Delta frame")
 
     # Required animation owners prove that the scene is rigged, not a still montage.
     animated = [
@@ -349,6 +373,10 @@ def main() -> None:
         fail("manifest golden-frame surface is incomplete")
     if manifest.get("lineage", {}).get("BIDI_D_Reflected") != "Glyph_B reflected through scale.x = 0":
         fail("manifest omits the literal B-to-D reflection law")
+    if scene.get("wordmark_counter_law") != "open-M V; filled-B base with one enlarged counter; opened-S channel":
+        fail("wordmark negative-space contract is missing")
+    if scene.get("us_coupling_law") != "near-tangent complementary fields with one shared phase seam":
+        fail("U/S relational coupling contract is missing")
 
     report = {
         "status": "PASS",

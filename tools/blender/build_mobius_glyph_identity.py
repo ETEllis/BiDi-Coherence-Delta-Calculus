@@ -366,6 +366,8 @@ def create_delta_strokes(
         stroke["identity_role"] = "triadic-delta-stroke"
         stroke["derived_from"] = source
         stroke["closure_system"] = "BIDI_DELTA"
+    strokes[0]["source_edge"] = "Glyph_M:right-inner-diagonal"
+    strokes[0]["extraction_law"] = "highlight-peel-translate"
     return strokes
 
 
@@ -440,6 +442,8 @@ def animate_complete_identity(
     scene["static_wordmark_frame"] = GOLDEN_FRAMES["wordmark-generated"]
     scene["static_wordmark_body"] = "collapsed MobiusBody plus literal animated eyes in Glyph_O slot"
     scene["square_circle_reading"] = "phase ground plus operator upright bounds the conserved circular aperture"
+    scene["wordmark_counter_law"] = "open-M V; filled-B base with one enlarged counter; opened-S channel"
+    scene["us_coupling_law"] = "near-tangent complementary fields with one shared phase seam"
 
     # The portable SVG O and its dots are registration guides only. The actual
     # rendered wordmark uses the connected Möbius body and literal 3D eyes.
@@ -651,8 +655,12 @@ def animate_complete_identity(
     key_transform(reflected_i, 420, location=target_positions["BIDI_I_Reflected"], scale=(0.64, 0.64, 0.64))
 
     # 08 — three type-native strokes detach from M, i, and the phase ground.
+    # The M-derived edge is not allowed to materialize beside the letter. It
+    # first seats exactly on the M's open right-inner diagonal, brightens as a
+    # structural seam, then peels away and grows into the first Delta edge.
+    # This makes the third lineage as literal as the i and phase-ground edges.
     source_stroke_states = [
-        (Vector((rig.base_locations["M"].x - 0.38, 1.78, 0.24)), math.pi / 2.0),
+        (Vector((rig.base_locations["M"].x + 0.38, 1.92, 0.24)), math.radians(60.0)),
         (Vector((rig.base_locations["I"].x, 2.08, 0.26)), math.pi / 2.0),
         (Vector((rig.base_locations["Ground_Right"].x, 0.78, 0.28)), -PHI),
     ]
@@ -661,7 +669,19 @@ def animate_complete_identity(
         (Vector((4.52, -0.42, 0.26)), math.radians(-60.0)),
         (Vector((3.95, -1.41, 0.28)), 0.0),
     ]
-    for stroke, (source_location, source_angle), (target_location, target_angle) in zip(delta_strokes, source_stroke_states, delta_targets):
+    m_stroke = delta_strokes[0]
+    m_source, m_source_angle = source_stroke_states[0]
+    m_target, m_target_angle = delta_targets[0]
+    key_transform(m_stroke, 1, location=m_source, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, m_source_angle))
+    key_transform(m_stroke, 360, location=m_source, scale=(HIDDEN_FACTOR, 1.0, 1.0), rotation=(0.0, 0.0, m_source_angle))
+    key_transform(m_stroke, 364, location=m_source, scale=(0.08, 1.0, 1.0), rotation=(0.0, 0.0, m_source_angle))
+    key_transform(m_stroke, 372, location=m_source, scale=(0.48, 1.0, 1.0), rotation=(0.0, 0.0, m_source_angle))
+    peel_midpoint = m_source.lerp(m_target, 0.42) + Vector((0.0, 0.16, 0.0))
+    key_transform(m_stroke, 386, location=peel_midpoint, scale=(0.72, 1.0, 1.0), rotation=(0.0, 0.0, m_source_angle))
+    key_transform(m_stroke, 408, location=m_target, scale=(1.0, 1.0, 1.0), rotation=(0.0, 0.0, m_target_angle))
+    key_transform(m_stroke, 420, location=m_target, scale=(1.0, 1.0, 1.0), rotation=(0.0, 0.0, m_target_angle))
+
+    for stroke, (source_location, source_angle), (target_location, target_angle) in zip(delta_strokes[1:], source_stroke_states[1:], delta_targets[1:]):
         key_transform(stroke, 1, location=source_location, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, source_angle))
         key_transform(stroke, 368, location=source_location, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, source_angle))
         key_transform(stroke, 376, location=source_location, scale=(1.0, 1.0, 1.0), rotation=(0.0, 0.0, source_angle))
@@ -691,12 +711,16 @@ def animate_complete_identity(
     key_transform(code_u, 469, location=(0.0, 0.14, 0.0), scale=(1.18, 1.18, 1.18))
     key_transform(code_u, 516, location=(0.0, 0.14, 0.0), scale=(1.18, 1.18, 1.18))
     for frame, factor in ((469, HIDDEN_FACTOR), (486, HIDDEN_FACTOR), (492, 1.0), (498, HIDDEN_FACTOR), (504, 1.0), (510, HIDDEN_FACTOR), (516, 1.0)):
-        key_transform(cursor, frame, location=(0.96, -1.18, 0.26), scale=(factor, factor, factor), rotation=(0.0, 0.0, PHI if frame >= 504 else 0.0))
+        key_transform(cursor, frame, location=(1.06, -1.18, 0.26), scale=(factor, factor, factor), rotation=(0.0, 0.0, PHI if frame >= 504 else 0.0))
 
     # 11 — family lockup: parent word above, extracted BIDIΔ below, code sigil at right.
     key_transform(code_root, 517, location=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0))
-    key_transform(code_root, 540, location=(4.25, -0.68, 0.0), scale=(0.58, 0.58, 0.58))
-    key_transform(code_root, 600, location=(4.25, -0.68, 0.0), scale=(0.58, 0.58, 0.58))
+    # Resolve the code sigil inside Delta without sacrificing its cursor. The
+    # smaller, centered lockup lifts the underscore clear of the Delta base;
+    # its right-biased overhang remains visible but no longer collides with the
+    # triangle's right edge.
+    key_transform(code_root, 540, location=(4.02, -0.48, 0.0), scale=(0.48, 0.48, 0.48))
+    key_transform(code_root, 600, location=(4.02, -0.48, 0.0), scale=(0.48, 0.48, 0.48))
     key_transform(rig.root, 517, location=(0.0, 1.72, 0.0), scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
     key_transform(rig.root, 540, location=(0.0, 1.72, 0.0), scale=(1.0, 1.0, 1.0))
     key_transform(rig.root, 600, location=(0.0, 1.72, 0.0), scale=(1.0, 1.0, 1.0))

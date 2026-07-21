@@ -37,6 +37,13 @@ The phase trajectory is:
 | `𝒰` | slight descent | left inherits bias, right resolves | white/blue change |
 | `s` | settled baseline | damped `2°` residue | cyan relation |
 
+The counters are structural geometry, not shading. `M` uses one
+non-self-intersecting outline with a clean open V, `b` has one continuous
+seated base around a single enlarged interior aperture, and `s` is built from two separated ribbon lobes so its
+central channel survives SVG-to-Blender triangulation. `𝒰` and `s` meet at one
+controlled near-tangent: complementary pressure fields that remain legible as
+two projections of the shared `us` event.
+
 ## Conserved aperture
 
 The connected Blender body now supplies the conserved aperture in the
@@ -90,6 +97,9 @@ phase ground.
 - The structural Hangul state uses the connected body as `ㅇ`, a phase-corrected
   horizontal ground as `ㅡ`, and a separately lineaged, compact i-stem as `ㅣ`.
   Their committed positions are validated as one syllabic block.
+- The M-derived Delta edge first highlights the actual right-inner diagonal of
+  `M`, then peels, translates, and grows into the first triangle edge. The
+  other two edges retain their direct `i` and phase-ground lineages.
 - The primary Delta endpoints close within `0.22` Blender units; the current
   three measured gaps are recorded in the validation report.
 
@@ -109,7 +119,7 @@ web-size limit.
 
 | token | dark surface | light surface |
 | --- | --- | --- |
-| substrate | `#edf7ff` | `#07152c` |
+| substrate | `#394db8` | `#07152c` |
 | subjective indigo | `#707ddd` | `#27316f` |
 | operator edge | `#137dff` | `#0c6fd8` |
 | operator core | `#f8fbff` | `#ffffff` |
