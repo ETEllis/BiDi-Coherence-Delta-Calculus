@@ -42,8 +42,8 @@ FRAMES = {
     "UI_RESTORATION": (157, 192),
     "HANGUL_RESTORATION": (193, 228),
     "RETURN_TO_WORDMARK": (229, 276),
-    "BIDI_SELF_EXTRACTION": (277, 348),
-    "DELTA_TRIADIC_CLOSURE": (349, 420),
+    "BIDI_SELF_EXTRACTION": (277, 368),
+    "DELTA_TRIADIC_CLOSURE": (369, 420),
     "OPERATOR_U": (421, 468),
     "CODE_SIGIL": (469, 516),
     "FAMILY_LOCKUP": (517, 600),
@@ -64,7 +64,7 @@ GOLDEN_FRAMES = {
     "ius-phase": 132,
     "ui-restored": 180,
     "hangul-restored": 216,
-    "bidi-extracted": 340,
+    "bidi-extracted": 360,
     "delta-closed": 408,
     "u-standalone": 456,
     "u-code": 500,
@@ -286,17 +286,22 @@ def add_u_shear_keys(rig: GlyphRig) -> list[bpy.types.ShapeKey]:
 
 
 def make_materials(materials: dict[str, bpy.types.Material]) -> dict[str, bpy.types.Material]:
+    # Chromatic hierarchy, not decorative variation:
+    # substrate -> directed perspective -> white-hot operator -> relation.
+    # Only the U is white.  Keeping the broad word skeleton in indigo prevents
+    # the large glyph faces from overwhelming the smaller semantic color
+    # transitions under studio lighting.
     materials.update(
         {
-            "word": base.principled_material("Wordmark_White", base.COLORS["white"], roughness=0.46, emission=0.04),
-            "i": base.principled_material("Perspective_Indigo", (0.085, 0.11, 0.52, 1.0), roughness=0.54, emission=0.08),
-            "u_blue": base.principled_material("Operator_Keyline_Blue", base.COLORS["blue"], roughness=0.34, emission=0.22),
-            "s": base.principled_material("Relation_Cyan", base.COLORS["cyan"], roughness=0.42, emission=0.12),
-            "bidi_left": base.principled_material("BIDI_Source_Indigo", (0.12, 0.16, 0.68, 1.0), roughness=0.42, emission=0.11),
-            "bidi_right": base.principled_material("BIDI_Reflected_Cyan", (0.04, 0.70, 0.82, 1.0), roughness=0.38, emission=0.15),
-            "delta_a": base.principled_material("Delta_Indigo", (0.12, 0.16, 0.68, 1.0), metallic=0.05, roughness=0.33, emission=0.12),
-            "delta_b": base.principled_material("Delta_WhiteBlue", (0.50, 0.70, 1.0, 1.0), metallic=0.07, roughness=0.28, emission=0.20),
-            "delta_c": base.principled_material("Delta_Cyan", (0.04, 0.78, 0.80, 1.0), metallic=0.06, roughness=0.31, emission=0.16),
+            "word": base.principled_material("Wordmark_Substrate_Indigo", (0.035, 0.060, 0.360, 1.0), roughness=0.52, emission=0.18),
+            "i": base.principled_material("Perspective_Indigo", (0.075, 0.105, 0.600, 1.0), roughness=0.50, emission=0.20),
+            "u_blue": base.principled_material("Operator_Keyline_Blue", (0.006, 0.260, 0.950, 1.0), roughness=0.38, emission=0.28),
+            "s": base.principled_material("Relation_Cyan", (0.025, 0.620, 0.700, 1.0), roughness=0.46, emission=0.20),
+            "bidi_left": base.principled_material("BIDI_Source_Indigo", (0.055, 0.085, 0.500, 1.0), roughness=0.46, emission=0.18),
+            "bidi_right": base.principled_material("BIDI_Reflected_Cyan", (0.025, 0.560, 0.660, 1.0), roughness=0.44, emission=0.20),
+            "delta_a": base.principled_material("Delta_Indigo", (0.055, 0.085, 0.500, 1.0), metallic=0.03, roughness=0.40, emission=0.18),
+            "delta_b": base.principled_material("Delta_Electric_Blue", (0.080, 0.300, 0.900, 1.0), metallic=0.03, roughness=0.38, emission=0.22),
+            "delta_c": base.principled_material("Delta_Cyan", (0.025, 0.620, 0.700, 1.0), metallic=0.03, roughness=0.40, emission=0.20),
         }
     )
     return materials
@@ -549,23 +554,27 @@ def animate_complete_identity(
     key_transform(rig.glyphs["I"], 193, location=ui_i, scale=rig.base_scales["I"], rotation=(0.0, math.tau, 0.0))
     key_transform(rig.glyphs["U"], 205, scale=hidden_scale(rig.base_scales["U"]))
     key_transform(rig.glyphs["I"], 205, scale=hidden_scale(rig.base_scales["I"]))
-    key_transform(body_root, 193, location=(-0.62, 0.38, 0.0), scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, 0.0))
-    key_transform(body_root, 216, location=(-0.62, 0.38, 0.0), scale=(0.34, 0.34, 0.34), rotation=(0.0, 0.0, 0.0))
-    key_transform(body_root, 228, location=(-0.62, 0.38, 0.0), scale=(0.34, 0.34, 0.34), rotation=(0.0, 0.0, 0.0))
+    hangul_circle = Vector((-0.42, 0.34, 0.0))
+    hangul_circle_scale = 0.30
+    key_transform(body_root, 193, location=hangul_circle, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, 0.0))
+    key_transform(body_root, 216, location=hangul_circle, scale=(hangul_circle_scale, hangul_circle_scale, hangul_circle_scale), rotation=(0.0, 0.0, 0.0))
+    key_transform(body_root, 228, location=hangul_circle, scale=(hangul_circle_scale, hangul_circle_scale, hangul_circle_scale), rotation=(0.0, 0.0, 0.0))
     key_body_projection(body, 193, u=0.0)
     key_body_projection(body, 228, u=0.0)
     key_transform(rig.glyphs["Ground_Right"], 193, location=rig.base_locations["Ground_Right"] + group_shift, scale=rig.base_scales["Ground_Right"], rotation=(0.0, 0.0, -PHI))
-    key_transform(rig.glyphs["Ground_Right"], 216, location=(-0.62, -0.73, 0.0), scale=(0.52, 0.52, 0.52), rotation=(0.0, 0.0, 0.0))
-    key_transform(rig.glyphs["Ground_Right"], 228, location=(-0.62, -0.73, 0.0), scale=(0.52, 0.52, 0.52), rotation=(0.0, 0.0, 0.0))
+    # Cancel the phase tilt baked into the source ground so the restored ㅡ is
+    # truly horizontal and optically centered under ㅇ.
+    key_transform(rig.glyphs["Ground_Right"], 216, location=(-0.42, -0.48, 0.0), scale=(0.44, 0.44, 0.44), rotation=(0.0, 0.0, -PHI))
+    key_transform(rig.glyphs["Ground_Right"], 228, location=(-0.42, -0.48, 0.0), scale=(0.44, 0.44, 0.44), rotation=(0.0, 0.0, -PHI))
     key_transform(hangul_root, 1, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
-    key_transform(hangul_root, 204, location=(0.72, 0.02, 0.0), scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
-    key_transform(hangul_root, 216, location=(0.72, 0.02, 0.0), scale=(1.0, 1.0, 1.0))
-    key_transform(hangul_root, 228, location=(0.72, 0.02, 0.0), scale=(1.0, 1.0, 1.0))
+    key_transform(hangul_root, 204, location=(0.30, -0.07, 0.0), scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
+    key_transform(hangul_root, 216, location=(0.30, -0.07, 0.0), scale=(0.72, 0.72, 0.72))
+    key_transform(hangul_root, 228, location=(0.30, -0.07, 0.0), scale=(0.72, 0.72, 0.72))
 
     # 06 — return to the exact embodied wordmark state.
-    key_transform(hangul_root, 229, location=(0.72, 0.02, 0.0), scale=(1.0, 1.0, 1.0))
+    key_transform(hangul_root, 229, location=(0.30, -0.07, 0.0), scale=(0.72, 0.72, 0.72))
     key_transform(hangul_root, 242, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
-    key_transform(body_root, 229, location=(-0.62, 0.38, 0.0), scale=(0.34, 0.34, 0.34))
+    key_transform(body_root, 229, location=hangul_circle, scale=(hangul_circle_scale, hangul_circle_scale, hangul_circle_scale))
     key_transform(body_root, 264, location=o_location, scale=(o_scale, o_scale, o_scale), rotation=(0.0, 0.0, PHI))
     key_transform(body_root, 276, location=o_location, scale=(o_scale, o_scale, o_scale), rotation=(0.0, 0.0, PHI))
     for role in word_roles:
@@ -589,20 +598,57 @@ def animate_complete_identity(
         "BIDI_D_Reflected": Vector((0.05, -0.48, 0.12)),
         "BIDI_I_Reflected": Vector((1.42, -0.48, 0.12)),
     }
-    for name, clone in bidi.items():
-        source_role = "B" if "B_" in name or "D_" in name else "I"
-        source_world = rig.base_locations[source_role] + Vector((0.0, 1.72, 0.0))
-        key_transform(clone, 1, location=source_world, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
-        key_transform(clone, 286, location=source_world, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
-        key_transform(clone, 294, location=source_world, scale=(0.64, 0.64, 0.64))
-        key_transform(clone, 340, location=target_positions[name], scale=(0.64, 0.64, 0.64))
+    source_world = {
+        "B": rig.base_locations["B"] + Vector((0.0, 1.72, 0.0)),
+        "I": rig.base_locations["I"] + Vector((0.0, 1.72, 0.0)),
+    }
+
+    # The live BI leaves a real vacancy in Möbi𝒰s.  Source descendants inherit
+    # its exact positions before moving outward, so extraction reads as a
+    # self-projection rather than four unrelated letters entering the frame.
+    for role in ("B", "I"):
+        key_transform(rig.glyphs[role], 286, location=rig.base_locations[role], scale=rig.base_scales[role])
+        key_transform(rig.glyphs[role], 298, location=rig.base_locations[role], scale=rig.base_scales[role])
+        key_transform(rig.glyphs[role], 310, location=rig.base_locations[role] + Vector((0.0, -0.10, 0.0)), scale=hidden_scale(rig.base_scales[role]))
+        key_transform(rig.glyphs[role], 408, scale=hidden_scale(rig.base_scales[role]))
+        key_transform(rig.glyphs[role], 412, scale=hidden_scale(rig.base_scales[role], 0.12))
+        key_transform(rig.glyphs[role], 416, scale=Vector(tuple(value * 0.68 for value in rig.base_scales[role])))
+        key_transform(rig.glyphs[role], 420, location=rig.base_locations[role], scale=rig.base_scales[role], rotation=rig.base_rotations[role])
+
+    source_pair = {
+        "BIDI_B_Source": "B",
+        "BIDI_I_Source": "I",
+    }
+    for name, source_role in source_pair.items():
+        clone = bidi[name]
+        key_transform(clone, 1, location=source_world[source_role], scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
+        key_transform(clone, 288, location=source_world[source_role], scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
+        key_transform(clone, 298, location=source_world[source_role], scale=(0.64, 0.64, 0.64))
+        midpoint = source_world[source_role].lerp(target_positions[name], 0.55) + Vector((0.0, 0.18, 0.0))
+        key_transform(clone, 312, location=midpoint, scale=(0.68, 0.68, 0.68))
+        key_transform(clone, 324, location=target_positions[name], scale=(0.64, 0.64, 0.64))
         key_transform(clone, 420, location=target_positions[name], scale=(0.64, 0.64, 0.64))
-    # The reflection is an actual scale-sign inversion, not a D substitute.
+
+    # A second BI is projected out of the settled source pair.  Its B crosses
+    # the zero-width inversion plane and crystallizes as D; its i is the phase
+    # invariant that simply translates into the second position.
     reflected = bidi["BIDI_D_Reflected"]
-    key_transform(reflected, 310, scale=(0.64, 0.64, 0.64))
-    key_transform(reflected, 322, scale=(HIDDEN_FACTOR, 0.64, 0.64))
-    key_transform(reflected, 340, scale=(-0.64, 0.64, 0.64))
-    key_transform(reflected, 420, scale=(-0.64, 0.64, 0.64))
+    reflected_i = bidi["BIDI_I_Reflected"]
+    key_transform(reflected, 1, location=target_positions["BIDI_B_Source"], scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
+    key_transform(reflected_i, 1, location=target_positions["BIDI_I_Source"], scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
+    key_transform(reflected, 324, location=target_positions["BIDI_B_Source"], scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
+    key_transform(reflected_i, 324, location=target_positions["BIDI_I_Source"], scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
+    key_transform(reflected, 330, location=target_positions["BIDI_B_Source"], scale=(0.64, 0.64, 0.64))
+    key_transform(reflected_i, 330, location=target_positions["BIDI_I_Source"], scale=(0.64, 0.64, 0.64))
+    key_transform(reflected, 340, location=(-0.58, -0.30, 0.16), scale=(0.18, 0.68, 0.68))
+    key_transform(reflected_i, 344, location=(0.62, -0.30, 0.16), scale=(0.70, 0.70, 0.70))
+    key_transform(reflected, 344, location=(-0.24, -0.40, 0.14), scale=(HIDDEN_FACTOR, 0.68, 0.68))
+    key_transform(reflected, 352, location=target_positions["BIDI_D_Reflected"], scale=(-0.72, 0.72, 0.72))
+    key_transform(reflected_i, 352, location=target_positions["BIDI_I_Reflected"], scale=(0.70, 0.70, 0.70))
+    key_transform(reflected, 360, location=target_positions["BIDI_D_Reflected"], scale=(-0.64, 0.64, 0.64))
+    key_transform(reflected_i, 360, location=target_positions["BIDI_I_Reflected"], scale=(0.64, 0.64, 0.64))
+    key_transform(reflected, 420, location=target_positions["BIDI_D_Reflected"], scale=(-0.64, 0.64, 0.64))
+    key_transform(reflected_i, 420, location=target_positions["BIDI_I_Reflected"], scale=(0.64, 0.64, 0.64))
 
     # 08 — three type-native strokes detach from M, i, and the phase ground.
     source_stroke_states = [
@@ -617,8 +663,8 @@ def animate_complete_identity(
     ]
     for stroke, (source_location, source_angle), (target_location, target_angle) in zip(delta_strokes, source_stroke_states, delta_targets):
         key_transform(stroke, 1, location=source_location, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, source_angle))
-        key_transform(stroke, 348, location=source_location, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, source_angle))
-        key_transform(stroke, 358, location=source_location, scale=(1.0, 1.0, 1.0), rotation=(0.0, 0.0, source_angle))
+        key_transform(stroke, 368, location=source_location, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR), rotation=(0.0, 0.0, source_angle))
+        key_transform(stroke, 376, location=source_location, scale=(1.0, 1.0, 1.0), rotation=(0.0, 0.0, source_angle))
         key_transform(stroke, 408, location=target_location, scale=(1.0, 1.0, 1.0), rotation=(0.0, 0.0, target_angle))
         key_transform(stroke, 420, location=target_location, scale=(1.0, 1.0, 1.0), rotation=(0.0, 0.0, target_angle))
 
@@ -645,7 +691,7 @@ def animate_complete_identity(
     key_transform(code_u, 469, location=(0.0, 0.14, 0.0), scale=(1.18, 1.18, 1.18))
     key_transform(code_u, 516, location=(0.0, 0.14, 0.0), scale=(1.18, 1.18, 1.18))
     for frame, factor in ((469, HIDDEN_FACTOR), (486, HIDDEN_FACTOR), (492, 1.0), (498, HIDDEN_FACTOR), (504, 1.0), (510, HIDDEN_FACTOR), (516, 1.0)):
-        key_transform(cursor, frame, location=(0.78, -1.18, 0.26), scale=(factor, factor, factor), rotation=(0.0, 0.0, PHI if frame >= 504 else 0.0))
+        key_transform(cursor, frame, location=(0.96, -1.18, 0.26), scale=(factor, factor, factor), rotation=(0.0, 0.0, PHI if frame >= 504 else 0.0))
 
     # 11 — family lockup: parent word above, extracted BIDIΔ below, code sigil at right.
     key_transform(code_root, 517, location=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0))
@@ -674,7 +720,7 @@ def animate_complete_identity(
         (132, 0.0, 0.0, 6.2),
         (156, 0.0, 0.0, 6.2),
         (180, 0.0, 0.0, 5.8),
-        (216, 0.0, 0.0, 5.7),
+        (216, 0.0, 0.0, 4.8),
         (276, 0.0, 0.0, 10.5),
         (340, 0.35, 0.45, 11.8),
         (408, 0.35, 0.20, 12.2),

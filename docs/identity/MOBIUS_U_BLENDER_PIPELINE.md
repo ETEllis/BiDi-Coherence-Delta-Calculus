@@ -77,8 +77,10 @@ A release is green only when all of the following hold:
 6. The manifest checksums every stable generated artifact.
 7. The component family includes animated wordmark, `i𝒰s`, `UI → 의`, literal
    `BI → BIDI → BIDIΔ`, connected standalone `𝒰`, and `𝒰_` projections.
-8. `BIDI` is made from four descendants of the source `B/I`; the D is a
-   negative-x reflection and no finished kernel SVG enters the master.
+8. `BIDI` is made causally: parent `BI` vacates, source `BI` travels outward,
+   projected `BI` crosses the inversion plane, `B` crystallizes at negative-x
+   scale as `D`, and the original `BI` restores only after Delta closes. No
+   finished kernel SVG enters the master.
 9. Delta is exactly three lineaged type strokes whose endpoints close within
    tolerance; the connected body's Delta projection is secondary only.
 10. The complete calculus verification suite and `git diff --check` remain green.

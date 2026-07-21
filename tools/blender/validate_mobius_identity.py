@@ -45,7 +45,7 @@ GOLDEN = {
     "ius-phase": 132,
     "ui-restored": 180,
     "hangul-restored": 216,
-    "bidi-extracted": 340,
+    "bidi-extracted": 360,
     "delta-closed": 408,
     "u-standalone": 456,
     "u-code": 500,
@@ -188,6 +188,19 @@ def main() -> None:
         fail("flat SVG O is visible in the embodied static wordmark")
     if not visible(body_root) or not all(visible(eye) for eye in eyes):
         fail("collapsed Möbius body and eyes are not present in the static wordmark")
+    substrate = bpy.data.materials.get("Wordmark_Substrate_Indigo")
+    if substrate is None or max(substrate.diffuse_color[:3]) > 0.5:
+        fail("wordmark substrate is missing or has regressed to a snow-white value")
+    for role in ("M", "B"):
+        material_names = {
+            material.name
+            for child in objects[f"Glyph_{role}"].children
+            for material in getattr(child.data, "materials", ())
+        }
+        if "Wordmark_Substrate_Indigo" not in material_names:
+            fail(f"Glyph_{role} does not carry the indigo substrate material")
+    if max((light.energy for light in bpy.data.lights), default=0.0) > 300.0:
+        fail("studio lighting exceeds the palette-preserving energy ceiling")
     o_slot = objects["Glyph_O"].matrix_world.translation
     if (body_root.matrix_world.translation - o_slot).length > 0.04:
         fail("collapsed Möbius body is not seated in the O slot")
@@ -220,9 +233,26 @@ def main() -> None:
         fail("Latin I/U glyphs were not released before the structural 의 state")
     if objects["Hangul_I_From_i_Stem"].get("derived_from") != "Glyph_I":
         fail("Hangul vertical lacks inspectable i-stem lineage")
+    circle_location = body_root.matrix_world.translation
+    ground_location = objects["Glyph_Ground_Right"].matrix_world.translation
+    vertical_location = objects["Hangul_I_From_i_Stem"].matrix_world.translation
+    if abs(circle_location.x - ground_location.x) > 0.16 or ground_location.y >= circle_location.y - 0.55:
+        fail("Hangul ㅇ and ㅡ are not locked into one centered syllabic column")
+    if vertical_location.x <= circle_location.x + 0.68 or abs(vertical_location.y - ground_location.y) > 0.58:
+        fail("Hangul ㅣ is not seated tightly beside the restored ㅇ/ㅡ block")
 
-    # Frame 340: four live descendants form BIDI; reflected b must be negative-x.
+    # Frame 340: the projected B visibly collapses through the inversion plane
+    # while the original BI has vacated the parent word.
     set_frame(scene, 340)
+    if not visible(objects["BIDI_B_Source"]) or not visible(objects["BIDI_I_Source"]):
+        fail("source BI did not visibly leave the parent word")
+    if abs(objects["BIDI_D_Reflected"].scale.x) >= 0.25:
+        fail("projected B does not pass through the zero-width inversion state")
+    if visible(objects["Glyph_B"]) or visible(objects["Glyph_I"]):
+        fail("original BI did not vacate its Möbi𝒰s slots during self-projection")
+
+    # Frame 360: the projected pair crystallizes as DI beside source BI.
+    set_frame(scene, 360)
     clone_names = ("BIDI_B_Source", "BIDI_I_Source", "BIDI_D_Reflected", "BIDI_I_Reflected")
     if not all(visible(objects[name]) for name in clone_names):
         fail("BIDI extraction is missing one or more live BI descendants")
@@ -232,8 +262,8 @@ def main() -> None:
         fail("reflected D lacks source-B lineage")
     if objects["BIDI_I_Reflected"].get("derived_from") != "Glyph_I":
         fail("duplicate I lacks source-I lineage")
-    if not visible(objects["Glyph_B"]) or not visible(objects["Glyph_I"]) or not visible(word_root):
-        fail("parent word did not remain coherent while generating BIDI")
+    if visible(objects["Glyph_B"]) or visible(objects["Glyph_I"]) or not visible(word_root):
+        fail("parent word did not preserve the visible BI vacancy during crystallization")
 
     # Frame 408: exactly three source strokes close one triangle next to BIDI.
     set_frame(scene, 408)
@@ -249,6 +279,12 @@ def main() -> None:
     closure_gaps = [(a_top - b_top).length, (a_low - c_left).length, (b_low - c_right).length]
     if max(closure_gaps) > 0.22:
         fail(f"three Delta strokes do not close geometrically: gaps={closure_gaps}")
+    if visible(objects["Glyph_B"]) or visible(objects["Glyph_I"]):
+        fail("original BI returned before the generated BIDI Delta closure completed")
+
+    set_frame(scene, 420)
+    if not visible(objects["Glyph_B"]) or not visible(objects["Glyph_I"]):
+        fail("original BI did not resolve back into Möbi𝒰s after closure")
 
     # Standalone connected U and terminal U_ each earn their own frame.
     set_frame(scene, 456)
@@ -259,6 +295,9 @@ def main() -> None:
     set_frame(scene, 500)
     if not visible(objects["CodeSigilRig"]) or not visible(objects["OperatorU_Standalone"]) or not visible(objects["CodeCursor_From_PhaseGround"]):
         fail("terminal-ready 𝒰_ frame is incomplete")
+    cursor_overhang = objects["CodeCursor_From_PhaseGround"].matrix_world.translation.x - objects["OperatorU_Standalone"].matrix_world.translation.x
+    if cursor_overhang < 0.82:
+        fail("code cursor lacks the intentional right-hand terminal overhang")
 
     # Required animation owners prove that the scene is rigged, not a still montage.
     animated = [

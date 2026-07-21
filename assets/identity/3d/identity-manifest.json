@@ -87,10 +87,10 @@
     ],
     "BIDI_SELF_EXTRACTION": [
       277,
-      348
+      368
     ],
     "DELTA_TRIADIC_CLOSURE": [
-      349,
+      369,
       420
     ],
     "OPERATOR_U": [
@@ -172,7 +172,7 @@
       "path": "../renders/mobius-hangul-restored.png"
     },
     "bidi-extracted": {
-      "frame": 340,
+      "frame": 360,
       "path": "../renders/mobius-bidi-extracted.png"
     },
     "delta-closed": {
@@ -196,153 +196,153 @@
   "files": [
     {
       "path": "assets/identity/3d/mobius-bidi-delta-animated.glb",
-      "bytes": 464304,
-      "sha256": "27d1a1ca84a8b9b0b285b4183511df900bae32541382fbc45797fa1a46e2f974"
+      "bytes": 469488,
+      "sha256": "1e92dfbecc1304a8ce3fd51a5730273ec97b3e08c9b04c6c8da664080f8f6538"
     },
     {
       "path": "assets/identity/3d/mobius-bidi-delta.glb",
-      "bytes": 367644,
-      "sha256": "0a2273c5b3e32cb609324c6e372ebc30f74c3e1995bba04a2343fd13f9a0b71d"
+      "bytes": 367672,
+      "sha256": "2ce8c918f4fb93d0f840bfa81a09d6d44b8ebdaf4c9d8d09b692a17deca31c4c"
     },
     {
       "path": "assets/identity/3d/mobius-body.glb",
       "bytes": 254700,
-      "sha256": "22e9754725a5979b0f95643b4e5781968959f0dbc210ee272f8231ae6a853a4b"
+      "sha256": "e1a77f41e3215642103a3631b3f9e6c3af2709528d54d5cd3655437b84a1904f"
     },
     {
       "path": "assets/identity/3d/mobius-identity-master.glb",
-      "bytes": 3134244,
-      "sha256": "825dfb72a9436bfeb2caa55167d21320e30cf9fb7396dca5cf2cee9165f39786"
+      "bytes": 3148852,
+      "sha256": "a1943fd3ca4b273851df84502d5bd7dce9c9f45492d8cf35a7dbeaa5bc3bf74d"
     },
     {
       "path": "assets/identity/3d/mobius-ius-phase-animated.glb",
-      "bytes": 803612,
-      "sha256": "74cd3b47393c0bed9bab8f74afec1fe7c78fa0c14589974868abf7cb86d37cba"
+      "bytes": 811216,
+      "sha256": "4643bbbd11d88418dfa93a26ef44c53820a6f6c51d4c3c4bebc1a96c9f44b693"
     },
     {
       "path": "assets/identity/3d/mobius-ius-relational.glb",
-      "bytes": 750228,
-      "sha256": "44bac819fa5a094ab05f6943abdc5e50d50783e8f48603f74268f43e7278c9ae"
+      "bytes": 750232,
+      "sha256": "23398d6a7ee655a5c0b4fe19932bd8eab5f2285e6bd277a51484c8b4aae971b9"
     },
     {
       "path": "assets/identity/3d/mobius-u-animated.glb",
       "bytes": 984732,
-      "sha256": "311694b92e1b0ff8fc7f66a2ea6ed7fb7f0833954f064f3f6ff28aaf5164a7c6"
+      "sha256": "f1f883bcd1843c8f5b9521a459b3839791dbd7568122c595033360c92baefc9f"
     },
     {
       "path": "assets/identity/3d/mobius-u-code-animated.glb",
-      "bytes": 482488,
-      "sha256": "c588063a59607364ef31c9833301afe4b2ff84ffd62fff3b38663dbc7af8b433"
+      "bytes": 482504,
+      "sha256": "db28e1002a0fe55c986058eeba039bfea0daf8d440ee6c0bfeaf12a31c1dfaca"
     },
     {
       "path": "assets/identity/3d/mobius-u-code-sigil.glb",
-      "bytes": 461892,
-      "sha256": "1e9a3707e738b5a944735c324cdf330ffef7862ef6056042c47bd562cce6cbb1"
+      "bytes": 461912,
+      "sha256": "69541faf782b58fa8aca2b7b8ad0e9f87b831cde714472934b6efc13b6aad9e5"
     },
     {
       "path": "assets/identity/3d/mobius-u-operator.glb",
       "bytes": 274084,
-      "sha256": "906b95662c9e4d98b48d77ec9b29afb55d67c4dda52b5192220100325b814b63"
+      "sha256": "cab79951059baa4cdab5183f2761b42e4d93a180f80ff6b22d0140b5edae7e68"
     },
     {
       "path": "assets/identity/3d/mobius-ui-hangul-animated.glb",
-      "bytes": 1497948,
-      "sha256": "16f2fd5b2f9aa0263ff24702acdb759f4e86ac23c75f670cedfa14b2fb4741f9"
+      "bytes": 1505556,
+      "sha256": "819a860fadec70ce544a4261ecc2264a8a4f0d88713d436ff8fae153de9e813d"
     },
     {
       "path": "assets/identity/3d/mobius-wordmark-animated.glb",
-      "bytes": 2273852,
-      "sha256": "30c8b7643cf3f933614730303841ad2fb436b68ca2806fad33fe76e78732c4da"
+      "bytes": 2285108,
+      "sha256": "4fb2f5c0cb3dbb2208dc75ebe8575cf38bfabda87867171577652ccc3eec8f22"
     },
     {
       "path": "assets/identity/motion/mobius-bidi-delta.mp4",
-      "bytes": 326525,
-      "sha256": "2d1623fba63bff3e1c8e9c9ecb78def1ceeb5932ec674fe57c36e42974db41a3"
+      "bytes": 269961,
+      "sha256": "910d3d2d54ab5e39d1882c0916f208f88e5195e4c1f80f09098be383994c4ef9"
     },
     {
       "path": "assets/identity/motion/mobius-code-sigil.mp4",
-      "bytes": 128726,
-      "sha256": "bb1d2a26a43a5195c87bd0f67e21243d030265a03b6366362dccfcc2cb966c68"
+      "bytes": 124375,
+      "sha256": "d0676086a8f5546cdbf6fd85281e98cc34fecbd5b59ecaa84dcf5d445d52f020"
     },
     {
       "path": "assets/identity/motion/mobius-identity-master.mp4",
-      "bytes": 1254830,
-      "sha256": "3be052bb802ac427e669f2510baa0aeb8fcad6bc37bf77c69a7b7d1046da0610"
+      "bytes": 1098522,
+      "sha256": "d76d1765fca192b93106b5b664ebad93b5c2d30d4e77a404c1f87371db92329b"
     },
     {
       "path": "assets/identity/motion/mobius-ius.mp4",
-      "bytes": 118951,
-      "sha256": "2158944faf97fd767529bbbd796059839c3c6d5f83cba1ffccba1df2c5b48b5b"
+      "bytes": 112766,
+      "sha256": "d70cb689863551d58109227bacf7a2890d9b3a9c32cd8b1efcb988518e0db06d"
     },
     {
       "path": "assets/identity/motion/mobius-operator-u.mp4",
-      "bytes": 148686,
-      "sha256": "b738f51bb9216ab7f53d29e0019eb7c6ea9aca9495fab8c78dda770d42d912f6"
+      "bytes": 139398,
+      "sha256": "8f2c8897a90b2b2d8a69d0711bd4a0cbafe6fab0f09f2a4831fd5bf9ccf28e7f"
     },
     {
       "path": "assets/identity/motion/mobius-ui-hangul.mp4",
-      "bytes": 175789,
-      "sha256": "cd7578e584768b153337fe901bd5a63a6c2153628a4c6ac3d7100ef37a1943d7"
+      "bytes": 175178,
+      "sha256": "c3fa254ae428dae7b275f4bffb0ce0bafd7dc7e3f46d8428423588f155492cab"
     },
     {
       "path": "assets/identity/motion/mobius-wordmark.mp4",
-      "bytes": 221975,
-      "sha256": "70b515a130583db67a7e7293aa278f9ed9d91bfeace5364e1cae36ab056af0c6"
+      "bytes": 194151,
+      "sha256": "84c658ee5cc258b7e3714b378306e874aa4c397d894dd8d8e42e5ad0e1f0103e"
     },
     {
       "path": "assets/identity/renders/mobius-bidi-extracted.png",
-      "bytes": 345602,
-      "sha256": "a47e5e1f65496492dd2b30760a4f39801e466499ea1252c38ebff77fd416fc97"
+      "bytes": 325225,
+      "sha256": "bfb590b9fab86e1dbef69e67583eec2871bef35c873317deaa098224257c0da8"
     },
     {
       "path": "assets/identity/renders/mobius-delta-closed.png",
-      "bytes": 354970,
-      "sha256": "65fb2f5651f5ad2b7936b9b830016cdc050c3cc3b866d2070fd842e77dc905c7"
+      "bytes": 337647,
+      "sha256": "982ab777451ad17d8dedd60ffae1cef5ee470fdf6850a4fc54c87dec3c671638"
     },
     {
       "path": "assets/identity/renders/mobius-family-lockup.png",
-      "bytes": 350919,
-      "sha256": "88575ce5f62ff826dc282aba9044ad08e2d71069b6d4f8785fbaee8e6f6deb6d"
+      "bytes": 357537,
+      "sha256": "2eefc7900dc9265d3e075fd105717630a3ff7bd71a25985d75e7e9e28f3c1df3"
     },
     {
       "path": "assets/identity/renders/mobius-hangul-restored.png",
-      "bytes": 279837,
-      "sha256": "429ef50c98b0a58f7c6101c7f913a620dfb2bd525ae9acf3ed0e7f9df1d9195f"
+      "bytes": 276023,
+      "sha256": "fcc380ea1c2402ca97c7bf17354504ab845294c99ff2c7b63fecc59c9614c5f9"
     },
     {
       "path": "assets/identity/renders/mobius-ius-phase.png",
-      "bytes": 366108,
-      "sha256": "da7a76a960ef297abc1e24934cb4015cbcb3afd0913ee9c86b59bc0120fcd4a3"
+      "bytes": 370375,
+      "sha256": "0b5c299b2cd30b73c233a05699b9b4338be1bed00e69476ce0324f7f698a1701"
     },
     {
       "path": "assets/identity/renders/mobius-presence.png",
-      "bytes": 394118,
-      "sha256": "f4cc687ce6dce9f0e52a9c1f64acb961e53d0f25369da48825fa5f4ce7b63839"
+      "bytes": 385132,
+      "sha256": "86c2ab62bda6250454263e8efd2270a31df67c224bbc3140cb2e470a735d73fe"
     },
     {
       "path": "assets/identity/renders/mobius-u-code.png",
-      "bytes": 315841,
-      "sha256": "c004da6339dc6b1f0e5a5d018dc5a7371474ce1ab384915c009a29f8011f9dad"
+      "bytes": 332781,
+      "sha256": "a1fc9c1e727db2c16408cc604c4c6f2aa344d8df0dde130ce2346a4d76cdbd01"
     },
     {
       "path": "assets/identity/renders/mobius-u-standalone.png",
-      "bytes": 389724,
-      "sha256": "db9bde0399705a92f9b072c529f3dd66c8129f279131ea8b5fe4f701a46d0a2e"
+      "bytes": 386577,
+      "sha256": "db1e861f1585fea3e980c5920ff0a32eb919ad46ebc1596db43679b458f7eaee"
     },
     {
       "path": "assets/identity/renders/mobius-ui-restored.png",
-      "bytes": 332564,
-      "sha256": "cdc7de29d51614909468b5283f25160ed0bc798db593cbc49dc00f8983df69bf"
+      "bytes": 330546,
+      "sha256": "0376ca9f6903e0e50bf8eb2621f5a1b711f076820f5fd770e746a7027fce8aa2"
     },
     {
       "path": "assets/identity/renders/mobius-wordmark-generated.png",
-      "bytes": 325238,
-      "sha256": "c5d1550d8e1e965cac51132007f9b3bbf526db71ba6bce6ce551a9094d350577"
+      "bytes": 331724,
+      "sha256": "429a1dd08ce5257faaef9de68b107e6da8a301c35d80019e04c2e5b16f0d855f"
     },
     {
       "path": "assets/identity/renders/mobius-wordmark-static.png",
-      "bytes": 383962,
-      "sha256": "58a5c46ea28f1c525b3b0a7d9740e19d1557c2cfe07a56c85d8198398a7b077d"
+      "bytes": 395482,
+      "sha256": "1e4de1f2a8269c1950ab570276a5b1465b54ae0db89b62ba2e2352b7ae836f4c"
     }
   ],
   "motionClips": {

@@ -83,11 +83,13 @@ phase ground.
   `I`, `U`, `S`, and two ground curves. The SVG `O` and dots are registration
   guides only; the rendered static frame seats the connected body and literal
   3D eyes in their place.
-- `BIDI` contains four live descendants: `B/I` from the source pair and a
-  second `B/I` copy. The copied `B` crosses zero x-scale and resolves at
-  negative x-scale as `D`.
-- The structural Hangul state uses the connected body as `ㅇ`, a moved phase
-  ground as `ㅡ`, and a separately lineaged i-stem as `ㅣ`.
+- `BIDI` contains four live descendants: `B/I` first vacates the parent word
+  and travels outward as the source pair; a second pair projects from it. The
+  copied `B` crosses zero x-scale and resolves at negative x-scale as `D` while
+  copied `I` remains invariant. Parent `BI` restores only after Delta closes.
+- The structural Hangul state uses the connected body as `ㅇ`, a phase-corrected
+  horizontal ground as `ㅡ`, and a separately lineaged, compact i-stem as `ㅣ`.
+  Their committed positions are validated as one syllabic block.
 - The primary Delta endpoints close within `0.22` Blender units; the current
   three measured gaps are recorded in the validation report.
 

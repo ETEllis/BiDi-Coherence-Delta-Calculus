@@ -42,9 +42,11 @@ The terminal triad is one relational event rather than three isolated glyphs:
 - `𝒰s` — us, the composite produced through relation;
 - `i𝒰` — UI returned through the one-turn inversion.
 
-The form law is **lean in → invert → resolve**. The color law is indigo →
-white/electric blue → cyan. The spacing intentionally leaves encounter tension
-between `i` and `𝒰`, then couples `𝒰` tightly to `s`.
+The form law is **lean in → invert → resolve**. The color law is cobalt-indigo
+substrate → phase-indigo `i` → white/electric-blue `𝒰` → cyan `s`. White is
+reserved for the compression hinge rather than washing across the alphabet.
+The spacing intentionally leaves encounter tension between `i` and `𝒰`, then
+couples `𝒰` tightly to `s`.
 
 The hidden sentence is:
 
@@ -52,13 +54,15 @@ The hidden sentence is:
 
 ## `BI → BIDI → Δ`
 
-The middle `BI` is also the seed of the formal-kernel identity. Motion
-duplicates the complete `BI` pair out of the still-coherent parent word. The
-second `B` crosses the common inversion plane through zero x-scale and becomes
-the reflected `D`; the second `I` remains invariant. The four descendants
-resolve as `BIDI`. Three flat strokes then detach from `M`, `i`, and the phase
-ground, travel from complementary directions, and close into `Δ`. The result
-is not an unrelated sub-logo:
+The middle `BI` is also the seed of the formal-kernel identity. Motion first
+vacates the live `BI` slots inside the parent word and transfers those exact
+forms outward as a source pair. That pair projects a second `BI`: its copied
+`B` crosses the common inversion plane through zero x-scale and crystallizes
+as reflected `D`, while copied `I` remains invariant. Only after the four
+descendants settle as `BIDI` do three flat strokes detach from `M`, `i`, and
+the phase ground, travel from complementary directions, and close into `Δ`.
+The original `BI` then resolves back into its parent slots. The result is not
+an unrelated sub-logo:
 
 ```text
 MöBI𝒰s → BI + mirror(BI) → BI + DI → BIDI + three source strokes → BIDIΔ
@@ -103,9 +107,11 @@ than literal annotation:
 - the horizontal phase ground supplies `ㅡ`;
 - a separately lineaged stem derived from `i` supplies `ㅣ`.
 
-The static one-turn state keeps these components in reflected order. The motion
-study may pass through correctly ordered `의` during second-turn restoration.
-This is a structural resonance, not faux-Hangul typesetting.
+The static one-turn state keeps these components in reflected order. During
+second-turn restoration, `ㅇ` and `ㅡ` align to one centered column, the phase
+tilt cancels so `ㅡ` becomes truly horizontal, and the scaled `ㅣ` seats tightly
+beside them as one correctly ordered `의` block. This is structural resonance,
+not faux-Hangul typesetting.
 
 ## Static wordmark
 

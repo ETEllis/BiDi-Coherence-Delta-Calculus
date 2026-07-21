@@ -13,7 +13,8 @@ embodied ö
   → UI
   → 의
   → Möbi𝒰s
-  → BI + reflected DI
+  → BI vacancy + outward source BI
+  → projected BI crosses inversion into DI
   → BIDI + three type-native strokes
   → BIDIΔ
   → embodied 𝒰
@@ -27,11 +28,13 @@ The defining kernel extraction is literal:
 MöBI𝒰s → BI + mirror(BI) → BI + DI → BIDI → BIDIΔ
 ```
 
-- The source word remains present and coherent while generating its kernel.
+- The parent word remains present, but its live `BI` vacates those exact slots
+  during extraction and resolves back only after `BIDIΔ` closes.
 - All four `BIDI` letters are live descendants of the source `B` and `I`.
 - The duplicate `B` crosses `scale.x = 0` and becomes the reflected `D`; no D
   asset is substituted.
 - The duplicate `I` remains invariant beside it.
+- `DI` crystallizes completely before any Delta stroke enters the closure.
 - Delta is exactly three flat, complementary strokes derived from the `M`
   stem, the `i` stem, and the phase ground. The strokes detach, travel, rotate,
   and close geometrically into one triangle.
@@ -51,8 +54,8 @@ The authoritative Blender master is 600 frames at 24 fps, or 25 seconds.
 | `UI_RESTORATION` | 157–192 | `i𝒰` crosses the sheet and swaps into readable `UI`. |
 | `HANGUL_RESTORATION` | 193–228 | The Latin glyphs release into structural `의`: ribbon `ㅇ`, phase-ground `ㅡ`, i-stem `ㅣ`. |
 | `RETURN_TO_WORDMARK` | 229–276 | The same components reassemble the embodied wordmark. |
-| `BIDI_SELF_EXTRACTION` | 277–348 | The internal `BI` duplicates; the second `B` reflects into `D`; the four descendants settle as `BIDI`. |
-| `DELTA_TRIADIC_CLOSURE` | 349–420 | Three source strokes detach and couple into the closed `Δ` beside `BIDI`. |
+| `BIDI_SELF_EXTRACTION` | 277–368 | The live `BI` vacates Möbi𝒰s and projects outward. A second pair grows from that source; its `B` collapses through zero, reverses sheet sign, and crystallizes with invariant `i` as `DI`, settling as `BIDI`. |
+| `DELTA_TRIADIC_CLOSURE` | 369–420 | Only after BIDI settles, three source strokes detach and couple into the closed `Δ`. The original `BI` then resolves back into its evacuated parent-word slots. |
 | `OPERATOR_U` | 421–468 | The connected body opens into operative `𝒰` while both eyes persist. |
 | `CODE_SIGIL` | 469–516 | The typographic operator resolves into terminal-ready `𝒰_`; the phase ground becomes a live cursor. |
 | `FAMILY_LOCKUP` | 517–600 | Parent wordmark, generated kernel, and code sigil hold as one derivable family. |
@@ -81,6 +84,22 @@ The source frame is rendered both as:
 The correctly ordered composition appears only after the UI sheet restoration.
 This makes its legibility a consequence of the motion law rather than an
 annotation on the logo.
+
+At the committed restoration frame, `ㅇ` and `ㅡ` share one centered column,
+the inherited phase tilt is cancelled so `ㅡ` is truly horizontal, and `ㅣ`
+is scaled and seated immediately beside that column. The result is one compact
+syllabic block rather than three merely co-present marks.
+
+## Chromatic hierarchy
+
+The broad `Möb` substrate is cobalt-indigo, `i` rises into brighter phase
+indigo, `𝒰` alone occupies the white compression center behind an electric-blue
+keyline, and `s` resolves into cyan. Broad, low-energy studio lights reveal the
+shallow extrusion without bleaching these roles into near-white surfaces.
+
+The same law governs the derived BIDI and three complementary Delta strokes.
+The code cursor is right-biased beneath `𝒰`, giving `𝒰_` a deliberate terminal
+overhang rather than the appearance of a centered pedestal.
 
 ## Independent sequences
 

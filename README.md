@@ -30,10 +30,10 @@ The repository now also carries a non-breaking **Möbi𝒰s identity candidate**
 Möbius is the embodied product, `𝒰` is the Universal Operator, and CDC remains
 the formal kernel and canonical `.cdc` source contract. A validated Blender
 master seats the connected eye-bearing Möbius body inside the static `ö`, opens
-that same topology into `𝒰`, restores `i𝒰 → UI → 의`, and literally duplicates
-the name's central `BI` into reflected `BIDI` before three type-derived strokes
-close `Δ`. The identity assets and motion study do not rename the package or
-syntax. See
+that same topology into `𝒰`, restores `i𝒰 → UI → 의`, and visibly evacuates the
+name's central `BI` before projecting it into reflected `BIDI`; only then do
+three type-derived strokes close `Δ`, after which the parent `BI` returns. The
+identity assets and motion study do not rename the package or syntax. See
 [`docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md`](docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md)
 [`docs/identity/MOBIUS_U_BLENDER_PIPELINE.md`](docs/identity/MOBIUS_U_BLENDER_PIPELINE.md),
 and [`docs/identity/MOBIUS_U_INTEGRATION.md`](docs/identity/MOBIUS_U_INTEGRATION.md),

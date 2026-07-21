@@ -19,7 +19,7 @@ redraw the mark.
 | Universal Operator | `mobius-u-operator.glb` | operator SVG | same closed band, U-shaped projection |
 | Relational composition | `mobius-ius-phase-animated.glb` | `mobius-ius-relational.svg` | preserve asymmetric i–𝒰–s spacing and operator shear |
 | UI / Korean restoration | `mobius-ui-hangul-animated.glb` | named golden frames | `의` is built from body, ground, and i-stem—not pasted type |
-| Formal kernel / sub-brand | `mobius-bidi-delta-animated.glb` | `mobius-bidi-delta.svg` | `BI` duplicates, reflected `DI` forms, then three source strokes close `Δ` |
+| Formal kernel / sub-brand | `mobius-bidi-delta-animated.glb` | `mobius-bidi-delta.svg` | `BI` vacates and projects outward, reflected `DI` crystallizes, then three source strokes close `Δ` and parent `BI` restores |
 
 ## State and motion
 
@@ -76,8 +76,9 @@ extension migration remains an explicit versioned decision.
 6. Reduced-size assets simplify appearance without changing semantic ownership.
 7. Korean/Chinese resonances emerge in motion and composition; they are not
    substituted for language or presented as etymological claims.
-8. The parent word remains coherent while its internal `BI` generates the
-   reflected `DI`; no prebuilt BIDI mark may replace that causal sequence.
+8. The parent word remains visible while its internal `BI` vacates and projects
+   the reflected `DI`; parent `BI` restores only after closure, and no prebuilt
+   BIDI mark may replace that causal sequence.
 
 ## Release authority
 

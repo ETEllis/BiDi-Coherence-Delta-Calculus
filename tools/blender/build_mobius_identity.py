@@ -544,9 +544,12 @@ def setup_scene() -> tuple[bpy.types.Object, dict[str, bpy.types.Material]]:
     move_to_collection(camera, collection("CAMERAS"))
     scene.camera = camera
 
+    # The identity palette is carried by the materials.  These broad lights
+    # reveal the shallow extrusion and sheet crossover without bleaching the
+    # indigo/cyan polarity into a field of near-white diffuse highlights.
     for name, location, energy, size in (
-        ("Key_Cyan", (-4.5, 4.0, 6.0), 850.0, 5.0),
-        ("Fill_Indigo", (4.5, -2.0, 5.0), 620.0, 4.0),
+        ("Key_Cyan", (-4.5, 4.0, 6.0), 260.0, 5.0),
+        ("Fill_Indigo", (4.5, -2.0, 5.0), 150.0, 4.0),
     ):
         data = bpy.data.lights.new(name, "AREA")
         data.energy = energy

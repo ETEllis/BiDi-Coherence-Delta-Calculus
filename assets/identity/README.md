@@ -7,8 +7,10 @@ rename the package, the `.cdc` source format, or the formal paper.
 - `mobius-embodied-mark.svg` — closed, present, eye-bearing product body.
 - `mobius-u-wordmark-dark.svg` — dark-surface wordmark and phase ground.
 - `mobius-u-wordmark-light.svg` — light-surface wordmark.
-- `mobius-u-code-sigil.svg` — monochrome `𝒰_` for small technical surfaces.
-- `mobius-u-code-sigil-dark.svg` — two-ink dark-surface `𝒰_`.
+- `mobius-u-code-sigil.svg` — monochrome `𝒰_` for small technical surfaces,
+  with a right-biased live-cursor overhang.
+- `mobius-u-code-sigil-dark.svg` — two-ink dark-surface `𝒰_` with the same
+  terminal overhang.
 - `mobius-u-operator.svg` — standalone operator without the code cursor.
 - `mobius-ius-relational.svg` — independent `i𝒰s` relational lockup.
 - `mobius-bi-seed.svg` — the `bi` source extracted from the name.
@@ -22,6 +24,9 @@ rename the package, the `.cdc` source format, or the formal paper.
 The word skeleton begins from the original Möbius landing-page family, Syne,
 then converts the visible characters to portable outlines. The `𝒰`, eyes,
 phase trajectory, spacing, and return line are engineered identity geometry.
+The dark-surface hierarchy is cobalt-indigo `Möb`, phase-indigo `i`, a white
+operator core with electric-blue keyline, and relational cyan `s`; white is a
+compression event, not the default alphabet color.
 The operator skeleton begins from the STIX Two Math script `𝒰` so it remains
 mathematically recognizable, then receives the identity keyline, scale, and
 optical placement. No live font is loaded by the assets.
