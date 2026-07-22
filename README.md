@@ -33,10 +33,8 @@ master seats the connected eye-bearing Möbius body inside the static `ö`, open
 that same topology into `𝒰`, restores `i𝒰 → UI → 의`, and visibly evacuates the
 name's central `BI` before projecting it into reflected `BIDI`; only then do
 three type-derived strokes close `Δ`, after which the parent `BI` returns. The
-identity assets and motion study do not rename the package or syntax. See
-[`docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md`](docs/identity/MOBIUS_U_IDENTITY_SYSTEM.md)
-[`docs/identity/MOBIUS_U_BLENDER_PIPELINE.md`](docs/identity/MOBIUS_U_BLENDER_PIPELINE.md),
-and [`docs/identity/MOBIUS_U_INTEGRATION.md`](docs/identity/MOBIUS_U_INTEGRATION.md),
+identity assets and motion study do not rename the package or syntax. Start at
+the [`docs/identity` source-of-truth and handoff index](docs/identity/README.md),
 then open [`demo/mobius-identity.html`](demo/mobius-identity.html) locally for
 the interactive one-turn/two-turn study.
 

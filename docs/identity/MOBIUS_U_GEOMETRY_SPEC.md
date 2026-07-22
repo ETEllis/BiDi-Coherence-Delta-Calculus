@@ -39,10 +39,13 @@ The phase trajectory is:
 
 The counters are structural geometry, not shading. `M` uses one
 non-self-intersecting outline with a clean open V, `b` has one continuous
-seated base around a single enlarged interior aperture, and `s` is built from two separated ribbon lobes so its
-central channel survives SVG-to-Blender triangulation. `𝒰` and `s` meet at one
-controlled near-tangent: complementary pressure fields that remain legible as
-two projections of the shared `us` event.
+seated base around a single enlarged interior aperture, and `s` is one
+continuous conventional double curve with open upper and lower counters. Its
+animation pivot is moved to the left contact edge without moving the final
+outline, allowing the curve to unfurl from the `𝒰` terminal rather than
+materializing at its own center. `𝒰` and `s` meet at one controlled tangent:
+complementary pressure fields that remain legible as two projections of the
+shared `us` event.
 
 ## Conserved aperture
 
@@ -97,6 +100,9 @@ phase ground.
 - The structural Hangul state uses the connected body as `ㅇ`, a phase-corrected
   horizontal ground as `ㅡ`, and a separately lineaged, compact i-stem as `ㅣ`.
   Their committed positions are validated as one syllabic block.
+- During wordmark generation, the typographic `𝒰` begins at the conserved
+  aperture and establishes the hinge before the contact-anchored `s` opens from
+  its return terminal. Independent bottom-up arrivals are a validation failure.
 - The M-derived Delta edge first highlights the actual right-inner diagonal of
   `M`, then peels, translates, and grows into the first triangle edge. The
   other two edges retain their direct `i` and phase-ground lineages.

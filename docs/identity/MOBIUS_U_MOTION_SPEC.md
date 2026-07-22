@@ -48,7 +48,7 @@ The authoritative Blender master is 600 frames at 24 fps, or 25 seconds.
 | State | Frames | Meaning |
 |---|---:|---|
 | `PRESENCE` | 1–35 | Closed Möbius body rests on the surface; literal eyes blink and track. |
-| `WORDMARK_GENERATION` | 36–84 | The connected body collapses into the `ö` slot while `M`, `b`, `i`, `𝒰`, `s`, and the phase ground assemble around it. |
+| `WORDMARK_GENERATION` | 36–84 | The connected body collapses into the `ö` slot; `𝒰` projects from that conserved aperture, then contact-anchored `s` unfurls from its outgoing terminal while the remaining type and phase ground assemble. |
 | `ONE_TURN_WORDMARK` | 85–108 | Canonical static wordmark holds on the inverted sheet. |
 | `IUS_PHASE` | 109–156 | `i𝒰s` isolates: perspective leans in, the operator shears across its own width, and `s` resolves. |
 | `UI_RESTORATION` | 157–192 | `i𝒰` crosses the sheet and swaps into readable `UI`. |
@@ -89,6 +89,16 @@ At the committed restoration frame, `ㅇ` and `ㅡ` share one centered column,
 the inherited phase tilt is cancelled so `ㅡ` is truly horizontal, and `ㅣ`
 is scaled and seated immediately beside that column. The result is one compact
 syllabic block rather than three merely co-present marks.
+
+## Reverse-sheet extension
+
+The current 600-frame master does not yet include the newly discovered
+reverse-sheet sequence. The next independent clip should rotate the word as one
+sheet, reveal reversed `SUI` as the Latin *suī* resonance, and return through a
+second turn. The optional `OM` state requires the literal eyes to lift from
+terminal `ö`; it is an authored kinetic reveal, not literal plain-text reversal.
+Neither extension may displace the implemented `UI → 의` or `BI → BIDI → Δ`
+states until it passes the same causal and reduced-motion gates.
 
 ## Chromatic hierarchy
 

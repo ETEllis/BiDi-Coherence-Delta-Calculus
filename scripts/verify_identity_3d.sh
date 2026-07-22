@@ -101,6 +101,17 @@ for value in manifest["components2d"].values():
     if not path.is_file():
         raise SystemExit(f"manifest 2D projection missing: {value}")
 
+required_docs = {
+    "sourceOfTruth", "workingHandoff", "publicInstrument",
+    "visualRefinement", "languageAndRepository", "internalFoldMap",
+}
+if set(manifest.get("documentation", {})) != required_docs:
+    raise SystemExit("identity documentation handoff surface is incomplete")
+for value in manifest["documentation"].values():
+    path = (manifest_path.parent / value).resolve()
+    if not path.is_file():
+        raise SystemExit(f"manifest documentation target missing: {value}")
+
 expected_ranges = {
     "PRESENCE": [1, 35],
     "WORDMARK_GENERATION": [36, 84],

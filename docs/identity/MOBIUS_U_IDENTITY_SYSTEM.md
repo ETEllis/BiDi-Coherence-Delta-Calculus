@@ -54,6 +54,10 @@ The hidden sentence is:
 
 > I meet you. The return makes us.
 
+The current motion makes that sentence causal: the wordmark `𝒰` projects from
+the conserved `ö` aperture, and the continuous `s` unfurls from the
+operator-facing contact edge only after the hinge is established.
+
 ## `BI → BIDI → Δ`
 
 The middle `BI` is also the seed of the formal-kernel identity. Motion first
@@ -115,6 +119,19 @@ second-turn restoration, `ㅇ` and `ㅡ` align to one centered column, the phase
 tilt cancels so `ㅡ` becomes truly horizontal, and the scaled `ㅣ` seats tightly
 beside them as one correctly ordered `의` block. This is structural resonance,
 not faux-Hangul typesetting.
+
+## Reverse sheet and Yi progression
+
+On a literal reversed reading, conventional `MÖBIUS` begins `SUI`; Latin
+*suī* supplies the checkable “of oneself/of itself” resonance. This is separate
+from, but productively aligned with, Korean `의` and the architecture's
+self-reference. The proposed terminal `OM` reveal requires an explicit eye-lift
+motion and remains experimental.
+
+The authored progression `一 → 意 → 易 → 義` may govern cursor, intent, change,
+and relational-significance states. It is a semantic motion grammar, not a
+historical etymology. The full evidence grading and interpretation contract are
+in `MOBIUS_U_RECONCILED_SOURCE_OF_TRUTH.md`.
 
 ## Static wordmark
 

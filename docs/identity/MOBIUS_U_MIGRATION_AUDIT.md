@@ -1,10 +1,12 @@
 # Möbi𝒰s Naming and Compatibility Audit
 
-## Current truth
+## Audit baseline and current truth
 
-The repository is at merge `8cfe48f`, with five typed task frameworks, the
+The audit began at merge `8cfe48f`, with five typed task frameworks, the
 continuous two-cycle loop, Universal Operator closure, and formal finite sheet
-parity. The package, source format, runtimes, and paper still use BiDi/CDC names.
+parity. The identity working branch has since added executable SVG/Blender/GLB/
+MP4 projections and reconciliation documents, but the package, source format,
+runtimes, and paper still use BiDi/CDC names.
 
 ## Rename surface
 

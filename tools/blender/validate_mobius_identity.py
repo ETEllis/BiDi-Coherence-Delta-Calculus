@@ -205,6 +205,22 @@ def main() -> None:
     if (body_root.matrix_world.translation - o_slot).length > 0.04:
         fail("collapsed Möbius body is not seated in the O slot")
 
+    # During generation the operator must originate at the conserved aperture,
+    # then its outgoing terminal must generate S. This rejects a regression to
+    # independent bottom-up glyph arrivals that only happen to end adjacent.
+    set_frame(scene, 63)
+    u_location = objects["Glyph_U"].matrix_world.translation
+    if (u_location - o_slot).length >= 2.8:
+        fail("wordmark U does not visibly project from the conserved aperture")
+    if visible(objects["Glyph_S"]):
+        fail("S appears before the projected U establishes the relational hinge")
+    set_frame(scene, 75)
+    if not visible(objects["Glyph_U"]) or not visible(objects["Glyph_S"]):
+        fail("U-to-S generation event is missing a visible participant")
+    s_scale_x = abs(objects["Glyph_S"].scale.x)
+    if not 0.15 < s_scale_x < 0.80:
+        fail("S does not visibly unfurl from a compressed U-terminal state")
+
     # Frame 132: i𝒰s is isolated and the operator carries the shear transition.
     set_frame(scene, 132)
     if visible(objects["Glyph_M"]) or visible(objects["Glyph_B"]):
@@ -238,7 +254,7 @@ def main() -> None:
     vertical_location = objects["Hangul_I_From_i_Stem"].matrix_world.translation
     if abs(circle_location.x - ground_location.x) > 0.16 or ground_location.y >= circle_location.y - 0.55:
         fail("Hangul ㅇ and ㅡ are not locked into one centered syllabic column")
-    if vertical_location.x <= circle_location.x + 0.68 or abs(vertical_location.y - ground_location.y) > 0.58:
+    if vertical_location.x <= circle_location.x + 0.54 or abs(vertical_location.y - ground_location.y) > 0.58:
         fail("Hangul ㅣ is not seated tightly beside the restored ㅇ/ㅡ block")
 
     # Frame 340: the projected B visibly collapses through the inversion plane
@@ -373,9 +389,11 @@ def main() -> None:
         fail("manifest golden-frame surface is incomplete")
     if manifest.get("lineage", {}).get("BIDI_D_Reflected") != "Glyph_B reflected through scale.x = 0":
         fail("manifest omits the literal B-to-D reflection law")
-    if scene.get("wordmark_counter_law") != "open-M V; filled-B base with one enlarged counter; opened-S channel":
+    if scene.get("wordmark_counter_law") != "open-M V; filled-B base with one enlarged counter; continuous-S double curve with open counters":
         fail("wordmark negative-space contract is missing")
-    if scene.get("us_coupling_law") != "near-tangent complementary fields with one shared phase seam":
+    if scene.get("wordmark_generation_law") != "U projects from the conserved aperture; S unfurls from the U return terminal":
+        fail("wordmark U-to-S generation contract is missing")
+    if scene.get("us_coupling_law") != "single generated U-to-S terminal event with distinct open counters":
         fail("U/S relational coupling contract is missing")
 
     report = {

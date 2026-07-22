@@ -7,6 +7,10 @@ All paths inside it are relative to the manifest. Consumers select the smallest
 projection that carries the required behavior; they do not reconstruct or
 redraw the mark.
 
+The human-facing entry point is
+`docs/identity/MOBIUS_U_RECONCILED_SOURCE_OF_TRUTH.md`; the dated pass-off index
+is `docs/identity/MOBIUS_IDENTITY_WORKING_HANDOFF_2026-07-22.md`.
+
 | Surface | Primary asset | Fallback | Contract |
 |---|---|---|---|
 | Favicon, 16–23 px | `mobius-u-code-sigil.svg` | solid monochrome `𝒰` | no keyline or motion |
@@ -83,6 +87,9 @@ extension migration remains an explicit versioned decision.
    diagonal before detaching; a free-floating third bar is not conformant.
 10. `𝒰_` retains a right-hand cursor overhang both standalone and inside the
     resolved Delta lockup, where it must remain clear of the triangle base.
+11. During generation, `𝒰` projects from the conserved aperture and `s`
+    unfurls from the operator-facing contact edge; independent glyph arrivals
+    are not conformant.
 
 ## Release authority
 
