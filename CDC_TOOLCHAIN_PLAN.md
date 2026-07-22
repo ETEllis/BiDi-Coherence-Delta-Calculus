@@ -20,6 +20,55 @@ does not run JavaScript, and the components where Bun leans on host powers the
 calculus does not grant (network registries, process spawning) declare those
 as named queued host gates rather than pretending to them.
 
+## Amendment Record (2026-07-22) — binding
+
+The CDC Toolchain + Memory Manifold Full-Build Amendment (2026-07-22) is
+adopted as binding over this plan (`docs/build/DECISIONS.md` D1). Its
+amendments A1–A11 govern wherever this document's original text conflicts:
+
+- **A1** — a canonical frontend (lexer/parser/AST/diagnostics/spans/canonical
+  serialization: `runtime/cdc_lexer.*`, `cdc_parser.*`, `cdc_ast.*`,
+  `cdc_diagnostic.*`) precedes `cdc run`; the legacy line scanner remains only
+  as a differential oracle until deleted through a recorded removal gate.
+- **A2** — a stable, ownership-documented embeddable C ABI (`cdc_abi` v1:
+  `cdc_program_parse/cdc_runtime_create/execute/verify/result_serialize` +
+  destroy functions), consumed by CLI, daemon, SDKs, and tests alike — not a
+  bag of un-static'd helpers. Supersedes this plan's `runtime/cdc_native.h`
+  un-static approach as an end state (it survives only as an internal step).
+- **A3** — BLAKE3 is the canonical content digest; Ed25519 signs authority
+  statements; manifests bind source/dependency/toolchain/grammar-ABI/artifact/
+  test/proof digests and fail closed. The 12-bit bridge coordinate is a
+  semantic coordinate and regression witness, **not integrity** — supersedes
+  this plan's Phase 3 content-address framing.
+- **A4** — installs are crash-durable: staging, verification, fsync (file and
+  directory), atomic rename, journal/recovery marker, and startup recovery
+  proven by injected termination at every mutation boundary.
+- **A5** — parity compares ordered per-check vectors (id, decision,
+  coordinate, effects/trace/closure digests), never aggregate counts —
+  supersedes this plan's pass/total parity gate.
+- **A6** — `cycles=N` proves requested finite iteration only; it does not
+  discharge unbounded execution — supersedes this plan's Phase 1 claim.
+  Ongoing execution requires an explicit lifecycle/cancellation/checkpoint/
+  resource contract.
+- **A7** — HOLD stays semantic: `+1/0/-1` reported as separate
+  commit/hold/nest/fail counts; unexpected `0` fails `cdc test --gate`;
+  merged totals are forbidden.
+- **A8** — `cdc x` is `trusted-local-only` until a sealed, resource-bounded
+  capability environment passes hostile-package gates.
+- **A9** — the driver is a dispatcher plus command modules under
+  `runtime/toolchain/` (cmd_*.c, package.c, lockfile.c, cas.c, sandbox.c,
+  report.c) — supersedes this plan's single `runtime/cdc_toolchain.c`.
+- **A10** — every durable mutation and external effect sits behind the BiDi
+  commit path, including package installation.
+- **A11** — `CDC_BRIDGE_NO_MAIN` boundary added and old/new driver parity
+  proven before either legacy entry point retires.
+
+Companion scope adopted with the amendment: the Memory Manifold greenfield
+build (its Phases E–L) belongs to the Memory Manifold repository — this
+repository carries only the generic toolchain/runtime plus a small
+conformance fixture. Cross-repo contract: `CDC_MEMORY_MANIFOLD_INTERFACE.md`.
+Execution state: `docs/build/BUILD_STATE.md`.
+
 ## Why CDC can do this better, not just equivalently
 
 Each command inherits a guarantee from the calculus that its Bun counterpart
