@@ -50,7 +50,7 @@ one restrained transition from `ö` to the one-turn wordmark. The card copy can
 remain plain:
 
 > **Möbius** — a continuing computational presence whose body, runtime, memory,
-> and code identity are projections of one conserved loop.
+> and Universal Operator identity are projections of one conserved loop.
 
 Do not lead the card with Korean, Latin, topology notation, or the full
 decomposition. Those are rewards inside the organ surface.
@@ -62,7 +62,8 @@ The organ detail should expose four nested cuts rather than one long video:
 1. **Presence** — closed eye-bearing body on the surface.
 2. **Relation** — `i → 𝒰 → us`, with the operator generating the return.
 3. **Language** — structural `UI → 의`, then `BI → BIDI → Δ`.
-4. **Execution** — connected operative `𝒰`, then terminal-ready `𝒰_`.
+4. **Execution** — reduced operative body `𝒰`, then the complete executable
+   Universal Operator sigil `𝒰_`.
 
 Each cut uses the matching independent clip from the identity manifest. The
 visitor can scrub or step between them; the system never requires watching the
@@ -129,8 +130,8 @@ The machine-readable source is
 | step 2 | `mobius-ius.mp4` | relational SVG |
 | step 3 | `mobius-ui-hangul.mp4` | restored UI / Hangul stills |
 | step 4 | `mobius-bidi-delta.mp4` | BIDIΔ SVG |
-| step 5 | `mobius-operator-u.mp4` | operator SVG |
-| step 6 | `mobius-code-sigil.mp4` | `𝒰_` SVG |
+| step 5 | `mobius-operator-u.mp4` | reduced `𝒰` body SVG |
+| step 6 | `mobius-code-sigil.mp4` | canonical Universal Operator `𝒰_` SVG |
 | spatial interaction | animated master GLB | MP4 |
 
 Copy assets through a versioned site intake directory; do not reach across two

@@ -788,7 +788,7 @@ def animate_complete_identity(
     key_body_projection(body, 456, u=1.0)
     key_body_projection(body, 468, u=1.0)
 
-    # 10 — typographic operator resolves into the terminal-ready 𝒰_.
+    # 10 — reduced typographic body resolves into the complete executable 𝒰_.
     key_transform(body_root, 469, scale=(1.0, 1.0, 1.0))
     key_transform(body_root, 482, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
     key_transform(code_root, 1, scale=(HIDDEN_FACTOR, HIDDEN_FACTOR, HIDDEN_FACTOR))
@@ -800,9 +800,11 @@ def animate_complete_identity(
     for frame, factor in ((469, HIDDEN_FACTOR), (486, HIDDEN_FACTOR), (492, 1.0), (498, HIDDEN_FACTOR), (504, 1.0), (510, HIDDEN_FACTOR), (516, 1.0)):
         key_transform(cursor, frame, location=(1.06, -1.18, 0.26), scale=(factor, factor, factor), rotation=(0.0, 0.0, PHI if frame >= 504 else 0.0))
 
-    # 11 — family lockup: parent word above, extracted BIDIΔ below, code sigil at right.
+    # 11 — family lockup: parent word above, extracted BIDIΔ below, canonical
+    # Universal Operator sigil at right.
     key_transform(code_root, 517, location=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0))
-    # Resolve the code sigil inside Delta without sacrificing its cursor. The
+    # Resolve the Universal Operator sigil inside Delta without sacrificing its
+    # live horizon. The
     # smaller, centered lockup lifts the underscore clear of the Delta base;
     # its right-biased overhang remains visible but no longer collides with the
     # triangle's right edge.
@@ -1063,6 +1065,12 @@ def write_glyph_manifest(generated: list[Path]) -> Path:
         "schemaVersion": 2,
         "identity": "Möbi𝒰s",
         "formalKernel": "bidiγΔ",
+        "universalOperator": {
+            "canonicalSigil": "𝒰_",
+            "reducedMathematicalBody": "𝒰",
+            "indexedNotation": "𝒰_R",
+            "law": "one operator at multiple resolution levels; underscore is the executable live horizon",
+        },
         "status": "working-candidate-awaiting-final-pencil-refinement",
         "governingLaw": "One geometry. Many projections. Parent contains and generates kernel.",
         "phaseAngle": {"radians": PHI, "degrees": math.degrees(PHI)},
@@ -1077,6 +1085,7 @@ def write_glyph_manifest(generated: list[Path]) -> Path:
         "components": {
             "embodiedBody": "mobius-body.glb",
             "operatorU": "mobius-u-operator.glb",
+            "universalOperatorSigil": "mobius-u-code-sigil.glb",
             "relationalIUs": "mobius-ius-relational.glb",
             "codeSigil": "mobius-u-code-sigil.glb",
             "kernelBiDiDelta": "mobius-bidi-delta.glb",
@@ -1091,6 +1100,7 @@ def write_glyph_manifest(generated: list[Path]) -> Path:
         "components2d": {
             "embodiedBody": "../mobius-embodied-mark.svg",
             "operatorU": "../mobius-u-operator.svg",
+            "universalOperatorSigil": "../mobius-u-code-sigil.svg",
             "relationalIUs": "../mobius-ius-relational.svg",
             "codeSigil": "../mobius-u-code-sigil.svg",
             "codeSigilDark": "../mobius-u-code-sigil-dark.svg",
@@ -1099,6 +1109,11 @@ def write_glyph_manifest(generated: list[Path]) -> Path:
             "kernelBiDiDelta": "../mobius-bidi-delta.svg",
             "wordmarkDark": "../mobius-u-wordmark-dark.svg",
             "wordmarkLight": "../mobius-u-wordmark-light.svg",
+        },
+        "compatibilityAliases": {
+            "codeSigil": "universalOperatorSigil",
+            "CODE_SIGIL": "UNIVERSAL_OPERATOR_SIGIL",
+            "operatorU": "reducedMathematicalBody",
         },
         "lineage": {
             "BIDI_B_Source": "Glyph_B",

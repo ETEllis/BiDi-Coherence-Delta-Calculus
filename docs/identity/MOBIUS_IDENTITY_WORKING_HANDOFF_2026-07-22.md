@@ -22,7 +22,7 @@ open.
 | `MOBIUS_U_RECONCILED_SOURCE_OF_TRUTH.md` | everyone | reconciled conceptual and epistemic canon |
 | `ETELLIS_XYZ_IDENTITY_INTEGRATION_DRAFT.md` | E.T. Ellis site lane | public-instrument placement and deployment plan |
 | `MOBIUS_U_VISUAL_REFINEMENT_WORKING_PAPER.md` | design/Blender lane | remaining optical and motion craft contract |
-| `MOBIUS_U_LANGUAGE_AND_REPOSITORY_INTEGRATION.md` | calculus/repository lane | `𝒰_`, naming, `.cdc`/`.u`, CLI, and migration |
+| `MOBIUS_U_LANGUAGE_AND_REPOSITORY_INTEGRATION.md` | calculus/repository lane | canonical `𝒰_`, reduced `𝒰`, naming, `.cdc`/`.u`, CLI, and migration |
 | `MOBIUS_INTERNAL_SYSTEM_FOLD_MAP.md` | internal architecture lane | product/organ/Universal Operator reconciliation |
 | existing geometry/motion/integration specs | implementers | exact coordinates, frame ranges, and consumer contract |
 
@@ -56,9 +56,10 @@ index; its paths and hashes bind the working release together.
 - `mobius-bi-seed.svg` — source `BI` extracted from the parent.
 - `mobius-bidi-kernel.svg` — portable BIDI fallback.
 - `mobius-bidi-delta.svg` — portable BIDIΔ fallback.
-- `mobius-u-operator.svg` — standalone typographic operator.
-- `mobius-u-code-sigil.svg` — small monochrome `𝒰_`.
-- `mobius-u-code-sigil-dark.svg` — dark-surface keyed `𝒰_`.
+- `mobius-u-operator.svg` — reduced mathematical operator body `𝒰`.
+- `mobius-u-code-sigil.svg` — small monochrome canonical Universal Operator
+  sigil `𝒰_`.
+- `mobius-u-code-sigil-dark.svg` — dark-surface keyed canonical `𝒰_`.
 
 ## Spatial and motion family
 
@@ -69,8 +70,8 @@ index; its paths and hashes bind the working release together.
 | `i𝒰s` relation | `mobius-ius-phase-animated.glb` | `mobius-ius.mp4` |
 | `UI → 의` | `mobius-ui-hangul-animated.glb` | `mobius-ui-hangul.mp4` |
 | `BI → BIDI → Δ` | `mobius-bidi-delta-animated.glb` | `mobius-bidi-delta.mp4` |
-| connected operative `𝒰` | `mobius-u-animated.glb` | `mobius-operator-u.mp4` |
-| terminal `𝒰_` | `mobius-u-code-animated.glb` | `mobius-code-sigil.mp4` |
+| reduced operative body `𝒰` | `mobius-u-animated.glb` | `mobius-operator-u.mp4` |
+| complete Universal Operator sigil `𝒰_` | `mobius-u-code-animated.glb` | `mobius-code-sigil.mp4` |
 
 ## Implemented in this working pass
 

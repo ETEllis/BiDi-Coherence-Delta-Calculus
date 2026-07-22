@@ -13,14 +13,14 @@ is `docs/identity/MOBIUS_IDENTITY_WORKING_HANDOFF_2026-07-22.md`.
 
 | Surface | Primary asset | Fallback | Contract |
 |---|---|---|---|
-| Favicon, 16–23 px | `mobius-u-code-sigil.svg` | solid monochrome `𝒰` | no keyline or motion |
-| Terminal, package, file identity | `mobius-u-code-sigil-dark.svg` | monochrome code sigil | underscore is the only horizontal invariant |
+| Favicon, 16–23 px | `mobius-u-code-sigil.svg` | solid monochrome `𝒰_` | preserve the full sigil silhouette; no keyline or motion |
+| Terminal, package, file identity | `mobius-u-code-sigil-dark.svg` | monochrome Universal Operator sigil | live horizon is the only horizontal invariant |
 | Product/app icon | `mobius-embodied-mark.svg` | `mobius-presence.png` | both literal eyes remain visible |
 | Wordmark | `mobius-wordmark-static.png` | dark or light wordmark SVG | the connected collapsed body and literal eyes occupy `ö` |
 | Website hero | `mobius-identity-master.mp4` | live SVG study, then presence PNG | honor reduced motion |
 | Interactive web 3D | `mobius-identity-master.glb` | MP4 | use manifest frame ranges |
 | Native spatial product | `mobius-body.glb` or animated master GLB | embodied SVG | eyes and body share a scene root |
-| Universal Operator | `mobius-u-operator.glb` | operator SVG | same closed band, U-shaped projection |
+| Reduced operator body | `mobius-u-operator.glb` | reduced-body SVG | notation-minimal `𝒰`; complete identity resolves as `𝒰_` |
 | Relational composition | `mobius-ius-phase-animated.glb` | `mobius-ius-relational.svg` | preserve asymmetric i–𝒰–s spacing and operator shear |
 | UI / Korean restoration | `mobius-ui-hangul-animated.glb` | named golden frames | `의` is built from body, ground, and i-stem—not pasted type |
 | Formal kernel / sub-brand | `mobius-bidi-delta-animated.glb` | `mobius-bidi-delta.svg` | `BI` vacates and projects outward, reflected `DI` crystallizes, then three source strokes close `Δ` and parent `BI` restores |
@@ -35,8 +35,8 @@ published independent sequences:
 - frames 109–156: `i𝒰s` relational phase;
 - frames 157–228: `UI → 의` restoration;
 - frames 277–420: `BI → BIDI → BIDIΔ` self-extraction;
-- frames 421–468: connected operative `𝒰`;
-- frames 469–516: terminal `𝒰_`.
+- frames 421–468: connected operative body `𝒰`;
+- frames 469–516: complete executable Universal Operator sigil `𝒰_`.
 
 The bundled master MP4 plays the complete 25-second composition. Each sequence
 also has its own MP4 and animated GLB. The GLBs retain editable animation data
@@ -61,12 +61,14 @@ a customer runtime dependency. Preserve the root transform and named objects so
 eye attention, body projection, and kernel extraction remain independently
 addressable.
 
-## Code and repository identity
+## Universal Operator and repository identity
 
-`𝒰_` is the code-language sigil. It does not silently rename `.cdc`, packages,
-formal theorem namespaces, or compatibility surfaces. Those remain governed by
-the migration audit. The sigil can ship immediately while any language-name or
-extension migration remains an explicit versioned decision.
+`𝒰_` is the canonical executable Universal Operator sigil across code-language,
+terminal, package, and small technical surfaces. Bare `𝒰` is its reduced
+mathematical body, not a second identity. The sigil does not silently rename
+`.cdc`, packages, formal theorem namespaces, or compatibility surfaces. Those
+remain governed by the migration audit; any language-name or extension
+migration remains an explicit versioned decision.
 
 ## Invariants across every consumer
 

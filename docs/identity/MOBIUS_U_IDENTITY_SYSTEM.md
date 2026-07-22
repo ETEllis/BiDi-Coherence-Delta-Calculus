@@ -8,15 +8,17 @@ package and source compatibility remain unchanged.
 - **Möbius** is the embodied product: the living ribbon on the desktop and
   device surface.
 - **Möbi𝒰s** is the proposed public identity for the language/runtime system.
-- **`𝒰`** is the Universal Operator and the operative projection of the same
-  closed body.
-- **`𝒰_`** is the code, prompt, package, and small-surface sigil.
+- **`𝒰_`** is the complete executable Universal Operator sigil: operative body
+  plus live horizon/readiness for the next bounded incident.
+- **`𝒰`** is its reduced mathematical body, used inline, inside `Möbi𝒰s`, and
+  where the horizon is intentionally omitted. It is not a second operator.
 - **BiDi Coherence-Delta Calculus** remains the formal kernel designation.
 - **`.cdc`** remains the canonical source format until parser aliases and
   zero-loss round trips exist.
 
 This ordering preserves the architectural boundary already documented in the
-repository: `bidiγΔ` is open transport; `𝒰` is the guarded closure derived over
+repository: `bidiγΔ` is open transport; `𝒰_` is the guarded closure in its
+complete executable identity, with `𝒰` retained as reduced notation over
 `flow`, `commit`, and `nest`.
 
 ## The invariant
@@ -98,7 +100,7 @@ contract, not an abstract metaphor or optional diacritic.
 Only one projection of the horizontal stroke appears on a given surface:
 
 - wordmark — the broken phase ground under `i𝒰s`;
-- code sigil — the cursor in `𝒰_`;
+- Universal Operator sigil — the live horizon in `𝒰_`;
 - motion — the crease/fold axis;
 - embodied character — a blink.
 

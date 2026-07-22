@@ -381,6 +381,15 @@ def main() -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("schemaVersion") != 2 or manifest.get("formalKernel") != "bidiγΔ":
         fail("glyph-derived manifest schema or hierarchy is incorrect")
+    if manifest.get("universalOperator") != {
+        "canonicalSigil": "𝒰_",
+        "reducedMathematicalBody": "𝒰",
+        "indexedNotation": "𝒰_R",
+        "law": "one operator at multiple resolution levels; underscore is the executable live horizon",
+    }:
+        fail("manifest does not canonize 𝒰_ as the complete Universal Operator sigil")
+    if manifest.get("compatibilityAliases", {}).get("codeSigil") != "universalOperatorSigil":
+        fail("legacy code-sigil handle is not mapped to the canonical Universal Operator sigil")
     if manifest.get("staticArtifact", {}).get("frame") != 84:
         fail("manifest does not expose the embodied static wordmark")
     if manifest.get("staticArtifact", {}).get("path") != "../renders/mobius-wordmark-static.png":

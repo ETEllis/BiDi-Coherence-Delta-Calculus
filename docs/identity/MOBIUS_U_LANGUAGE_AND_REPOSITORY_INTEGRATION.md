@@ -5,12 +5,13 @@ authorize a mass rename.
 
 ## One immediate correction
 
-The new technical mark is **`𝒰_`**, not a file extension named `.U_`.
+The canonical executable Universal Operator sigil is **`𝒰_`**. It is not a
+file extension named `.U_`, and it is not merely a code-brand variant of `𝒰`.
 
 ```text
-𝒰   Universal Operator glyph
-_   live cursor / readiness / horizontal invariant
-𝒰_  code, terminal, package, and small-surface sigil
+𝒰_  complete executable Universal Operator sigil
+𝒰   reduced mathematical body used when the live horizon is omitted
+_   live horizon / readiness / cursor projection of the horizontal invariant
 ```
 
 The candidate future source extension is lowercase **`.u`**. The current
@@ -26,7 +27,7 @@ the full fixture corpus proves identical behavior.
 | Formal kernel | BiDi Coherence-Delta Calculus | keep as precise kernel name |
 | Product | Möbius | keep product proper name |
 | Language/runtime identity | BiDi CDC repository | consider **Möbi𝒰s — BiDi Coherence-Delta language** |
-| Prompt/sigil | none | ship `𝒰_` immediately |
+| Universal Operator sigil | none | ship canonical `𝒰_` immediately |
 | Source extension | `.cdc` | later dual-read `.cdc` + `.u`; no deletion yet |
 
 This allows public compression without erasing the formal ancestry:
@@ -59,11 +60,11 @@ If the public-name decision is accepted, the README should lead with:
 Then state the hierarchy before any identity mythology:
 
 ```text
-𝒰_R        general turn → cohere → project → return operator
+𝒰_         canonical executable turn → cohere → project → return sigil
+𝒰 / 𝒰_R   reduced and indexed mathematical notation for the same operator
 bidiγΔ     directional cross-frame relation
 CDC        formal executable kernel
 Möbi𝒰s     public language/runtime identity
-𝒰_         code and terminal sigil
 ```
 
 ## CLI and prompt proposal
@@ -78,7 +79,8 @@ u run source.u               # optional compact alias after dual parser lands
 ```
 
 Do not require users to type a mathematical Unicode character to execute the
-tool. `𝒰_` is the visual identity; ASCII aliases own shell ergonomics.
+tool. `𝒰_` is the canonical visual identity of the operator; ASCII aliases own
+shell ergonomics.
 
 ## Source extension migration
 
@@ -163,7 +165,7 @@ Ranked from least disruptive to most disruptive:
 The current branch should stop after option 1's identity assets and integration
 documentation unless Edward explicitly authorizes the name migration.
 
-## Code identity deployment
+## Universal Operator identity deployment
 
 Use the canonical assets rather than typesetting ad hoc approximations:
 
@@ -203,7 +205,9 @@ Stop the naming/extension migration if any occurs:
 
 ## Recommended decision
 
-Ship `𝒰_` now as the code identity. Preserve `.cdc` now. Build `.u` as a proven
-alias before debating canonical status. Use `Möbi𝒰s` publicly only with the
-subtitle “BiDi Coherence-Delta language/runtime,” keeping the Universal
-Operator visibly above both product and language.
+Ship `𝒰_` now as the canonical executable Universal Operator sigil across code,
+terminal, package, and small technical surfaces. Preserve `.cdc` now. Build
+`.u` as a proven alias before debating canonical status. Use `Möbi𝒰s` publicly
+only with the subtitle “BiDi Coherence-Delta language/runtime,” keeping the
+Universal Operator visibly above both product and language. Use bare `𝒰` only
+as the reduced body of that same operator, never as a competing identity.

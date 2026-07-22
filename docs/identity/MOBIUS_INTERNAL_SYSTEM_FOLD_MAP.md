@@ -29,7 +29,7 @@ product realization. The Universal Operator does not become a feature inside a
 
 | System | Owns | Identity projection | Must not absorb |
 | --- | --- | --- | --- |
-| Universal Operator | turn, cohere/resolve, project, return | `𝒰` | product implementation authority |
+| Universal Operator | turn, cohere/resolve, project, return | canonical `𝒰_`; reduced body `𝒰` | product implementation authority |
 | BIDI/CDC | flow, commit/hold, nesting, bridges, witnesses | `BI → BIDI → Δ`, formal `bidiγΔ` | semantic truth, global action authority |
 | GIST | contradiction holding, causal atoms, epistemic inhibition | triadic closure / open aperture | physical repair, tool execution, memory ownership |
 | Model Tissue | bounded cellular computation and local plasticity | many letters/parts cooperating without merger | durable identity writes or unrestricted effects |
@@ -90,10 +90,11 @@ of representational medium, while arrangement and readability change.
 
 ### `𝒰_`
 
-The underscore is readiness rather than completion. The operator has closed one
-state and exposes an accountable opening for the next incident plurality. It is
-therefore a particularly good code/runtime sigil: closure followed by a live
-future, not a finished seal.
+This is the complete executable Universal Operator sigil, not a secondary code
+logo. The underscore is its live horizon: the operator has closed one state and
+exposes an accountable opening for the next incident plurality. Bare `𝒰` is the
+same operator with that horizon omitted for mathematical compression. `𝒰_`
+therefore means closure followed by a live future, not a finished seal.
 
 ## One living loop
 
@@ -225,7 +226,8 @@ Do not use it as:
 
 1. complete the Pencil-guided optical freeze;
 2. accept/reject Möbi𝒰s as the public language/runtime name;
-3. keep `𝒰_` as immediate technical sigil regardless of extension decision;
+3. keep `𝒰_` as the canonical Universal Operator sigil regardless of extension
+   decision;
 4. package the identity manifest into the E.T. Ellis Organs intake;
 5. export the native product body curve into the shared geometry pipeline;
 6. defer OneMind identity and federation work until the local organism freeze;

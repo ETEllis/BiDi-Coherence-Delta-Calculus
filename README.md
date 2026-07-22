@@ -27,8 +27,9 @@ or measurement interface without adding a binary observer primitive.
 CDC is the language. The calculus is the kernel semantics.
 
 The repository now also carries a non-breaking **Möbi𝒰s identity candidate**:
-Möbius is the embodied product, `𝒰` is the Universal Operator, and CDC remains
-the formal kernel and canonical `.cdc` source contract. A validated Blender
+Möbius is the embodied product, `𝒰_` is the complete executable Universal
+Operator sigil, `𝒰` is its reduced mathematical body, and CDC remains the
+formal kernel and canonical `.cdc` source contract. A validated Blender
 master seats the connected eye-bearing Möbius body inside the static `ö`, opens
 that same topology into `𝒰`, restores `i𝒰 → UI → 의`, and visibly evacuates the
 name's central `BI` before projecting it into reflected `BIDI`; only then do
@@ -149,7 +150,7 @@ This calculus supplies one shared, executable vocabulary and verified reference 
 - **Native task frameworks** — `framework_transition.cdc`, `framework_procedural.cdc`, `framework_episodic.cdc`, and `framework_deliberative.cdc` bind state-change, procedural-memory, episodic-memory, and decision patterns onto executed kernel jobs, registered as capabilities `H1`–`H4` (see `FRAMEWORKS.md`).
 - **Typed framework contracts** — each framework declares `requires=` roles and `permits=` primitives; `expect framework <key> complete` enforces role completeness, uniqueness, orphan closure, and role-primitive compatibility in the bootloader.
 - **Executed task-loop composition** — `framework_loop.cdc` (`H5`) runs the sense → act → integrate loop twice over one shared state object, with second-cycle expectations reachable only through carried state, then records, recalls, decides, and enacts from the same source.
-- **Universal Operator `𝒰`** — the guarded, scale-relative closure of `bidiγΔ`: where `bidiγΔ` is open bidirectional transport between reference frames, `universal` is its closed lifted return — reciprocal receptive/radiant angularly biased causal cones active in one flow evaluation, internal flow/commit/nest reductions, a double-cover lifted frame (projected phase mod 2π, winding, Z2 sheet, holonomy) that closes only after 720°, and enactment of the runtime-computed record. Derived over `flow`/`commit`/`nest` — not a fourth foundational reduction. The finite sheet-parity claims (one turn inverts, two turns restore) are mechanized in Lean and Coq; the Möbius/double-cover picture is a topological realization, not a claim that carrier states are physical spinors.
+- **Universal Operator `𝒰_`** — the guarded, scale-relative closure of `bidiγΔ`; `𝒰` is its reduced mathematical body when the live horizon is omitted from inline notation. Where `bidiγΔ` is open bidirectional transport between reference frames, `universal` is its closed lifted return — reciprocal receptive/radiant angularly biased causal cones active in one flow evaluation, internal flow/commit/nest reductions, a double-cover lifted frame (projected phase mod 2π, winding, Z2 sheet, holonomy) that closes only after 720°, and enactment of the runtime-computed record. Derived over `flow`/`commit`/`nest` — not a fourth foundational reduction. The finite sheet-parity claims (one turn inverts, two turns restore) are mechanized in Lean and Coq; the Möbius/double-cover picture is a topological realization, not a claim that carrier states are physical spinors.
 - **Trit-walk barrier + nonnegative balance** — clean discrete guard preventing rank violation on continuous-to-discrete quantization.
 - **Native guard witnesses** — commit-time guards report `accepted`, `held`, or `degraded` status plus a reason such as `none`, `balance-violation`, `energy-increase`, or `deadband-jitter`; continuous free-energy descent remains scoped to witnessed subset obligations.
 - **`.cdc` literate DSL** — single source format declaring fields, modules, channels, guards, flows, and proof obligations.

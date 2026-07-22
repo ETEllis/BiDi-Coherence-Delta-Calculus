@@ -56,9 +56,9 @@ The authoritative Blender master is 600 frames at 24 fps, or 25 seconds.
 | `RETURN_TO_WORDMARK` | 229–276 | The same components reassemble the embodied wordmark. |
 | `BIDI_SELF_EXTRACTION` | 277–368 | The live `BI` vacates Möbi𝒰s and projects outward. A second pair grows from that source; its `B` collapses through zero, reverses sheet sign, and crystallizes with invariant `i` as `DI`, settling as `BIDI`. |
 | `DELTA_TRIADIC_CLOSURE` | 369–420 | Only after BIDI settles, the first edge illuminates the actual inner diagonal of `M` and peels outward; the natural `i` and phase-ground edges join it and close `Δ`. The original `BI` then resolves back into its evacuated parent-word slots. |
-| `OPERATOR_U` | 421–468 | The connected body opens into operative `𝒰` while both eyes persist. |
-| `CODE_SIGIL` | 469–516 | The typographic operator resolves into terminal-ready `𝒰_`; the phase ground becomes a live cursor. |
-| `FAMILY_LOCKUP` | 517–600 | Parent wordmark, generated kernel, and code sigil hold as one derivable family. |
+| `OPERATOR_U` | 421–468 | The connected body opens into the reduced operative body `𝒰` while both eyes persist. |
+| `CODE_SIGIL` | 469–516 | The reduced body resolves into the complete executable Universal Operator sigil `𝒰_`; the phase ground becomes its live horizon/cursor. The internal state name remains for artifact compatibility. |
+| `FAMILY_LOCKUP` | 517–600 | Parent wordmark, generated kernel, and canonical Universal Operator sigil hold as one derivable family. |
 
 ## Canonical static artifact
 
@@ -108,10 +108,12 @@ keyline, and `s` resolves into cyan. Broad, low-energy studio lights reveal the
 shallow extrusion without bleaching these roles into near-white surfaces.
 
 The same law governs the derived BIDI and three complementary Delta strokes.
-The code cursor is right-biased beneath `𝒰`, giving `𝒰_` a deliberate terminal
-overhang rather than the appearance of a centered pedestal. In the family
-lockup the sigil scales and lifts inside `Δ`, preserving that overhang above the
-triangle base without colliding with either edge.
+The live horizon is right-biased beneath reduced body `𝒰`, giving canonical
+`𝒰_` a deliberate terminal overhang rather than the appearance of a centered
+pedestal. It behaves as a cursor on terminal surfaces without becoming merely
+a cursor semantically. In the family lockup the sigil scales and lifts inside
+`Δ`, preserving that overhang above the triangle base without colliding with
+either edge.
 
 ## Independent sequences
 
@@ -121,8 +123,8 @@ The master publishes independently usable GLB and MP4 projections for:
 - `i𝒰s` relational phase;
 - `UI → 의` restoration;
 - `BI → BIDI → BIDIΔ` extraction;
-- connected operative `𝒰`;
-- terminal `𝒰_`.
+- connected reduced operative body `𝒰`;
+- complete executable Universal Operator sigil `𝒰_`.
 
 Frame ranges and filenames belong to
 `assets/identity/3d/identity-manifest.json`; consumers must not duplicate them.

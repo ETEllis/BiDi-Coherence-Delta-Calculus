@@ -77,6 +77,19 @@ manifest_path = output / "identity-manifest.json"
 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 if manifest.get("schemaVersion") != 2 or manifest.get("identity") != "Möbi𝒰s" or manifest.get("formalKernel") != "bidiγΔ":
     raise SystemExit("manifest identity hierarchy is incorrect")
+if manifest.get("universalOperator") != {
+    "canonicalSigil": "𝒰_",
+    "reducedMathematicalBody": "𝒰",
+    "indexedNotation": "𝒰_R",
+    "law": "one operator at multiple resolution levels; underscore is the executable live horizon",
+}:
+    raise SystemExit("Universal Operator sigil hierarchy is incorrect")
+if manifest.get("compatibilityAliases") != {
+    "codeSigil": "universalOperatorSigil",
+    "CODE_SIGIL": "UNIVERSAL_OPERATOR_SIGIL",
+    "operatorU": "reducedMathematicalBody",
+}:
+    raise SystemExit("legacy identity handles are not mapped to the canonical operator hierarchy")
 if manifest.get("topology") != {
     "surface": "mobius-band",
     "halfTwists": 1,
@@ -87,7 +100,7 @@ if manifest.get("topology") != {
     raise SystemExit("manifest topology mismatch")
 
 required_components = {
-    "embodiedBody", "operatorU", "relationalIUs", "codeSigil", "kernelBiDiDelta", "animatedMaster",
+    "embodiedBody", "operatorU", "universalOperatorSigil", "relationalIUs", "codeSigil", "kernelBiDiDelta", "animatedMaster",
     "animatedWordmark", "animatedIUs", "animatedUIHangul", "animatedBiDiDelta", "animatedOperatorU", "animatedCodeSigil",
 }
 if not required_components.issubset(manifest.get("components", {})):

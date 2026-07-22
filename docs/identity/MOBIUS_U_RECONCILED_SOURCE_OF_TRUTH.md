@@ -23,8 +23,8 @@ one conserved body
   → structural 의
   → self-extracted BI + reflected DI
   → three lineaged strokes closing Δ
-  → connected operative 𝒰
-  → terminal-ready 𝒰_
+  → reduced operative body 𝒰
+  → complete Universal Operator sigil 𝒰_
   → return
 ```
 
@@ -42,12 +42,12 @@ The names occupy different levels and must not collapse into one another.
 
 | Level | Name | Role |
 | --- | --- | --- |
-| General invariant | Universal Operator, `𝒰_R` | turn/translate, cohere/close, project/return at a bounded frame |
+| General invariant | Universal Operator, canonical sigil `𝒰_` | turn/translate, cohere/close, project/return at a bounded frame; `𝒰`/`𝒰_R` are reduced/indexed notation for the same operator |
 | Directional relation | Bidi-Coherence Delta, `bidiγΔ` | reciprocal mismatch and transport across frames inside `𝒰_R` |
 | Formal software kernel | BiDi Coherence-Delta Calculus / CDC | executable `flow`, `commit`, `hold`, `nest`, bridge, trace, and witness semantics |
 | Embodied product | Möbius | the continuing eye-bearing presence on and through device surfaces |
 | Product-linked language identity | Möbi𝒰s | public wordmark joining product embodiment to the operator/runtime language |
-| Technical sigil | `𝒰_` | operator plus live readiness/cursor state |
+| Executable identity | `𝒰_` | complete operator body plus live horizon/readiness state |
 
 `Möbi𝒰s` does not rename the Universal Operator as a product-specific object.
 It names the product-linked language/runtime identity. The dependency remains:
@@ -58,6 +58,11 @@ Universal Operator
   admits CDC as one executable realization
   runs and organizes Möbius
 ```
+
+The underscore is part of the operator's canonical executable sigil. Bare
+`𝒰` is its notation-minimal body when the active horizon would obstruct inline
+mathematics or the `Möbi𝒰s` wordmark. These are resolution levels of one
+operator, not two identities.
 
 ## The conserved body
 
@@ -175,7 +180,7 @@ Only one projection of the horizontal source stroke appears on a surface:
 | Surface | Projection |
 | --- | --- |
 | wordmark | broken phase ground beneath `i𝒰s` |
-| code sigil | live cursor in `𝒰_` |
+| Universal Operator sigil | live horizon/cursor projection in `𝒰_` |
 | frame transition | inversion crease |
 | embodied face | blink |
 
@@ -222,7 +227,7 @@ problem.
 
 | Tier | Meaning | Current examples |
 | --- | --- | --- |
-| A — implemented and validated | inspectable geometry, animation, lineage, or runtime witness | Möbius topology; literal eyes; `UProjection`; structural `의`; B-to-D reflection; three Delta strokes; `𝒰_` cursor |
+| A — implemented and validated | inspectable geometry, animation, lineage, or runtime witness | Möbius topology; literal eyes; `UProjection`; structural `의`; B-to-D reflection; three Delta strokes; canonical `𝒰_` body and live horizon |
 | B — exact lexical or notational fact | independently checkable language or symbol use | reverse prefix `SUI`; Latin *suī*; `ui` romanization; `易` as change; `𝒰` as the selected operator glyph |
 | C — authored structural correspondence | intentional mapping that compresses the system but is not historical derivation | `i → 𝒰 → us`; `一 → 意 → 易 → 義`; phase angle as holonomy inscription; squaring-the-circle composition |
 | D — kinetic experiment | meaningful only if execution remains legible and respectful | reverse-sheet reveal; `OM` transition; wink/blink assembly; full two-turn surface flip |
@@ -239,7 +244,8 @@ selection effects, multiple-comparison correction, and independent scoring.
 - phase angle `φ = 0.125 rad ≈ 7.161972°` as an authored inscription of the
   runtime-checked holonomy;
 - one-turn static inversion and two-turn kinetic restoration;
-- `i𝒰s`, `BI → BIDI → Δ`, structural `의`, operative `𝒰`, and `𝒰_`;
+- `i𝒰s`, `BI → BIDI → Δ`, structural `의`, reduced operative body `𝒰`, and
+  canonical Universal Operator sigil `𝒰_`;
 - the Universal Operator / `bidiγΔ` / CDC / Möbius hierarchy;
 - `.cdc` compatibility until alias equivalence is implemented and proved.
 

@@ -7,11 +7,12 @@ rename the package, the `.cdc` source format, or the formal paper.
 - `mobius-embodied-mark.svg` — closed, present, eye-bearing product body.
 - `mobius-u-wordmark-dark.svg` — dark-surface wordmark and phase ground.
 - `mobius-u-wordmark-light.svg` — light-surface wordmark.
-- `mobius-u-code-sigil.svg` — monochrome `𝒰_` for small technical surfaces,
-  with a right-biased live-cursor overhang.
+- `mobius-u-code-sigil.svg` — monochrome canonical Universal Operator `𝒰_` for
+  small technical surfaces, with a right-biased live-horizon overhang.
 - `mobius-u-code-sigil-dark.svg` — two-ink dark-surface `𝒰_` with the same
-  terminal overhang.
-- `mobius-u-operator.svg` — standalone operator without the code cursor.
+  executable horizon.
+- `mobius-u-operator.svg` — reduced mathematical body `𝒰` without the live
+  horizon. The filename remains a compatibility handle, not a second operator.
 - `mobius-ius-relational.svg` — independent `i𝒰s` relational lockup.
 - `mobius-bi-seed.svg` — the `bi` source extracted from the name.
 - `mobius-bidi-kernel.svg` — portable fallback for the generated `bidi` kernel
@@ -47,7 +48,8 @@ study lives at `demo/mobius-identity.html`.
 scripts in `tools/blender/`. It owns one continuous Möbius topology and the
 `ö`, `𝒰`, and secondary topological `Δ` projection states. The glyph rig adds
 the full wordmark, `i𝒰s`, structural `UI → 의`, literal
-`BI + reflected DI → BIDI`, three-stroke `Δ`, standalone `𝒰`, and `𝒰_`.
+`BI + reflected DI → BIDI`, three-stroke `Δ`, reduced body `𝒰`, and the complete
+Universal Operator sigil `𝒰_`.
 `3d/identity-manifest.json` maps the master and the independently consumable
 GLBs for product, web, code, and kernel use. The selected transparent key-state
 renders are in `renders/`; the encoded 25-second master and six independent

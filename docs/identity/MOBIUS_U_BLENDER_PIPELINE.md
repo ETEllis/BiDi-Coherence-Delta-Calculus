@@ -76,7 +76,8 @@ A release is green only when all of the following hold:
    static wordmark is a `1440 × 420` production PNG.
 6. The manifest checksums every stable generated artifact.
 7. The component family includes animated wordmark, `i𝒰s`, `UI → 의`, literal
-   `BI → BIDI → BIDIΔ`, connected standalone `𝒰`, and `𝒰_` projections.
+   `BI → BIDI → BIDIΔ`, reduced connected body `𝒰`, and canonical Universal
+   Operator sigil `𝒰_` projections.
 8. `BIDI` is made causally: parent `BI` vacates, source `BI` travels outward,
    projected `BI` crosses the inversion plane, `B` crystallizes at negative-x
    scale as `D`, and the original `BI` restores only after Delta closes. No
