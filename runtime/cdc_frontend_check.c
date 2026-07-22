@@ -29,9 +29,9 @@ static const char *base_name(const char *path) {
     return slash ? slash + 1 : path;
 }
 
-static int parse_or_report(const char *path, cdc_program *program,
+static int parse_or_report(const char *path, cdc_unit *program,
                            cdc_diag_list *diags) {
-    if (!cdc_program_parse_file(path, program, diags)) {
+    if (!cdc_unit_parse_file(path, program, diags)) {
         fprintf(stderr, "cdc-frontend: %s: read or allocation failure\n",
                 path);
         return 0;
@@ -45,7 +45,7 @@ static int parse_or_report(const char *path, cdc_program *program,
 
 /* ---- dump ---------------------------------------------------------- */
 
-static void dump_stmt(const cdc_program *program, const cdc_stmt *stmt) {
+static void dump_stmt(const cdc_unit *program, const cdc_stmt *stmt) {
     const char *file = base_name(program->file);
     size_t i, j;
     if (stmt->kind == CDC_STMT_END) {
@@ -125,19 +125,19 @@ static void dump_stmt(const cdc_program *program, const cdc_stmt *stmt) {
 static int cmd_dump(int argc, char **argv) {
     int i;
     for (i = 0; i < argc; i++) {
-        cdc_program program;
+        cdc_unit program;
         cdc_diag_list diags;
         size_t s;
         cdc_diag_list_init(&diags);
         if (!parse_or_report(argv[i], &program, &diags)) {
-            cdc_program_free(&program);
+            cdc_unit_free(&program);
             cdc_diag_list_free(&diags);
             return 1;
         }
         for (s = 0; s < program.count; s++) {
             dump_stmt(&program, &program.stmts[s]);
         }
-        cdc_program_free(&program);
+        cdc_unit_free(&program);
         cdc_diag_list_free(&diags);
     }
     return 0;
@@ -148,16 +148,16 @@ static int cmd_dump(int argc, char **argv) {
 static int cmd_canon(int argc, char **argv) {
     int i;
     for (i = 0; i < argc; i++) {
-        cdc_program program;
+        cdc_unit program;
         cdc_diag_list diags;
         cdc_diag_list_init(&diags);
         if (!parse_or_report(argv[i], &program, &diags)) {
-            cdc_program_free(&program);
+            cdc_unit_free(&program);
             cdc_diag_list_free(&diags);
             return 1;
         }
-        cdc_program_canonical(&program, stdout);
-        cdc_program_free(&program);
+        cdc_unit_canonical(&program, stdout);
+        cdc_unit_free(&program);
         cdc_diag_list_free(&diags);
     }
     return 0;
@@ -166,7 +166,7 @@ static int cmd_canon(int argc, char **argv) {
 static int cmd_roundtrip(int argc, char **argv) {
     int i;
     for (i = 0; i < argc; i++) {
-        cdc_program first, second;
+        cdc_unit first, second;
         cdc_diag_list diags;
         char *canon_buf = NULL;
         size_t canon_size = 0;
@@ -174,7 +174,7 @@ static int cmd_roundtrip(int argc, char **argv) {
 
         cdc_diag_list_init(&diags);
         if (!parse_or_report(argv[i], &first, &diags)) {
-            cdc_program_free(&first);
+            cdc_unit_free(&first);
             cdc_diag_list_free(&diags);
             return 1;
         }
@@ -183,9 +183,9 @@ static int cmd_roundtrip(int argc, char **argv) {
             fprintf(stderr, "cdc-frontend: memstream failure\n");
             return 1;
         }
-        cdc_program_canonical(&first, mem);
+        cdc_unit_canonical(&first, mem);
         fclose(mem);
-        if (!cdc_program_parse_buffer(canon_buf, canon_size, first.file,
+        if (!cdc_unit_parse_buffer(canon_buf, canon_size, first.file,
                                       &second, &diags) ||
             diags.errors > 0) {
             fprintf(stderr, "cdc-frontend: %s: canonical form failed to "
@@ -194,14 +194,14 @@ static int cmd_roundtrip(int argc, char **argv) {
             cdc_diag_list_print(&diags, stderr);
             return 1;
         }
-        if (!cdc_program_equal(&first, &second)) {
+        if (!cdc_unit_equal(&first, &second)) {
             fprintf(stderr, "cdc-frontend: %s: roundtrip mismatch\n",
                     argv[i]);
             return 1;
         }
         free(canon_buf);
-        cdc_program_free(&first);
-        cdc_program_free(&second);
+        cdc_unit_free(&first);
+        cdc_unit_free(&second);
         cdc_diag_list_free(&diags);
     }
     printf("frontend roundtrip ok files=%d\n", argc);
@@ -219,7 +219,7 @@ typedef struct {
     long failed;
 } parity_counts;
 
-static void parity_line(const cdc_program *program, const cdc_stmt *stmt,
+static void parity_line(const cdc_unit *program, const cdc_stmt *stmt,
                         const char *raw_line, parity_counts *counts) {
     char stripped[8192];
     size_t i, j;
@@ -343,7 +343,7 @@ static int cmd_attr_parity(int argc, char **argv) {
     int i;
     memset(&counts, 0, sizeof(counts));
     for (i = 0; i < argc; i++) {
-        cdc_program program;
+        cdc_unit program;
         cdc_diag_list diags;
         FILE *fp;
         char raw[8192];
@@ -352,7 +352,7 @@ static int cmd_attr_parity(int argc, char **argv) {
 
         cdc_diag_list_init(&diags);
         if (!parse_or_report(argv[i], &program, &diags)) {
-            cdc_program_free(&program);
+            cdc_unit_free(&program);
             cdc_diag_list_free(&diags);
             return 1;
         }
@@ -373,7 +373,7 @@ static int cmd_attr_parity(int argc, char **argv) {
             }
         }
         fclose(fp);
-        cdc_program_free(&program);
+        cdc_unit_free(&program);
         cdc_diag_list_free(&diags);
     }
     printf("frontend attr-parity checked=%ld quoting=%ld collision=%ld "
@@ -500,12 +500,12 @@ static int cmd_bounds(void) {
     }
 
     for (i = 0; i < n; i++) {
-        cdc_program program;
+        cdc_unit program;
         cdc_diag_list diags;
         size_t length =
             cases[i].length ? cases[i].length : strlen(cases[i].buffer);
         cdc_diag_list_init(&diags);
-        cdc_program_parse_buffer(cases[i].buffer, length, cases[i].name,
+        cdc_unit_parse_buffer(cases[i].buffer, length, cases[i].name,
                                  &program, &diags);
         if (cases[i].code) {
             if (!diags_contain(&diags, cases[i].code)) {
@@ -519,7 +519,7 @@ static int cmd_bounds(void) {
             cdc_diag_list_print(&diags, stderr);
             failures++;
         }
-        cdc_program_free(&program);
+        cdc_unit_free(&program);
         cdc_diag_list_free(&diags);
     }
     free(long_line);
@@ -551,19 +551,19 @@ static void *failing_alloc(void *ptr, size_t size) {
 static int cmd_oom(const char *path) {
     long attempt;
     for (attempt = 1; attempt < 100000; attempt++) {
-        cdc_program program;
+        cdc_unit program;
         cdc_diag_list diags;
         int completed;
         oom_fail_at = attempt;
         oom_counter = 0;
         cdc_frontend_set_allocator(failing_alloc);
         cdc_diag_list_init(&diags);
-        completed = cdc_program_parse_file(path, &program, &diags);
+        completed = cdc_unit_parse_file(path, &program, &diags);
         cdc_frontend_set_allocator(NULL);
         {
             int clean_success = completed && !diags.out_of_memory &&
                                 oom_counter < oom_fail_at;
-            cdc_program_free(&program);
+            cdc_unit_free(&program);
             cdc_diag_list_free(&diags);
             if (clean_success) {
                 printf("frontend oom ok attempts=%ld\n", attempt);
@@ -580,17 +580,17 @@ static int cmd_oom(const char *path) {
 static int cmd_reject(int argc, char **argv) {
     int i;
     for (i = 0; i < argc; i++) {
-        cdc_program program;
+        cdc_unit program;
         cdc_diag_list diags;
         cdc_diag_list_init(&diags);
-        cdc_program_parse_file(argv[i], &program, &diags);
+        cdc_unit_parse_file(argv[i], &program, &diags);
         if (diags.errors == 0) {
             fprintf(stderr, "reject FAIL %s: accepted\n", argv[i]);
             return 1;
         }
         printf("frontend reject ok %s code=%s\n", base_name(argv[i]),
                diags.items ? diags.items[0].code : "CDC900");
-        cdc_program_free(&program);
+        cdc_unit_free(&program);
         cdc_diag_list_free(&diags);
     }
     return 0;

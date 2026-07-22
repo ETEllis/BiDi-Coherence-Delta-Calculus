@@ -1,6 +1,6 @@
 # CDC / Memory Manifold Interface Contract
 
-**interface-version:** 1.0.0
+**interface-version:** 1.0.1
 **status:** binding cross-repository contract (digest-pinned per release)
 **change protocol:** single-writer — the BiDi/CDC lane publishes new versions;
 the Memory Manifold and Superposition lanes consume by committed digest.
@@ -16,9 +16,9 @@ before its Phase E work begins.
 
 | surface | current | next planned | owner |
 |---|---|---|---|
-| interface-version | 1.0.0 | — | BiDi/CDC repo |
-| grammar-version | 0 (legacy line grammar: comment-strip → shlex-style split → directive dispatch, as implemented by `cdc_boot.py` and `runtime/cdc_source.c`) | 1 (canonical lexer/parser/AST frontend, Phase B; accepts exactly the same language before any extension) | BiDi/CDC repo |
-| abi-version | 0 (no stable ABI; internal C symbols only) | 1 (`cdc_abi` per Amendment A2, Phase B) | BiDi/CDC repo |
+| interface-version | 1.0.1 | — | BiDi/CDC repo |
+| grammar-version | 1 (canonical lexer/parser/AST frontend, `runtime/cdc_lexer.c` + `cdc_parser.c`; acceptance byte-compatible with grammar 0, proven by the CT1 differential; grammar 0 remains the oracle until its recorded removal gate) | extensions only by version bump | BiDi/CDC repo |
+| abi-version | 1.0 (`runtime/cdc_abi.h`: parse, diagnostics, canonical bytes, result serialization; execute/verify declared, fail closed with CDC_ERR_STATE) | 1.1 (execution surface, Phase C) | BiDi/CDC repo |
 | evidence-format-version | 1 (this document §6) | — | BiDi/CDC repo |
 | mm-schema-version | 0 (names reserved, §4; no implementation) | 1 (Phase E, in the Memory Manifold repo) | Memory Manifold repo |
 

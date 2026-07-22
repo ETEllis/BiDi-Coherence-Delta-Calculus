@@ -56,11 +56,11 @@ cdc_stmt_kind cdc_directive_kind(const char *directive) {
     return CDC_STMT_UNKNOWN;
 }
 
-void cdc_program_init(cdc_program *program) {
+void cdc_unit_init(cdc_unit *program) {
     memset(program, 0, sizeof(*program));
 }
 
-void cdc_program_free(cdc_program *program) {
+void cdc_unit_free(cdc_unit *program) {
     size_t i, j;
     if (!program) {
         return;
@@ -74,7 +74,7 @@ void cdc_program_free(cdc_program *program) {
     }
     cdc_frontend_alloc(program->stmts, 0);
     cdc_frontend_alloc(program->file, 0);
-    cdc_program_init(program);
+    cdc_unit_init(program);
 }
 
 const char *cdc_stmt_directive(const cdc_stmt *stmt) {
@@ -201,14 +201,14 @@ void cdc_stmt_canonical(const cdc_stmt *stmt, FILE *stream) {
     fputc('\n', stream);
 }
 
-void cdc_program_canonical(const cdc_program *program, FILE *stream) {
+void cdc_unit_canonical(const cdc_unit *program, FILE *stream) {
     size_t i;
     for (i = 0; i < program->count; i++) {
         cdc_stmt_canonical(&program->stmts[i], stream);
     }
 }
 
-int cdc_program_equal(const cdc_program *a, const cdc_program *b) {
+int cdc_unit_equal(const cdc_unit *a, const cdc_unit *b) {
     size_t i, j;
     if (a->count != b->count) {
         return 0;

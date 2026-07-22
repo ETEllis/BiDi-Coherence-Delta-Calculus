@@ -1,0 +1,329 @@
+#define _POSIX_C_SOURCE 200809L
+
+#include "cdc_abi.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "cdc_ast.h"
+#include "cdc_diagnostic.h"
+#include "cdc_parser.h"
+
+struct cdc_program {
+    cdc_unit unit;
+    cdc_diag_list diags;
+    int completed; /* parse ran to completion (allocation-wise) */
+};
+
+struct cdc_runtime {
+    uint32_t abi;
+};
+
+struct cdc_result {
+    char *json;
+    size_t length;
+    size_t errors;
+};
+
+uint32_t cdc_abi_version(void) {
+    return ((uint32_t)CDC_ABI_VERSION_MAJOR << 16) |
+           (uint32_t)CDC_ABI_VERSION_MINOR;
+}
+
+const char *cdc_status_name(cdc_status status) {
+    switch (status) {
+    case CDC_OK:
+        return "ok";
+    case CDC_ERR_ARGUMENT:
+        return "argument";
+    case CDC_ERR_IO:
+        return "io";
+    case CDC_ERR_PARSE:
+        return "parse";
+    case CDC_ERR_MEMORY:
+        return "memory";
+    case CDC_ERR_STATE:
+        return "state";
+    default:
+        return "unknown";
+    }
+}
+
+cdc_status cdc_program_parse(const char *path, const char *buffer,
+                             size_t length, cdc_program **out) {
+    cdc_program *program;
+    int completed;
+
+    if (!out || (path && buffer) || (!path && !buffer)) {
+        if (out) {
+            *out = NULL;
+        }
+        return CDC_ERR_ARGUMENT;
+    }
+    *out = NULL;
+    program = calloc(1, sizeof(*program));
+    if (!program) {
+        return CDC_ERR_MEMORY;
+    }
+    cdc_unit_init(&program->unit);
+    cdc_diag_list_init(&program->diags);
+
+    if (path) {
+        completed = cdc_unit_parse_file(path, &program->unit,
+                                        &program->diags);
+        if (!completed && program->diags.count > 0 &&
+            strcmp(program->diags.items[0].code, "CDC001") == 0) {
+            cdc_program_destroy(program);
+            return CDC_ERR_IO;
+        }
+    } else {
+        completed = cdc_unit_parse_buffer(buffer, length, "<buffer>",
+                                          &program->unit, &program->diags);
+    }
+    if (!completed || program->diags.out_of_memory) {
+        cdc_program_destroy(program);
+        return CDC_ERR_MEMORY;
+    }
+    program->completed = 1;
+    *out = program;
+    return program->diags.errors > 0 ? CDC_ERR_PARSE : CDC_OK;
+}
+
+size_t cdc_program_statement_count(const cdc_program *program) {
+    return program ? program->unit.count : 0;
+}
+
+size_t cdc_program_error_count(const cdc_program *program) {
+    return program ? program->diags.errors : 0;
+}
+
+/* JSON string escaping: '"', '\\', and control bytes. */
+static int json_escape_into(FILE *stream, const char *text) {
+    const unsigned char *p = (const unsigned char *)text;
+    for (; *p; p++) {
+        if (*p == '"' || *p == '\\') {
+            if (fprintf(stream, "\\%c", *p) < 0) {
+                return 0;
+            }
+        } else if (*p < 0x20) {
+            if (fprintf(stream, "\\u%04x", *p) < 0) {
+                return 0;
+            }
+        } else {
+            if (fputc(*p, stream) == EOF) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+static cdc_status result_from_lines(size_t errors, const char *const *lines,
+                                    size_t line_count, cdc_result **out) {
+    cdc_result *result;
+    char *bytes = NULL;
+    size_t length = 0;
+    FILE *mem;
+    size_t i;
+
+    *out = NULL;
+    mem = open_memstream(&bytes, &length);
+    if (!mem) {
+        return CDC_ERR_MEMORY;
+    }
+    fprintf(mem, "{\"abi\":\"%d.%d\",\"errors\":%zu,\"diagnostics\":[",
+            CDC_ABI_VERSION_MAJOR, CDC_ABI_VERSION_MINOR, errors);
+    for (i = 0; i < line_count; i++) {
+        if (i > 0) {
+            fputc(',', mem);
+        }
+        fputc('"', mem);
+        if (!json_escape_into(mem, lines[i])) {
+            fclose(mem);
+            free(bytes);
+            return CDC_ERR_MEMORY;
+        }
+        fputc('"', mem);
+    }
+    fputs("]}", mem);
+    if (fclose(mem) != 0) {
+        free(bytes);
+        return CDC_ERR_MEMORY;
+    }
+    result = calloc(1, sizeof(*result));
+    if (!result) {
+        free(bytes);
+        return CDC_ERR_MEMORY;
+    }
+    result->json = bytes;
+    result->length = length;
+    result->errors = errors;
+    *out = result;
+    return CDC_OK;
+}
+
+cdc_status cdc_program_diagnostics(const cdc_program *program,
+                                   cdc_result **out) {
+    const char **lines = NULL;
+    char *storage = NULL;
+    size_t i, offset = 0;
+    cdc_status status;
+
+    if (!program || !out) {
+        return CDC_ERR_ARGUMENT;
+    }
+    *out = NULL;
+    if (program->diags.count > 0) {
+        lines = calloc(program->diags.count, sizeof(*lines));
+        storage = calloc(program->diags.count, 512);
+        if (!lines || !storage) {
+            free(lines);
+            free(storage);
+            return CDC_ERR_MEMORY;
+        }
+        for (i = 0; i < program->diags.count; i++) {
+            char *slot = storage + offset;
+            size_t written =
+                cdc_diag_render(&program->diags.items[i], slot, 512);
+            /* strip the rendered trailing newline for JSON entries */
+            if (written > 0 && slot[written - 1] == '\n') {
+                slot[written - 1] = '\0';
+            }
+            lines[i] = slot;
+            offset += 512;
+        }
+    }
+    status = result_from_lines(program->diags.errors, lines,
+                               program->diags.count, out);
+    free(lines);
+    free(storage);
+    return status;
+}
+
+cdc_status cdc_program_canonical_bytes(const cdc_program *program,
+                                       char **out_bytes,
+                                       size_t *out_length) {
+    char *bytes = NULL;
+    size_t length = 0;
+    FILE *mem;
+
+    if (!program || !out_bytes || !out_length) {
+        return CDC_ERR_ARGUMENT;
+    }
+    *out_bytes = NULL;
+    *out_length = 0;
+    if (!program->completed || program->diags.errors > 0) {
+        return CDC_ERR_STATE;
+    }
+    mem = open_memstream(&bytes, &length);
+    if (!mem) {
+        return CDC_ERR_MEMORY;
+    }
+    cdc_unit_canonical(&program->unit, mem);
+    if (fclose(mem) != 0) {
+        free(bytes);
+        return CDC_ERR_MEMORY;
+    }
+    *out_bytes = bytes;
+    *out_length = length;
+    return CDC_OK;
+}
+
+cdc_status cdc_runtime_create(cdc_runtime **out) {
+    cdc_runtime *runtime;
+    if (!out) {
+        return CDC_ERR_ARGUMENT;
+    }
+    runtime = calloc(1, sizeof(*runtime));
+    if (!runtime) {
+        *out = NULL;
+        return CDC_ERR_MEMORY;
+    }
+    runtime->abi = cdc_abi_version();
+    *out = runtime;
+    return CDC_OK;
+}
+
+static cdc_status unavailable_result(const char *operation,
+                                     cdc_result **out) {
+    char line[128];
+    const char *lines[1];
+    if (!out) {
+        return CDC_ERR_STATE;
+    }
+    snprintf(line, sizeof(line),
+             "<abi>: error[CDC950]: %s lands with the Phase C execution "
+             "surface (ABI 1.1)",
+             operation);
+    lines[0] = line;
+    if (result_from_lines(1, lines, 1, out) != CDC_OK) {
+        *out = NULL;
+    }
+    return CDC_ERR_STATE;
+}
+
+cdc_status cdc_runtime_execute(cdc_runtime *runtime,
+                               const cdc_program *program,
+                               const char *entry_job, cdc_result **out) {
+    (void)entry_job;
+    if (!runtime || !program) {
+        return CDC_ERR_ARGUMENT;
+    }
+    return unavailable_result("cdc_runtime_execute", out);
+}
+
+cdc_status cdc_runtime_verify(cdc_runtime *runtime,
+                              const cdc_program *program, cdc_result **out) {
+    if (!runtime || !program) {
+        return CDC_ERR_ARGUMENT;
+    }
+    return unavailable_result("cdc_runtime_verify", out);
+}
+
+size_t cdc_result_error_count(const cdc_result *result) {
+    return result ? result->errors : 0;
+}
+
+cdc_status cdc_result_serialize(const cdc_result *result, char **out_bytes,
+                                size_t *out_length) {
+    char *copy;
+    if (!result || !out_bytes || !out_length) {
+        return CDC_ERR_ARGUMENT;
+    }
+    copy = malloc(result->length + 1);
+    if (!copy) {
+        *out_bytes = NULL;
+        *out_length = 0;
+        return CDC_ERR_MEMORY;
+    }
+    memcpy(copy, result->json, result->length + 1);
+    *out_bytes = copy;
+    *out_length = result->length;
+    return CDC_OK;
+}
+
+void cdc_program_destroy(cdc_program *program) {
+    if (!program) {
+        return;
+    }
+    cdc_unit_free(&program->unit);
+    cdc_diag_list_free(&program->diags);
+    free(program);
+}
+
+void cdc_runtime_destroy(cdc_runtime *runtime) {
+    free(runtime);
+}
+
+void cdc_result_destroy(cdc_result *result) {
+    if (!result) {
+        return;
+    }
+    free(result->json);
+    free(result);
+}
+
+void cdc_bytes_free(char *bytes) {
+    free(bytes);
+}

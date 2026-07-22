@@ -22,13 +22,13 @@
 /* Parses an in-memory buffer. Returns 1 on completion (check diags->errors
  * for acceptance), 0 on allocation failure (program left valid but partial).
  * `file` is recorded for spans and dump records (basename as given). */
-int cdc_program_parse_buffer(const char *buffer, size_t length,
-                             const char *file, cdc_program *out,
+int cdc_unit_parse_buffer(const char *buffer, size_t length,
+                             const char *file, cdc_unit *out,
                              cdc_diag_list *diags);
 
 /* Reads and parses a file from disk. Returns 1 on completion, 0 when the
  * file cannot be read (diagnostic recorded) or allocation fails. */
-int cdc_program_parse_file(const char *path, cdc_program *out,
+int cdc_unit_parse_file(const char *path, cdc_unit *out,
                            cdc_diag_list *diags);
 
 #endif

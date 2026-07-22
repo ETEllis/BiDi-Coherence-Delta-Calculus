@@ -48,7 +48,7 @@ typedef struct {
     cdc_stmt *stmts;
     size_t count;
     size_t capacity;
-} cdc_program;
+} cdc_unit;
 
 /* Directive classification shared with the legacy loader. Returns the kind
  * for a directive token ("law" maps to CDC_STMT_INVARIANT; the twenty
@@ -58,8 +58,8 @@ cdc_stmt_kind cdc_directive_kind(const char *directive);
 /* True when the directive is one of the twenty reducer-form directives. */
 int cdc_directive_is_form(const char *directive);
 
-void cdc_program_init(cdc_program *program);
-void cdc_program_free(cdc_program *program);
+void cdc_unit_init(cdc_unit *program);
+void cdc_unit_free(cdc_unit *program);
 
 /* Statement views. */
 const char *cdc_stmt_directive(const cdc_stmt *stmt); /* tokens[0] or "" */
@@ -76,10 +76,10 @@ const char *cdc_stmt_attr_first(const cdc_stmt *stmt, const char *key);
  * lines preserved. Deterministic byte output; the canonical bytes are the
  * digest surface for source identity. */
 void cdc_stmt_canonical(const cdc_stmt *stmt, FILE *stream);
-void cdc_program_canonical(const cdc_program *program, FILE *stream);
+void cdc_unit_canonical(const cdc_unit *program, FILE *stream);
 
 /* Structural equality of the statement streams (token texts and kinds;
  * line numbers and spans ignored). Used by the round-trip gate. */
-int cdc_program_equal(const cdc_program *a, const cdc_program *b);
+int cdc_unit_equal(const cdc_unit *a, const cdc_unit *b);
 
 #endif

@@ -152,6 +152,34 @@ else
 fi
 
 echo
+echo "== Stable ABI and unified driver skeleton [gate CT2 seed] =="
+rm -f build/cdc
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
+  runtime/toolchain/main.c \
+  runtime/toolchain/cmd_verify.c \
+  runtime/cdc_abi.c \
+  runtime/cdc_parser.c \
+  runtime/cdc_ast.c \
+  runtime/cdc_lexer.c \
+  runtime/cdc_diagnostic.c \
+  -o build/cdc
+run_step ./build/cdc version
+# shellcheck disable=SC2086
+./build/cdc verify --parse $CDC_ROOT_SOURCES | tee build/cdc_verify_parse.txt
+grep -q "cdc verify parse ok files=18 statements=" build/cdc_verify_parse.txt
+if ./build/cdc verify --parse tests/fixtures/frontend/unknown_directive.cdc \
+  >/dev/null 2>&1; then
+  echo "cdc verify accepted an invalid fixture" >&2
+  exit 1
+fi
+echo "cdc driver rejection ok (typed JSON diagnostics)"
+if ./build/cdc run >/dev/null 2>&1; then
+  echo "cdc run should fail closed before Phase C" >&2
+  exit 1
+fi
+echo "cdc unimplemented commands fail closed"
+
+echo
 echo "== Operational bridge runtime =="
 command -v cc >/dev/null 2>&1 || {
   echo "cc is required for operational bridge verification" >&2

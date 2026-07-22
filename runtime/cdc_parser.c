@@ -12,7 +12,7 @@ static char *dup_string(const char *s) {
     return out;
 }
 
-static int program_push(cdc_program *program, cdc_stmt stmt) {
+static int program_push(cdc_unit *program, cdc_stmt stmt) {
     if (program->count == program->capacity) {
         size_t next = program->capacity ? program->capacity * 2 : 32;
         void *grown =
@@ -43,7 +43,7 @@ static int requires_first_arg(cdc_stmt_kind kind) {
     }
 }
 
-static void classify_and_check(cdc_program *program, cdc_stmt *stmt,
+static void classify_and_check(cdc_unit *program, cdc_stmt *stmt,
                                cdc_diag_list *diags) {
     const char *directive = cdc_stmt_directive(stmt);
     cdc_span span;
@@ -90,14 +90,14 @@ static void classify_and_check(cdc_program *program, cdc_stmt *stmt,
     }
 }
 
-int cdc_program_parse_buffer(const char *buffer, size_t length,
-                             const char *file, cdc_program *out,
+int cdc_unit_parse_buffer(const char *buffer, size_t length,
+                             const char *file, cdc_unit *out,
                              cdc_diag_list *diags) {
     size_t pos = 0;
     int line_no = 0;
     int ok = 1;
 
-    cdc_program_init(out);
+    cdc_unit_init(out);
     out->file = dup_string(file ? file : "<buffer>");
     if (!out->file) {
         return 0;
@@ -171,7 +171,7 @@ int cdc_program_parse_buffer(const char *buffer, size_t length,
     return ok;
 }
 
-int cdc_program_parse_file(const char *path, cdc_program *out,
+int cdc_unit_parse_file(const char *path, cdc_unit *out,
                            cdc_diag_list *diags) {
     FILE *fp = fopen(path, "rb");
     char *buffer = NULL;
@@ -179,7 +179,7 @@ int cdc_program_parse_file(const char *path, cdc_program *out,
     int ok;
     cdc_span span = {path, 0, 0, 0};
 
-    cdc_program_init(out);
+    cdc_unit_init(out);
     if (!fp) {
         cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC001", span,
                      "cannot open source file");
@@ -204,7 +204,7 @@ int cdc_program_parse_file(const char *path, cdc_program *out,
         }
     }
     fclose(fp);
-    ok = cdc_program_parse_buffer(buffer, size, path, out, diags);
+    ok = cdc_unit_parse_buffer(buffer, size, path, out, diags);
     cdc_frontend_alloc(buffer, 0);
     return ok;
 }

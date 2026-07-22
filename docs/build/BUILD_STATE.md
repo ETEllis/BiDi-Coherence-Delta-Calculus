@@ -19,6 +19,21 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
 
 ## Last completed phase and gate
 
+- **Phase B step 3 (first half) — stable ABI + driver skeleton: COMPLETE
+  (this commit).** `runtime/cdc_abi.{h,c}` (ABI 1.0: documented ownership/
+  lifetime/thread-safety/determinism/error contract; parse, diagnostics,
+  canonical bytes, deterministic JSON result serialization; execute/verify
+  declared and failing closed with CDC_ERR_STATE until Phase C = ABI 1.1),
+  `runtime/toolchain/` dispatcher + `cmd_verify.c` per A9 (consumes ONLY the
+  ABI), built as `build/cdc`; internal AST type renamed `cdc_unit` so the
+  ABI owns the public `cdc_program` name. verify.sh gates: `cdc version`,
+  `cdc verify --parse` over all 18 root files (5287 statements), typed JSON
+  rejection of invalid fixtures, unimplemented commands fail closed.
+  Interface contract bumped to 1.0.1 (grammar 1 + ABI 1.0 recorded).
+  Remaining in step 3: convert the native/bridge runtime consumers to the
+  ABI (their `cdc_source.c` line scanning retires through the CT1/CT2
+  removal gates).
+
 - **Phase B steps 1–2 — canonical frontend + differential oracle: COMPLETE
   (this commit).** New modules `runtime/cdc_diagnostic.{c,h}`,
   `runtime/cdc_lexer.{c,h}`, `runtime/cdc_ast.{c,h}`,
@@ -96,14 +111,16 @@ CI run 29960029272 (ci.yml, --require-formal) on 99747e0 -> in progress at freez
 
 ## Next executable action
 
-Phase B step 3 (Amendment A2): define the stable embeddable ABI —
-`runtime/cdc_abi.h` with opaque `cdc_program` / `cdc_runtime` / `cdc_result`
-handles, documented ownership/lifetime/determinism/error behavior, and an ABI
-version — implemented over the grammar-1 frontend, then begin converting the
-CLI/verification consumers to it. Then step 6 (`CDC_BRIDGE_NO_MAIN` +
-old/new driver parity) and step 7 (legacy-path deletion through the recorded
-gates, including D7's `frontend-differential-dump`). Fuzzing beyond the
-deterministic corpus remains queued for CT1 PASS.
+Phase B steps 3 (second half) through 7: (a) add `CDC_BRIDGE_NO_MAIN` to
+`runtime/cdc_bridge_runtime.c` (A11) and link both legacy runtimes into
+`build/cdc` as passthrough verbs with byte-identical output (the existing
+verify.sh greps are the parity gate); (b) implement grammar-1 registry +
+expect evaluation inside `cdc verify` (C mirror of `cdc_boot.py` semantics)
+and gate its pass/total plus per-check parity vector against the bootloader
+(gate toolchain-verify-parity, per-check format per interface §7); (c) then
+Phase C `cdc run`/`cdc test` on the ABI execution surface (ABI 1.1);
+(d) legacy scanner + `--dump` deletion through the recorded gates. Fuzzing
+beyond the deterministic corpus remains queued for CT1 PASS.
 
 ## External blockers
 
