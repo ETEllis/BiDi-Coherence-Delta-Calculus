@@ -19,6 +19,27 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
 
 ## Last completed phase and gate
 
+- **Phase B steps 1–2 — canonical frontend + differential oracle: COMPLETE
+  (this commit).** New modules `runtime/cdc_diagnostic.{c,h}`,
+  `runtime/cdc_lexer.{c,h}`, `runtime/cdc_ast.{c,h}`,
+  `runtime/cdc_parser.{c,h}` (grammar-version 1: collecting typed
+  diagnostics, source spans, canonical serialization; acceptance
+  byte-compatible with grammar 0 including the D5 comment quirk), harness
+  `runtime/cdc_frontend_check.c`, gated `cdc_boot.py --dump` (D7), invalid
+  corpus `tests/fixtures/frontend/`, and the `verify.sh` CT1 section.
+- **Gate CT1 — partial.** Green: differential dump byte-identical over all
+  18 root files (5286 records), roundtrip, attr-parity
+  (47665 checked, 0 collisions/duplicates/failures; 4863 known
+  quoting-class divergences), 12-case adversarial bounds, allocator-failure
+  injection (765 runs), ASan/UBSan pass, 6/6 rejection-parity fixtures.
+  Open for CT1 PASS: arbitrary-input fuzzing beyond the deterministic
+  corpus, and "no production command uses the legacy substring parser" —
+  the native/bridge runtimes still parse with `cdc_source.c`; conversion
+  happens with the ABI (Phase B steps 3–7). Evidence:
+  `evidence/gates/CT1/differential-summary.txt`.
+
+### Earlier
+
 - **Phase A — Freeze, provenance, and cross-repo contract: COMPLETE (this commit)**
   for the items executable in this repository/environment:
   - A.1/A.2 baseline tagged by digest record (no git tag pushed; the freeze is
@@ -75,14 +96,14 @@ CI run 29960029272 (ci.yml, --require-formal) on 99747e0 -> in progress at freez
 
 ## Next executable action
 
-Phase B step 1: implement `runtime/cdc_lexer.{c,h}`, `runtime/cdc_ast.{c,h}`,
-`runtime/cdc_parser.{c,h}`, `runtime/cdc_diagnostic.{c,h}` (grammar-version 1,
-byte-compatible acceptance with grammar 0 including the D5 quirk), plus a
-differential harness that parses every root `.cdc` file and compares
-field-for-field against the legacy path (`cdc_boot.py` dispatch semantics and
-`runtime/cdc_source.c` attribute extraction), wired into `scripts/verify.sh`
-as a new section with negative fixtures. The legacy scanner remains the
-oracle until CT1 passes; deletion only through a recorded removal gate.
+Phase B step 3 (Amendment A2): define the stable embeddable ABI —
+`runtime/cdc_abi.h` with opaque `cdc_program` / `cdc_runtime` / `cdc_result`
+handles, documented ownership/lifetime/determinism/error behavior, and an ABI
+version — implemented over the grammar-1 frontend, then begin converting the
+CLI/verification consumers to it. Then step 6 (`CDC_BRIDGE_NO_MAIN` +
+old/new driver parity) and step 7 (legacy-path deletion through the recorded
+gates, including D7's `frontend-differential-dump`). Fuzzing beyond the
+deterministic corpus remains queued for CT1 PASS.
 
 ## External blockers
 

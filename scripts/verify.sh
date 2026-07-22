@@ -96,6 +96,62 @@ echo "== Native .cdc contract and witness suite =="
 python3 cdc_boot.py
 
 echo
+echo "== Canonical frontend (grammar 1) differential [gate CT1] =="
+command -v cc >/dev/null 2>&1 || {
+  echo "cc is required for canonical frontend verification" >&2
+  exit 1
+}
+rm -f build/cdc_frontend_check
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
+  runtime/cdc_frontend_check.c \
+  runtime/cdc_parser.c \
+  runtime/cdc_ast.c \
+  runtime/cdc_lexer.c \
+  runtime/cdc_diagnostic.c \
+  runtime/cdc_source.c \
+  -o build/cdc_frontend_check
+CDC_ROOT_SOURCES=$(ls ./*.cdc | LC_ALL=C sort)
+# shellcheck disable=SC2086
+python3 cdc_boot.py --dump $CDC_ROOT_SOURCES > build/frontend_dump_boot.txt
+# shellcheck disable=SC2086
+./build/cdc_frontend_check dump $CDC_ROOT_SOURCES > build/frontend_dump_native.txt
+cmp build/frontend_dump_boot.txt build/frontend_dump_native.txt
+FRONTEND_RECORDS=$(wc -l < build/frontend_dump_boot.txt)
+test "$FRONTEND_RECORDS" -ge 5000
+echo "frontend differential ok records=${FRONTEND_RECORDS}"
+# shellcheck disable=SC2086
+run_step ./build/cdc_frontend_check roundtrip $CDC_ROOT_SOURCES
+# shellcheck disable=SC2086
+./build/cdc_frontend_check attr-parity $CDC_ROOT_SOURCES | tee build/frontend_attr_parity.txt
+grep -q " collision=0 " build/frontend_attr_parity.txt
+grep -q " duplicate=0 " build/frontend_attr_parity.txt
+grep -q " failed=0" build/frontend_attr_parity.txt
+run_step ./build/cdc_frontend_check bounds
+run_step ./build/cdc_frontend_check oom framework_loop.cdc
+for fixture in tests/fixtures/frontend/*.cdc; do
+  if python3 cdc_boot.py "$fixture" >/dev/null 2>&1; then
+    echo "legacy loader accepted invalid fixture ${fixture}" >&2
+    exit 1
+  fi
+  run_step ./build/cdc_frontend_check reject "$fixture"
+done
+echo "frontend rejection parity ok fixtures=$(ls tests/fixtures/frontend/*.cdc | wc -l)"
+if cc -std=c99 -Wall -Wextra -pedantic -O1 -fsanitize=address,undefined \
+  runtime/cdc_frontend_check.c \
+  runtime/cdc_parser.c \
+  runtime/cdc_ast.c \
+  runtime/cdc_lexer.c \
+  runtime/cdc_diagnostic.c \
+  runtime/cdc_source.c \
+  -o build/cdc_frontend_check_asan 2>/dev/null; then
+  # shellcheck disable=SC2086
+  run_step ./build/cdc_frontend_check_asan roundtrip $CDC_ROOT_SOURCES
+  run_step ./build/cdc_frontend_check_asan bounds
+else
+  echo "sanitizers unavailable; skipping instrumented frontend pass"
+fi
+
+echo
 echo "== Operational bridge runtime =="
 command -v cc >/dev/null 2>&1 || {
   echo "cc is required for operational bridge verification" >&2

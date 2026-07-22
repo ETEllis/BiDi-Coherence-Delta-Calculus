@@ -46,6 +46,19 @@ behavior exactly while the legacy path is the differential oracle, and must
 record it as a typed diagnostic candidate. Changing the behavior is a
 grammar-version bump, never a silent fix.
 
+## D7 — 2026-07-22 — Bootloader `--dump` differential record (gated host code)
+
+`cdc_boot.py` gains a `--dump` flag emitting one declaration record per parsed
+line (and raw token records for `expect` lines), used by gate CT1 to compare
+the legacy loader field-for-field against the grammar-1 frontend
+(`runtime/cdc_frontend_check.c dump`). This is host code inside the one
+permitted host file, paired with the named deletion gate
+**frontend-differential-dump**: the flag is deleted together with the legacy
+line scanner when CT1 completes and no production command parses with the
+legacy path. Dump mode changes no loader semantics (records are printed from
+the same parse the loader already performs; expectations are not evaluated in
+dump mode).
+
 ## D6 — 2026-07-22 — Single work branch and PR
 
 All BiDi/CDC lane work lands on the session-designated branch
