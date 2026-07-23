@@ -1,5 +1,8 @@
 # Möbi𝒰s Identity Documentation
 
+For the single Claude-ready symbol and asset handoff, start with
+[`MOBIUS_SYMBOL_MEANING_AND_ASSET_HANDOFF_FOR_CLAUDE.md`](MOBIUS_SYMBOL_MEANING_AND_ASSET_HANDOFF_FOR_CLAUDE.md).
+
 Start with:
 
 1. [`MOBIUS_U_RECONCILED_SOURCE_OF_TRUTH.md`](MOBIUS_U_RECONCILED_SOURCE_OF_TRUTH.md)
