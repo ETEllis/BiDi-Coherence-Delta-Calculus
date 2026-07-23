@@ -92,6 +92,65 @@ print("python host boundary: ok (cdc_boot.py only)")
 PY
 
 echo
+echo "== Möbi𝒰s identity asset contract =="
+python3 - <<'PY'
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+root = Path(".")
+identity = root / "assets" / "identity"
+svgs = [
+    identity / "mobius-embodied-mark.svg",
+    identity / "mobius-u-operator.svg",
+    identity / "mobius-u-wordmark-dark.svg",
+    identity / "mobius-u-wordmark-light.svg",
+    identity / "mobius-u-code-sigil.svg",
+    identity / "mobius-u-code-sigil-dark.svg",
+    identity / "mobius-ius-relational.svg",
+    identity / "mobius-bi-seed.svg",
+    identity / "mobius-bidi-kernel.svg",
+    identity / "mobius-bidi-delta.svg",
+]
+
+for path in svgs:
+    if not path.is_file():
+        raise SystemExit(f"identity asset missing: {path}")
+    node = ET.parse(path).getroot()
+    if "viewBox" not in node.attrib:
+        raise SystemExit(f"identity asset lacks viewBox: {path}")
+    if not any(child.tag.endswith("title") for child in node):
+        raise SystemExit(f"identity asset lacks accessible title: {path}")
+
+for path in identity.glob("mobius-u-wordmark-*.svg"):
+    text = path.read_text(encoding="utf-8")
+    if "<text" in text:
+        raise SystemExit(f"wordmark must use portable outlines, not live text: {path}")
+    for token in ("7.16197", "circle", "stroke-linecap"):
+        if token not in text:
+            raise SystemExit(f"wordmark missing identity invariant {token!r}: {path}")
+
+motion_text = (root / "demo" / "mobius-identity.html").read_text(encoding="utf-8")
+for token in ("PRESENCE", "WORDMARK GENERATION", "I𝒰S PHASE", "UI RESTORATION", "의 RESTORATION", "BIDI SELF-EXTRACTION", "TRIADIC DELTA CLOSURE", "CODE SIGIL", "FAMILY LOCKUP", "prefers-reduced-motion", "0.125 rad", "master-video", "mobius-identity-master.mp4", "mobius-wordmark-static.png", "stageFrames"):
+    if token not in motion_text:
+        raise SystemExit(f"motion lab missing contract token {token!r}")
+
+docs = [
+    root / "docs" / "identity" / "MOBIUS_U_IDENTITY_SYSTEM.md",
+    root / "docs" / "identity" / "MOBIUS_U_GEOMETRY_SPEC.md",
+    root / "docs" / "identity" / "MOBIUS_U_MOTION_SPEC.md",
+    root / "docs" / "identity" / "MOBIUS_U_MIGRATION_AUDIT.md",
+    root / "docs" / "identity" / "MOBIUS_U_BLENDER_PIPELINE.md",
+    root / "docs" / "identity" / "MOBIUS_U_INTEGRATION.md",
+]
+if not all(path.is_file() for path in docs):
+    raise SystemExit("identity documentation set is incomplete")
+
+print(f"mobius identity assets: ok ({len(svgs)} svg, {len(docs)} contracts, 1 motion lab)")
+PY
+
+run_step ./scripts/verify_identity_3d.sh
+
+echo
 echo "== Native .cdc contract and witness suite =="
 python3 cdc_boot.py
 

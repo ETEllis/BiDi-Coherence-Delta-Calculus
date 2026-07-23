@@ -42,6 +42,19 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
     (records + structural `end` lines = `statements`), recomputed from the
     corpus on every run.
 
+- **Integration gate (review C2): COMPLETE (this merge commit).**
+  `origin/codex/mobius-u-identity-system` (`313f0a1`, merge base `8cfe48f`)
+  merged into the PR branch as the combined tip. Overlaps resolved:
+  `scripts/verify.sh` carries both the identity asset/3D sections and the
+  toolchain CT1/CT2/counterexample sections; `.gitignore` carries
+  `*.blend1` plus the root-scoped build ignores; `README.md` merged
+  without conflict. Combined-tree `./scripts/verify.sh`: **ALL CHECKS
+  PASS** (identity assets 10 svg + 6 contracts + motion lab; 3D
+  interchange validated in Blender-less mode; toolchain and
+  counterexample gates unchanged: files=18 statements=5287). The
+  identity lane's `tools/blender/*.py` sits outside the root-scoped host
+  boundary (D8).
+
 ### Exact gate states (review language, corrected)
 
 - PR CI: **PASS** at every pushed head (latest reviewed: `5a81400`).
