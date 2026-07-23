@@ -9,6 +9,7 @@
 #include "cdc_ast.h"
 #include "cdc_diagnostic.h"
 #include "cdc_parser.h"
+#include "cdc_registry.h"
 
 struct cdc_program {
     cdc_unit unit;
@@ -18,11 +19,16 @@ struct cdc_program {
 
 struct cdc_runtime {
     uint32_t abi;
+    cdc_registry *registry;
+    cdc_program **loaded; /* owned programs backing the registry */
+    size_t loaded_count;
+    size_t loaded_cap;
 };
 
 struct cdc_result {
     char *json;
     size_t length;
+    char *text; /* verify report text, or NULL */
     size_t errors;
 };
 
@@ -279,8 +285,128 @@ cdc_status cdc_runtime_create(cdc_runtime **out) {
     }
     memset(runtime, 0, sizeof(*runtime));
     runtime->abi = cdc_abi_version();
+    runtime->registry = cdc_registry_create();
+    if (!runtime->registry) {
+        cdc_frontend_alloc(runtime, 0);
+        *out = NULL;
+        return CDC_ERR_MEMORY;
+    }
     *out = runtime;
     return CDC_OK;
+}
+
+cdc_status cdc_runtime_load(cdc_runtime *runtime, cdc_program *program) {
+    cdc_diag_list load_diags;
+    int loaded;
+
+    if (!runtime || !program) {
+        return CDC_ERR_ARGUMENT;
+    }
+    if (!program->completed || program->diags.errors > 0) {
+        return CDC_ERR_STATE;
+    }
+    if (runtime->loaded_count == runtime->loaded_cap) {
+        size_t next = runtime->loaded_cap ? runtime->loaded_cap * 2 : 8;
+        void *grown = cdc_frontend_alloc(runtime->loaded,
+                                         next * sizeof(cdc_program *));
+        if (!grown) {
+            return CDC_ERR_MEMORY;
+        }
+        runtime->loaded = grown;
+        runtime->loaded_cap = next;
+    }
+    cdc_diag_list_init(&load_diags);
+    loaded = cdc_registry_load(runtime->registry, &program->unit,
+                               &load_diags);
+    if (!loaded) {
+        cdc_status status =
+            load_diags.count > 0 ? CDC_ERR_PARSE : CDC_ERR_MEMORY;
+        cdc_diag_list_free(&load_diags);
+        return status;
+    }
+    cdc_diag_list_free(&load_diags);
+    runtime->loaded[runtime->loaded_count++] = program;
+    return CDC_OK;
+}
+
+cdc_status cdc_runtime_verify(cdc_runtime *runtime,
+                              const cdc_program *program, cdc_result **out) {
+    char *report = NULL;
+    size_t report_len = 0;
+    FILE *mem;
+    int verdict;
+    cdc_result *result;
+    size_t failed;
+
+    if (!runtime || !out) {
+        return CDC_ERR_ARGUMENT;
+    }
+    *out = NULL;
+    if (program) {
+        cdc_status status =
+            cdc_runtime_load(runtime, (cdc_program *)program);
+        if (status != CDC_OK) {
+            return status;
+        }
+    }
+    mem = open_memstream(&report, &report_len);
+    if (!mem) {
+        return CDC_ERR_MEMORY;
+    }
+    verdict = cdc_registry_report(runtime->registry, ".", mem);
+    if (fclose(mem) != 0 || verdict < 0) {
+        free(report);
+        return CDC_ERR_MEMORY;
+    }
+    /* failed-expectation count: reparse the summary is fragile; the
+     * registry's verdict is boolean, so carry 0 or 1+ via a scan of FAIL
+     * records for an exact count. */
+    failed = 0;
+    {
+        const char *p = report;
+        while ((p = strstr(p, "\n  FAIL ")) != NULL) {
+            failed++;
+            p += 8;
+        }
+    }
+    if (verdict == 0 && failed == 0) {
+        failed = 1; /* fail-closed: verdict says failure even if scan missed */
+    }
+    result = cdc_frontend_alloc(NULL, sizeof(*result));
+    if (!result) {
+        free(report);
+        return CDC_ERR_MEMORY;
+    }
+    memset(result, 0, sizeof(*result));
+    result->text = report;
+    result->errors = failed;
+    {
+        char *json = NULL;
+        size_t json_len = 0;
+        FILE *jmem = open_memstream(&json, &json_len);
+        if (!jmem) {
+            free(report);
+            cdc_frontend_alloc(result, 0);
+            return CDC_ERR_MEMORY;
+        }
+        fprintf(jmem,
+                "{\"abi\":\"%d.%d\",\"errors\":%zu,\"diagnostics\":[]}",
+                CDC_ABI_VERSION_MAJOR, CDC_ABI_VERSION_MINOR, failed);
+        if (fclose(jmem) != 0) {
+            free(json);
+            free(report);
+            cdc_frontend_alloc(result, 0);
+            return CDC_ERR_MEMORY;
+        }
+        result->json = json;
+        result->length = json_len;
+    }
+    *out = result;
+    return CDC_OK;
+}
+
+const char *cdc_result_text(const cdc_result *result) {
+    return result && result->text ? result->text : "";
 }
 
 static cdc_status unavailable_result(const char *operation,
@@ -309,14 +435,6 @@ cdc_status cdc_runtime_execute(cdc_runtime *runtime,
         return CDC_ERR_ARGUMENT;
     }
     return unavailable_result("cdc_runtime_execute", out);
-}
-
-cdc_status cdc_runtime_verify(cdc_runtime *runtime,
-                              const cdc_program *program, cdc_result **out) {
-    if (!runtime || !program) {
-        return CDC_ERR_ARGUMENT;
-    }
-    return unavailable_result("cdc_runtime_verify", out);
 }
 
 size_t cdc_result_error_count(const cdc_result *result) {
@@ -351,7 +469,16 @@ void cdc_program_destroy(cdc_program *program) {
 }
 
 void cdc_runtime_destroy(cdc_runtime *runtime) {
-    free(runtime);
+    size_t i;
+    if (!runtime) {
+        return;
+    }
+    cdc_registry_destroy(runtime->registry);
+    for (i = 0; i < runtime->loaded_count; i++) {
+        cdc_program_destroy(runtime->loaded[i]);
+    }
+    cdc_frontend_alloc(runtime->loaded, 0);
+    cdc_frontend_alloc(runtime, 0);
 }
 
 void cdc_result_destroy(cdc_result *result) {
@@ -359,7 +486,8 @@ void cdc_result_destroy(cdc_result *result) {
         return;
     }
     free(result->json);
-    free(result);
+    free(result->text);
+    cdc_frontend_alloc(result, 0);
 }
 
 void cdc_bytes_free(char *bytes) {

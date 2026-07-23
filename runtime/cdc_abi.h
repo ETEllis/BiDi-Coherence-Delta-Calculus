@@ -32,16 +32,18 @@
  *   the process or prints. Every function returns cdc_status; out-values are
  *   NULL/0 on failure.
  *
- * Availability at ABI 1.0
- *   Parse, diagnostics, canonical bytes, and result serialization are fully
- *   implemented. cdc_runtime_execute and cdc_runtime_verify are declared for
- *   ABI shape stability but return CDC_ERR_STATE with an explanatory result
- *   until the execution surface lands (Phase C); they never partially
- *   execute. This is a typed fail-closed contract, not undefined behavior.
+ * Availability at ABI 1.1
+ *   Parse, diagnostics, canonical bytes, result serialization, registry
+ *   loading, and contract verification (cdc_runtime_load +
+ *   cdc_runtime_verify — the bootloader-parity report) are fully
+ *   implemented. cdc_runtime_execute is declared for ABI shape stability
+ *   but returns CDC_ERR_STATE with an explanatory result until the Phase C
+ *   execution surface lands; it never partially executes. This is a typed
+ *   fail-closed contract, not undefined behavior.
  */
 
 #define CDC_ABI_VERSION_MAJOR 1
-#define CDC_ABI_VERSION_MINOR 0
+#define CDC_ABI_VERSION_MINOR 1
 
 typedef enum {
     CDC_OK = 0,
@@ -90,14 +92,34 @@ cdc_status cdc_program_canonical_bytes(const cdc_program *program,
 
 cdc_status cdc_runtime_create(cdc_runtime **out);
 
+/* Loads an accepted program into the runtime's contract registry. The
+ * runtime TAKES OWNERSHIP of the program (do not destroy it after a
+ * successful load; it is released with the runtime). Rejected programs
+ * (parse errors) are refused with CDC_ERR_STATE; a load-order contract
+ * violation (duplicate framework key across the load) returns
+ * CDC_ERR_PARSE and the runtime remains usable. */
+cdc_status cdc_runtime_load(cdc_runtime *runtime, cdc_program *program);
+
+/* Evaluates the contract over everything loaded (bootloader-parity report:
+ * ordered per-check OK/FAIL records plus summary). When `program` is
+ * non-NULL it is loaded first (ownership transfers as in
+ * cdc_runtime_load). The report text is available via cdc_result_text;
+ * cdc_result_error_count carries the number of failed expectations.
+ * Returns CDC_OK even when expectations fail — failure lives in the
+ * result; only argument/memory problems return error statuses. */
+cdc_status cdc_runtime_verify(cdc_runtime *runtime,
+                              const cdc_program *program, cdc_result **out);
+
 /* Declared at ABI 1.0; functional from the Phase C execution surface.
- * Until then both return CDC_ERR_STATE and, when `out` is non-NULL, a
- * result explaining the gap. They never partially execute. */
+ * Until then returns CDC_ERR_STATE and, when `out` is non-NULL, a result
+ * explaining the gap. It never partially executes. */
 cdc_status cdc_runtime_execute(cdc_runtime *runtime,
                                const cdc_program *program,
                                const char *entry_job, cdc_result **out);
-cdc_status cdc_runtime_verify(cdc_runtime *runtime,
-                              const cdc_program *program, cdc_result **out);
+
+/* Raw text carried by a result (the verify report), or "" when the result
+ * carries none. Borrowed pointer, valid until the result is destroyed. */
+const char *cdc_result_text(const cdc_result *result);
 
 /* Number of error entries carried by a result. */
 size_t cdc_result_error_count(const cdc_result *result);

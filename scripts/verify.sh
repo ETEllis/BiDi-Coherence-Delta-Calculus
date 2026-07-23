@@ -164,6 +164,7 @@ rm -f build/cdc_frontend_check
 run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_frontend_check.c \
   runtime/cdc_abi.c \
+  runtime/cdc_registry.c \
   runtime/cdc_parser.c \
   runtime/cdc_ast.c \
   runtime/cdc_lexer.c \
@@ -200,6 +201,7 @@ SANITIZED=0
 if cc -std=c99 -Wall -Wextra -pedantic -O1 -fsanitize=address,undefined \
   runtime/cdc_frontend_check.c \
   runtime/cdc_abi.c \
+  runtime/cdc_registry.c \
   runtime/cdc_parser.c \
   runtime/cdc_ast.c \
   runtime/cdc_lexer.c \
@@ -221,6 +223,7 @@ run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/toolchain/main.c \
   runtime/toolchain/cmd_verify.c \
   runtime/cdc_abi.c \
+  runtime/cdc_registry.c \
   runtime/cdc_parser.c \
   runtime/cdc_ast.c \
   runtime/cdc_lexer.c \
@@ -248,6 +251,27 @@ if ./build/cdc run >/dev/null 2>&1; then
   exit 1
 fi
 echo "cdc unimplemented commands fail closed"
+# Gate toolchain-verify-parity: the native contract evaluator must produce
+# a byte-identical report to the bootloader, in success AND failure modes,
+# with matching exit semantics. This is the recorded deletion gate for
+# cdc_boot.py (Mandate Gate 5).
+python3 cdc_boot.py > build/contract_boot.txt
+# shellcheck disable=SC2086
+./build/cdc verify --contract $CDC_ROOT_SOURCES > build/contract_native.txt
+cmp build/contract_boot.txt build/contract_native.txt
+echo "toolchain-verify-parity ok (byte-identical contract reports)"
+printf 'witness lonely-w capability=Z9 claim="fixture"\nexpect witness missing-w\nexpect capability Z9\nexpect frameworks closed\n' \
+  > build/fixture_fail_expect.cdc
+set +e
+python3 cdc_boot.py build/fixture_fail_expect.cdc > build/contract_boot_neg.txt
+BOOT_NEG_RC=$?
+./build/cdc verify --contract build/fixture_fail_expect.cdc > build/contract_native_neg.txt
+NATIVE_NEG_RC=$?
+set -e
+test "$BOOT_NEG_RC" = "1"
+test "$NATIVE_NEG_RC" = "1"
+cmp build/contract_boot_neg.txt build/contract_native_neg.txt
+echo "toolchain-verify-parity failure-mode ok (identical FAIL reports, exit 1)"
 # A11 linkability: both legacy runtimes must compile with their entry
 # points excluded, proving the unified binary can link them (the standalone
 # CLIs keep byte-identical behavior; conversion lands with full CT2).

@@ -42,6 +42,20 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
     (records + structural `end` lines = `statements`), recomputed from the
     corpus on every run.
 
+- **Gate toolchain-verify-parity: LIVE (this commit).** The native
+  contract evaluator (`runtime/cdc_registry.{h,c}`, ~950 lines: registry
+  collect + eval_expect + report mirroring `cdc_boot.py` exactly,
+  including Python list-repr label formatting and sorted-witness
+  framework-completeness details) is wired through ABI 1.1
+  (`cdc_runtime_load` takes ownership; `cdc_runtime_verify` returns the
+  report via `cdc_result_text`) and exposed as
+  `cdc verify --contract <files...>`. verify.sh gates BYTE-IDENTICAL
+  reports against the bootloader in success mode (full corpus, both exit
+  0) and failure mode (fixture with failing expects, identical FAIL
+  lines, both exit 1). This is the recorded deletion gate for
+  `cdc_boot.py` (Mandate Gate 5): the Python file retires after the
+  parity gate holds green for a full release cycle.
+
 - **A11 bridge boundary: COMPLETE (commit after the merge).**
   `runtime/cdc_bridge_runtime.c` main is now guarded by
   `CDC_BRIDGE_NO_MAIN`, mirroring the native runtime; verify.sh proves
