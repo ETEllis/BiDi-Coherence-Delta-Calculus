@@ -19,6 +19,42 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
 
 ## Last completed phase and gate
 
+- **2026-07-23 adversarial-review repairs: COMPLETE (this commit).** Both
+  blocking defects fixed with permanent counterexamples hard-gated in
+  `verify.sh`:
+  - Defect 1 (diagnostic serialization heap overflow): two-pass render in
+    `cdc_program_diagnostics` — size with `render(NULL,0)`, checked-add,
+    exact allocation, in-bounds newline strip; no truncation. Tests:
+    >512-byte-path rejected fixture serializes complete JSON containing the
+    full path (also under ASan/UBSan); `oom-abi` allocation-failure sweep
+    over the whole ABI diagnostic pipeline (leak-checked by the sanitizer
+    binary); size arithmetic fails closed.
+  - Defect 2 (unreadable/special paths accepted as empty programs):
+    `cdc_unit_parse_file` now opens `O_RDONLY|O_NONBLOCK`, `fstat`s,
+    rejects non-regular inputs by type before reading (CDC002), checks
+    `ferror` on every short read (CDC003), enforces a 64 MiB source bound
+    (CDC004); ABI maps CDC001–CDC004 to `CDC_ERR_IO`, never to memory.
+    Tests: directory / `/dev/null` / FIFO (non-blocking) / unreadable file
+    (non-root) → `io` with no handle; mid-read directory-fd stream →
+    CDC003; zero-byte regular file specified and tested as a VALID empty
+    unit; allocation failure stays `CDC_ERR_MEMORY`.
+  - Review C3: the statement gate is now exact and derived
+    (records + structural `end` lines = `statements`), recomputed from the
+    corpus on every run.
+
+### Exact gate states (review language, corrected)
+
+- PR CI: **PASS** at every pushed head (latest reviewed: `5a81400`).
+- CT0: **PARTIAL** — provenance recorded; binary reproducibility and
+  embedded verdict identity open.
+- CT1: **PASS** — differential evidence plus both 2026-07-23 public-boundary
+  counterexamples incorporated and green.
+- CT2: **SEED/PARTIAL** — ABI 1.0 + driver skeleton; execute/verify, bridge
+  no-main, runtime conversion, ordered per-check parity open.
+- CT3–CT5, MM0–MM9, RG0: **NOT STARTED**. The plan commit is not a gate.
+
+### Earlier (superseded framing corrected by the above)
+
 - **Phase B step 3 (first half) — stable ABI + driver skeleton: COMPLETE
   (this commit).** `runtime/cdc_abi.{h,c}` (ABI 1.0: documented ownership/
   lifetime/thread-safety/determinism/error contract; parse, diagnostics,

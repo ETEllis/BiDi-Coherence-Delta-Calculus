@@ -46,6 +46,31 @@ behavior exactly while the legacy path is the differential oracle, and must
 record it as a typed diagnostic candidate. Changing the behavior is a
 grammar-version bump, never a silent fix.
 
+## D8 — 2026-07-23 — Adversarial review adopted; identity branch integration
+
+The PR #3 Adversarial Gate Review (2026-07-23) is adopted as binding:
+verdict repair-and-continue. Both blocking defects (diagnostic fixed-slot
+overflow; unreadable/special paths accepted as empty programs) are repaired
+with permanent counterexample tests hard-gated in `verify.sh` (including
+under ASan/UBSan). Gate-state language is corrected to: CT0 PARTIAL, CT1
+PASS (with the counterexamples incorporated), CT2 SEED/PARTIAL; the plan
+commit is not a gate. Review item C3 is resolved by an exact derived
+statement gate (records + structural end lines).
+
+D4's "unreachable/unpushed" statement about
+`codex/mobius-u-identity-system` is hereby scoped to the 2026-07-22 freeze
+moment: the branch now exists at
+`origin/codex/mobius-u-identity-system` = `313f0a1`, sharing merge base
+`8cfe48f` with the PR branch — visible parallel history, not corruption.
+Integration decision: merge that branch into the PR branch as the combined
+tip (the only authorized push target), resolving `scripts/verify.sh`,
+`.gitignore`, and `README.md` overlaps intentionally, and require the
+combined tree to pass the full gate before PR #3 leaves draft. Note: the
+identity branch carries Python under `tools/blender/` — outside the
+root-scoped host boundary enforced by kernel.cdc/verify.sh, and owned by
+the identity/product lane, not the language substrate; recorded here so the
+boundary claim stays precise.
+
 ## D7 — 2026-07-22 — Bootloader `--dump` differential record (gated host code)
 
 `cdc_boot.py` gains a `--dump` flag emitting one declaration record per parsed

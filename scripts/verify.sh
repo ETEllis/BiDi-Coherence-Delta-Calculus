@@ -104,6 +104,7 @@ command -v cc >/dev/null 2>&1 || {
 rm -f build/cdc_frontend_check
 run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_frontend_check.c \
+  runtime/cdc_abi.c \
   runtime/cdc_parser.c \
   runtime/cdc_ast.c \
   runtime/cdc_lexer.c \
@@ -136,14 +137,17 @@ for fixture in tests/fixtures/frontend/*.cdc; do
   run_step ./build/cdc_frontend_check reject "$fixture"
 done
 echo "frontend rejection parity ok fixtures=$(ls tests/fixtures/frontend/*.cdc | wc -l)"
+SANITIZED=0
 if cc -std=c99 -Wall -Wextra -pedantic -O1 -fsanitize=address,undefined \
   runtime/cdc_frontend_check.c \
+  runtime/cdc_abi.c \
   runtime/cdc_parser.c \
   runtime/cdc_ast.c \
   runtime/cdc_lexer.c \
   runtime/cdc_diagnostic.c \
   runtime/cdc_source.c \
   -o build/cdc_frontend_check_asan 2>/dev/null; then
+  SANITIZED=1
   # shellcheck disable=SC2086
   run_step ./build/cdc_frontend_check_asan roundtrip $CDC_ROOT_SOURCES
   run_step ./build/cdc_frontend_check_asan bounds
@@ -166,7 +170,14 @@ run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
 run_step ./build/cdc version
 # shellcheck disable=SC2086
 ./build/cdc verify --parse $CDC_ROOT_SOURCES | tee build/cdc_verify_parse.txt
-grep -q "cdc verify parse ok files=18 statements=" build/cdc_verify_parse.txt
+# Exact statement gate (review item C3): statements = dump records plus
+# structural end lines; both counted from the same frozen corpus.
+END_LINES=$(cat ./*.cdc | grep -cE '^[[:space:]]*end[[:space:]]*(#.*)?$')
+ROOT_FILE_COUNT=$(ls ./*.cdc | wc -l)
+EXPECTED_STATEMENTS=$((FRONTEND_RECORDS + END_LINES))
+grep -q "cdc verify parse ok files=${ROOT_FILE_COUNT} statements=${EXPECTED_STATEMENTS}\$" \
+  build/cdc_verify_parse.txt
+echo "cdc verify statement gate exact: files=${ROOT_FILE_COUNT} statements=${EXPECTED_STATEMENTS}"
 if ./build/cdc verify --parse tests/fixtures/frontend/unknown_directive.cdc \
   >/dev/null 2>&1; then
   echo "cdc verify accepted an invalid fixture" >&2
@@ -178,6 +189,57 @@ if ./build/cdc run >/dev/null 2>&1; then
   exit 1
 fi
 echo "cdc unimplemented commands fail closed"
+
+echo
+echo "== ABI boundary counterexamples [2026-07-23 adversarial review] =="
+# Defect 1: rejected source under a >512-byte path must serialize complete
+# JSON (two-pass render; no fixed-slot overflow).
+LONG_SEG=$(printf 'x%.0s' $(seq 1 100))
+LONG_DIR="build/longpath/${LONG_SEG}/${LONG_SEG}/${LONG_SEG}/${LONG_SEG}/${LONG_SEG}"
+mkdir -p "$LONG_DIR"
+cp tests/fixtures/frontend/unknown_directive.cdc "${LONG_DIR}/rejected.cdc"
+LONG_PATH="${LONG_DIR}/rejected.cdc"
+test "${#LONG_PATH}" -gt 512
+./build/cdc_frontend_check abi-diag "$LONG_PATH" > build/abi_diag_long.txt
+grep -qF "$LONG_PATH" build/abi_diag_long.txt
+grep -q "abi-diag ok" build/abi_diag_long.txt
+echo "abi long-path diagnostic ok (path ${#LONG_PATH} bytes)"
+if ./build/cdc verify --parse "$LONG_PATH" >/dev/null 2>&1; then
+  echo "cdc verify accepted the long-path rejected fixture" >&2
+  exit 1
+fi
+# Defect 2: unreadable and special paths are CDC_ERR_IO, never empty
+# accepted programs.
+if ./build/cdc verify --parse . >/dev/null 2>&1; then
+  echo "cdc verify accepted a directory as an empty program" >&2
+  exit 1
+fi
+run_step ./build/cdc_frontend_check abi-io . io
+run_step ./build/cdc_frontend_check abi-io /dev/null io
+rm -f build/test_fifo
+mkfifo build/test_fifo
+timeout 10 ./build/cdc_frontend_check abi-io build/test_fifo io
+rm -f build/test_fifo
+run_step ./build/cdc_frontend_check io-mid-read build
+if [ "$(id -u)" != "0" ]; then
+  cp tests/fixtures/frontend/unknown_directive.cdc build/noread.cdc
+  chmod 000 build/noread.cdc
+  run_step ./build/cdc_frontend_check abi-io build/noread.cdc io
+  chmod 644 build/noread.cdc
+  rm -f build/noread.cdc
+else
+  echo "running as root; unreadable-file case skipped (permissions moot)"
+fi
+: > build/empty_unit.cdc
+./build/cdc verify --parse build/empty_unit.cdc | \
+  grep -q "cdc verify parse ok files=1 statements=0"
+echo "zero-byte regular source ok (valid empty unit)"
+run_step ./build/cdc_frontend_check oom-abi tests/fixtures/frontend/unknown_directive.cdc
+if [ "$SANITIZED" = "1" ]; then
+  run_step ./build/cdc_frontend_check_asan abi-diag "$LONG_PATH" > /dev/null
+  run_step ./build/cdc_frontend_check_asan oom-abi tests/fixtures/frontend/unknown_directive.cdc
+  run_step ./build/cdc_frontend_check_asan abi-io . io
+fi
 
 echo
 echo "== Operational bridge runtime =="

@@ -50,6 +50,21 @@ const char *cdc_status_name(cdc_status status) {
     }
 }
 
+/* CDC001-CDC004 are the parser's typed I/O rejection codes (unreadable,
+ * non-regular, read/stat error, size bound). They map to CDC_ERR_IO and are
+ * never conflated with allocation failure. */
+static int diags_have_io_code(const cdc_diag_list *diags) {
+    size_t i;
+    for (i = 0; i < diags->count; i++) {
+        const char *code = diags->items[i].code;
+        if (strncmp(code, "CDC00", 5) == 0 && code[5] >= '1' &&
+            code[5] <= '4' && code[6] == '\0') {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 cdc_status cdc_program_parse(const char *path, const char *buffer,
                              size_t length, cdc_program **out) {
     cdc_program *program;
@@ -62,18 +77,18 @@ cdc_status cdc_program_parse(const char *path, const char *buffer,
         return CDC_ERR_ARGUMENT;
     }
     *out = NULL;
-    program = calloc(1, sizeof(*program));
+    program = cdc_frontend_alloc(NULL, sizeof(*program));
     if (!program) {
         return CDC_ERR_MEMORY;
     }
+    memset(program, 0, sizeof(*program));
     cdc_unit_init(&program->unit);
     cdc_diag_list_init(&program->diags);
 
     if (path) {
         completed = cdc_unit_parse_file(path, &program->unit,
                                         &program->diags);
-        if (!completed && program->diags.count > 0 &&
-            strcmp(program->diags.items[0].code, "CDC001") == 0) {
+        if (!completed && diags_have_io_code(&program->diags)) {
             cdc_program_destroy(program);
             return CDC_ERR_IO;
         }
@@ -151,11 +166,12 @@ static cdc_status result_from_lines(size_t errors, const char *const *lines,
         free(bytes);
         return CDC_ERR_MEMORY;
     }
-    result = calloc(1, sizeof(*result));
+    result = cdc_frontend_alloc(NULL, sizeof(*result));
     if (!result) {
         free(bytes);
         return CDC_ERR_MEMORY;
     }
+    memset(result, 0, sizeof(*result));
     result->json = bytes;
     result->length = length;
     result->errors = errors;
@@ -166,38 +182,59 @@ static cdc_status result_from_lines(size_t errors, const char *const *lines,
 cdc_status cdc_program_diagnostics(const cdc_program *program,
                                    cdc_result **out) {
     const char **lines = NULL;
-    char *storage = NULL;
-    size_t i, offset = 0;
-    cdc_status status;
+    char **storage = NULL;
+    size_t i, filled = 0;
+    cdc_status status = CDC_OK;
 
     if (!program || !out) {
         return CDC_ERR_ARGUMENT;
     }
     *out = NULL;
     if (program->diags.count > 0) {
-        lines = calloc(program->diags.count, sizeof(*lines));
-        storage = calloc(program->diags.count, 512);
+        lines = cdc_frontend_alloc(NULL,
+                                   program->diags.count * sizeof(*lines));
+        storage = cdc_frontend_alloc(NULL,
+                                     program->diags.count * sizeof(*storage));
         if (!lines || !storage) {
-            free(lines);
-            free(storage);
+            cdc_frontend_alloc(lines, 0);
+            cdc_frontend_alloc(storage, 0);
             return CDC_ERR_MEMORY;
         }
         for (i = 0; i < program->diags.count; i++) {
-            char *slot = storage + offset;
-            size_t written =
-                cdc_diag_render(&program->diags.items[i], slot, 512);
-            /* strip the rendered trailing newline for JSON entries */
-            if (written > 0 && slot[written - 1] == '\n') {
-                slot[written - 1] = '\0';
+            /* Two-pass render (adversarial-review defect 1): size first,
+             * allocate exactly, render into the full allocation, and strip
+             * the trailing newline only inside it. Diagnostics are evidence
+             * surfaces — never truncated. */
+            size_t needed =
+                cdc_diag_render(&program->diags.items[i], NULL, 0);
+            char *slot;
+            if (needed >= SIZE_MAX - 1) {
+                status = CDC_ERR_MEMORY; /* size arithmetic fails closed */
+                break;
             }
-            lines[i] = slot;
-            offset += 512;
+            slot = cdc_frontend_alloc(NULL, needed + 1);
+            if (!slot) {
+                status = CDC_ERR_MEMORY;
+                break;
+            }
+            cdc_diag_render(&program->diags.items[i], slot, needed + 1);
+            if (needed > 0 && slot[needed - 1] == '\n') {
+                slot[needed - 1] = '\0';
+            }
+            storage[filled] = slot;
+            lines[filled] = slot;
+            filled++;
         }
     }
-    status = result_from_lines(program->diags.errors, lines,
-                               program->diags.count, out);
-    free(lines);
-    free(storage);
+    if (status == CDC_OK) {
+        status = result_from_lines(program->diags.errors, lines, filled,
+                                   out);
+    }
+    for (i = 0; i < filled; i++) {
+        cdc_frontend_alloc(storage[i], 0);
+    }
+    cdc_frontend_alloc(storage, 0);
+    cdc_frontend_alloc(lines, 0);
     return status;
 }
 
@@ -235,11 +272,12 @@ cdc_status cdc_runtime_create(cdc_runtime **out) {
     if (!out) {
         return CDC_ERR_ARGUMENT;
     }
-    runtime = calloc(1, sizeof(*runtime));
+    runtime = cdc_frontend_alloc(NULL, sizeof(*runtime));
     if (!runtime) {
         *out = NULL;
         return CDC_ERR_MEMORY;
     }
+    memset(runtime, 0, sizeof(*runtime));
     runtime->abi = cdc_abi_version();
     *out = runtime;
     return CDC_OK;
@@ -291,7 +329,7 @@ cdc_status cdc_result_serialize(const cdc_result *result, char **out_bytes,
     if (!result || !out_bytes || !out_length) {
         return CDC_ERR_ARGUMENT;
     }
-    copy = malloc(result->length + 1);
+    copy = cdc_frontend_alloc(NULL, result->length + 1);
     if (!copy) {
         *out_bytes = NULL;
         *out_length = 0;

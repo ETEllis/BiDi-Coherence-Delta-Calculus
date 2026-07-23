@@ -62,7 +62,14 @@ const char *cdc_status_name(cdc_status status);
 /* Parses a source unit. Exactly one of `path` and `buffer` must be non-NULL
  * (`length` applies to `buffer`). A handle is returned even when the source
  * is rejected (status CDC_ERR_PARSE) so diagnostics can be read; only
- * CDC_ERR_ARGUMENT / CDC_ERR_IO / CDC_ERR_MEMORY return no handle. */
+ * CDC_ERR_ARGUMENT / CDC_ERR_IO / CDC_ERR_MEMORY return no handle.
+ *
+ * I/O contract (2026-07-23 review): a path must name a readable REGULAR
+ * file. Directories, FIFOs, and devices return CDC_ERR_IO without blocking
+ * and without a handle — never an empty accepted program. Mid-read errors
+ * return CDC_ERR_IO; allocation failure is always CDC_ERR_MEMORY, never
+ * remapped. A zero-byte regular file is a VALID unit with zero statements
+ * (CDC_OK). Sources above the parser bound (64 MiB) return CDC_ERR_IO. */
 cdc_status cdc_program_parse(const char *path, const char *buffer,
                              size_t length, cdc_program **out);
 

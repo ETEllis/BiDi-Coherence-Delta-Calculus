@@ -14,10 +14,12 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "cdc_abi.h"
 #include "cdc_ast.h"
 #include "cdc_diagnostic.h"
 #include "cdc_lexer.h"
@@ -575,6 +577,149 @@ static int cmd_oom(const char *path) {
     return 1;
 }
 
+/* ---- ABI counterexamples (2026-07-23 adversarial review) ------------ */
+
+/* Defect-1 regression: a rejected source under an arbitrarily long path
+ * must serialize to complete JSON containing the full path and message —
+ * no fixed-slot truncation, no out-of-bounds. */
+static int cmd_abi_diag(const char *path) {
+    cdc_program *program = NULL;
+    cdc_result *result = NULL;
+    char *json = NULL;
+    size_t length = 0;
+    cdc_status status = cdc_program_parse(path, NULL, 0, &program);
+
+    if (status != CDC_ERR_PARSE) {
+        fprintf(stderr, "abi-diag FAIL: expected parse rejection, got %s\n",
+                cdc_status_name(status));
+        return 1;
+    }
+    if (cdc_program_diagnostics(program, &result) != CDC_OK ||
+        cdc_result_serialize(result, &json, &length) != CDC_OK) {
+        fprintf(stderr, "abi-diag FAIL: diagnostics/serialize\n");
+        return 1;
+    }
+    if (!strstr(json, path)) {
+        fprintf(stderr, "abi-diag FAIL: serialized JSON lacks full path\n");
+        return 1;
+    }
+    if (!strstr(json, "error[CDC")) {
+        fprintf(stderr, "abi-diag FAIL: serialized JSON lacks message\n");
+        return 1;
+    }
+    fwrite(json, 1, length, stdout);
+    fputc('\n', stdout);
+    printf("abi-diag ok bytes=%zu\n", length);
+    cdc_bytes_free(json);
+    cdc_result_destroy(result);
+    cdc_program_destroy(program);
+    return 0;
+}
+
+/* Defect-2 regression: the ABI status for a path must match expectation
+ * (io | parse | ok | memory) — directories, FIFOs, and devices are io,
+ * never empty accepted programs. */
+static int cmd_abi_io(const char *path, const char *expect) {
+    cdc_program *program = NULL;
+    cdc_status status = cdc_program_parse(path, NULL, 0, &program);
+    const char *name = cdc_status_name(status);
+    if (strcmp(name, expect) != 0) {
+        fprintf(stderr, "abi-io FAIL %s: expected %s got %s\n", path, expect,
+                name);
+        cdc_program_destroy(program);
+        return 1;
+    }
+    if (status == CDC_ERR_IO && program != NULL) {
+        fprintf(stderr, "abi-io FAIL %s: io status must not yield a handle\n",
+                path);
+        return 1;
+    }
+    printf("abi-io ok path=%s status=%s\n", path, name);
+    cdc_program_destroy(program);
+    return 0;
+}
+
+/* Defect-2 regression, mid-read arm: reading a directory descriptor through
+ * the stream path must surface ferror() as a typed CDC003, never EOF-as-
+ * empty-program. (The production file path rejects directories before
+ * reading; this proves the backstop.) */
+static int cmd_io_mid_read(const char *dir_path) {
+    int fd = open(dir_path, O_RDONLY);
+    FILE *fp;
+    cdc_unit unit;
+    cdc_diag_list diags;
+    int completed;
+
+    if (fd < 0) {
+        fprintf(stderr, "io-mid-read FAIL: cannot open %s\n", dir_path);
+        return 1;
+    }
+    fp = fdopen(fd, "rb");
+    if (!fp) {
+        fprintf(stderr, "io-mid-read FAIL: fdopen\n");
+        return 1;
+    }
+    cdc_diag_list_init(&diags);
+    completed = cdc_unit_parse_stream(fp, dir_path, &unit, &diags);
+    fclose(fp);
+    if (completed != 0 || !diags_contain(&diags, "CDC003")) {
+        fprintf(stderr,
+                "io-mid-read FAIL: completed=%d (want 0 with CDC003)\n",
+                completed);
+        return 1;
+    }
+    printf("io-mid-read ok reason=CDC003\n");
+    cdc_unit_free(&unit);
+    cdc_diag_list_free(&diags);
+    return 0;
+}
+
+/* Allocation-failure sweep over the full ABI diagnostic pipeline: at every
+ * injected failure the pipeline must return a typed status (CDC_ERR_MEMORY
+ * or a completed parse status) and release everything (leaks are caught by
+ * the sanitizer build running this same mode). */
+static int cmd_oom_abi(const char *path) {
+    long attempt;
+    for (attempt = 1; attempt < 100000; attempt++) {
+        cdc_program *program = NULL;
+        cdc_result *result = NULL;
+        char *json = NULL;
+        size_t length = 0;
+        cdc_status status;
+        int clean = 1;
+
+        oom_fail_at = attempt;
+        oom_counter = 0;
+        cdc_frontend_set_allocator(failing_alloc);
+        status = cdc_program_parse(path, NULL, 0, &program);
+        if (status == CDC_OK || status == CDC_ERR_PARSE) {
+            if (cdc_program_diagnostics(program, &result) == CDC_OK) {
+                if (cdc_result_serialize(result, &json, &length) != CDC_OK) {
+                    clean = 0;
+                }
+            } else {
+                clean = 0;
+            }
+        } else if (status != CDC_ERR_MEMORY && status != CDC_ERR_IO) {
+            cdc_frontend_set_allocator(NULL);
+            fprintf(stderr, "oom-abi FAIL: unexpected status %s\n",
+                    cdc_status_name(status));
+            return 1;
+        }
+        cdc_frontend_set_allocator(NULL);
+        cdc_bytes_free(json);
+        cdc_result_destroy(result);
+        cdc_program_destroy(program);
+        if (clean && oom_counter < oom_fail_at &&
+            (status == CDC_OK || status == CDC_ERR_PARSE)) {
+            printf("oom-abi ok attempts=%ld\n", attempt);
+            return 0;
+        }
+    }
+    fprintf(stderr, "oom-abi FAIL: no clean completion within bound\n");
+    return 1;
+}
+
 /* ---- reject --------------------------------------------------------- */
 
 static int cmd_reject(int argc, char **argv) {
@@ -623,6 +768,18 @@ int main(int argc, char **argv) {
     }
     if (strcmp(argv[1], "reject") == 0) {
         return cmd_reject(argc - 2, argv + 2);
+    }
+    if (strcmp(argv[1], "abi-diag") == 0 && argc >= 3) {
+        return cmd_abi_diag(argv[2]);
+    }
+    if (strcmp(argv[1], "abi-io") == 0 && argc >= 4) {
+        return cmd_abi_io(argv[2], argv[3]);
+    }
+    if (strcmp(argv[1], "io-mid-read") == 0 && argc >= 3) {
+        return cmd_io_mid_read(argv[2]);
+    }
+    if (strcmp(argv[1], "oom-abi") == 0 && argc >= 3) {
+        return cmd_oom_abi(argv[2]);
     }
     fprintf(stderr, "cdc_frontend_check: unknown mode '%s'\n", argv[1]);
     return 2;

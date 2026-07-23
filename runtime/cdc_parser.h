@@ -17,7 +17,19 @@
  *   CDC020 unknown directive          CDC021 missing required first argument
  *   CDC022 duplicate framework key (within the parsed unit)
  * Bounds: CDC010 line too long, CDC013 too many tokens, CDC900 allocation.
+ *
+ * I/O rejection codes (2026-07-23 adversarial-review contract): a source
+ * unit is a readable REGULAR file (or an in-memory buffer). Anything else
+ * fails closed with a typed diagnostic and is never accepted as an empty
+ * program:
+ *   CDC001 cannot open              CDC002 not a regular file
+ *   CDC003 read/stat error          CDC004 source exceeds size bound
+ * A zero-byte regular file IS a valid unit with zero statements. The size
+ * bound is CDC_PARSE_MAX_SOURCE bytes. FIFOs are opened non-blocking and
+ * rejected by type without ever blocking or reading.
  */
+
+enum { CDC_PARSE_MAX_SOURCE = 64 << 20 }; /* 64 MiB per source unit */
 
 /* Parses an in-memory buffer. Returns 1 on completion (check diags->errors
  * for acceptance), 0 on allocation failure (program left valid but partial).
@@ -26,8 +38,17 @@ int cdc_unit_parse_buffer(const char *buffer, size_t length,
                              const char *file, cdc_unit *out,
                              cdc_diag_list *diags);
 
-/* Reads and parses a file from disk. Returns 1 on completion, 0 when the
- * file cannot be read (diagnostic recorded) or allocation fails. */
+/* Reads a stdio stream to EOF and parses it. Distinguishes EOF from read
+ * error via ferror(): a read error records CDC003 and returns 0. Enforces
+ * CDC_PARSE_MAX_SOURCE during growth (CDC004). Exposed so the test harness
+ * can prove the mid-read error path; production callers use
+ * cdc_unit_parse_file. */
+int cdc_unit_parse_stream(void *stdio_file, const char *path, cdc_unit *out,
+                          cdc_diag_list *diags);
+
+/* Opens, validates (regular file, size bound), reads, and parses a file.
+ * Returns 1 on completion, 0 with a typed CDC001-CDC004 diagnostic on I/O
+ * rejection, or 0 with no I/O diagnostic on allocation failure. */
 int cdc_unit_parse_file(const char *path, cdc_unit *out,
                            cdc_diag_list *diags);
 

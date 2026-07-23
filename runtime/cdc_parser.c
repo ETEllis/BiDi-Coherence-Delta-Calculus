@@ -1,7 +1,12 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include "cdc_parser.h"
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 static char *dup_string(const char *s) {
     size_t n = strlen(s);
@@ -171,27 +176,27 @@ int cdc_unit_parse_buffer(const char *buffer, size_t length,
     return ok;
 }
 
-int cdc_unit_parse_file(const char *path, cdc_unit *out,
-                           cdc_diag_list *diags) {
-    FILE *fp = fopen(path, "rb");
+int cdc_unit_parse_stream(void *stdio_file, const char *path, cdc_unit *out,
+                          cdc_diag_list *diags) {
+    FILE *fp = stdio_file;
     char *buffer = NULL;
     size_t size = 0, cap = 0, got;
     int ok;
     cdc_span span = {path, 0, 0, 0};
 
     cdc_unit_init(out);
-    if (!fp) {
-        cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC001", span,
-                     "cannot open source file");
-        return 0;
-    }
     for (;;) {
+        if (size > (size_t)CDC_PARSE_MAX_SOURCE) {
+            cdc_frontend_alloc(buffer, 0);
+            cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC004", span,
+                         "source exceeds %d bytes", (int)CDC_PARSE_MAX_SOURCE);
+            return 0;
+        }
         if (size + 65536 > cap) {
             size_t next = cap ? cap * 2 : 65536;
             char *grown = cdc_frontend_alloc(buffer, next);
             if (!grown) {
                 cdc_frontend_alloc(buffer, 0);
-                fclose(fp);
                 return 0;
             }
             buffer = grown;
@@ -200,11 +205,63 @@ int cdc_unit_parse_file(const char *path, cdc_unit *out,
         got = fread(buffer + size, 1, cap - size, fp);
         size += got;
         if (got == 0) {
+            if (ferror(fp)) {
+                cdc_frontend_alloc(buffer, 0);
+                cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC003", span,
+                             "read error on source file");
+                return 0;
+            }
             break;
         }
     }
-    fclose(fp);
     ok = cdc_unit_parse_buffer(buffer, size, path, out, diags);
     cdc_frontend_alloc(buffer, 0);
+    return ok;
+}
+
+int cdc_unit_parse_file(const char *path, cdc_unit *out,
+                           cdc_diag_list *diags) {
+    int fd;
+    struct stat st;
+    FILE *fp;
+    int ok;
+    cdc_span span = {path, 0, 0, 0};
+
+    cdc_unit_init(out);
+    /* O_NONBLOCK so a FIFO with no writer is rejected by type below instead
+     * of blocking the open (adversarial-review defect 2). */
+    fd = open(path, O_RDONLY | O_NONBLOCK);
+    if (fd < 0) {
+        cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC001", span,
+                     "cannot open source file");
+        return 0;
+    }
+    if (fstat(fd, &st) != 0) {
+        close(fd);
+        cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC003", span,
+                     "cannot stat source file");
+        return 0;
+    }
+    if (!S_ISREG(st.st_mode)) {
+        close(fd);
+        cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC002", span,
+                     "not a regular source file");
+        return 0;
+    }
+    if (st.st_size > (off_t)CDC_PARSE_MAX_SOURCE) {
+        close(fd);
+        cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC004", span,
+                     "source exceeds %d bytes", (int)CDC_PARSE_MAX_SOURCE);
+        return 0;
+    }
+    fp = fdopen(fd, "rb");
+    if (!fp) {
+        close(fd);
+        cdc_diag_add(diags, CDC_DIAG_ERROR, "CDC001", span,
+                     "cannot open source file");
+        return 0;
+    }
+    ok = cdc_unit_parse_stream(fp, path, out, diags);
+    fclose(fp);
     return ok;
 }
