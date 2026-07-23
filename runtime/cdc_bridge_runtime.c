@@ -529,6 +529,10 @@ static void usage(void) {
     exit(2);
 }
 
+/* CDC_BRIDGE_NO_MAIN (Amendment A11): mirrors CDC_NATIVE_NO_MAIN in the
+ * native runtime so the unified cdc driver can link both runtimes into one
+ * binary. The standalone bridge CLI keeps byte-identical behavior. */
+#ifndef CDC_BRIDGE_NO_MAIN
 int main(int argc, char **argv) {
     if (argc < 2) {
         usage();
@@ -558,3 +562,4 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
+#endif

@@ -42,6 +42,15 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
     (records + structural `end` lines = `statements`), recomputed from the
     corpus on every run.
 
+- **A11 bridge boundary: COMPLETE (commit after the merge).**
+  `runtime/cdc_bridge_runtime.c` main is now guarded by
+  `CDC_BRIDGE_NO_MAIN`, mirroring the native runtime; verify.sh proves
+  both runtimes compile with entry points excluded (linkability for the
+  unified binary). The standalone bridge CLI is byte-identical (all its
+  verify.sh greps unchanged). Remaining for full CT2: un-static the
+  runtime entry points behind the ABI, passthrough verbs in `build/cdc`
+  with canonical-equivalent output, ordered per-check parity vectors.
+
 - **Integration gate (review C2): COMPLETE (this merge commit).**
   `origin/codex/mobius-u-identity-system` (`313f0a1`, merge base `8cfe48f`)
   merged into the PR branch as the combined tip. Overlaps resolved:

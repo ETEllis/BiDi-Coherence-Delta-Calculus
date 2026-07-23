@@ -248,6 +248,14 @@ if ./build/cdc run >/dev/null 2>&1; then
   exit 1
 fi
 echo "cdc unimplemented commands fail closed"
+# A11 linkability: both legacy runtimes must compile with their entry
+# points excluded, proving the unified binary can link them (the standalone
+# CLIs keep byte-identical behavior; conversion lands with full CT2).
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 -DCDC_NATIVE_NO_MAIN \
+  -c runtime/cdc_native_runtime.c -o build/cdc_native_nomain.o
+run_step cc -std=c99 -Wall -Wextra -pedantic -O2 -DCDC_BRIDGE_NO_MAIN \
+  -c runtime/cdc_bridge_runtime.c -o build/cdc_bridge_nomain.o
+echo "runtime linkability ok (CDC_NATIVE_NO_MAIN + CDC_BRIDGE_NO_MAIN)"
 
 echo
 echo "== ABI boundary counterexamples [2026-07-23 adversarial review] =="
