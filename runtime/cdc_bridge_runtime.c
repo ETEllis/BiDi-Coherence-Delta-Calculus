@@ -531,9 +531,16 @@ static void usage(void) {
 
 /* CDC_BRIDGE_NO_MAIN (Amendment A11): mirrors CDC_NATIVE_NO_MAIN in the
  * native runtime so the unified cdc driver can link both runtimes into one
- * binary. The standalone bridge CLI keeps byte-identical behavior. */
-#ifndef CDC_BRIDGE_NO_MAIN
-int main(int argc, char **argv) {
+ * binary. With the guard defined, the same entry point compiles as
+ * cdc_bridge_main for byte-identical passthrough (gate CT2); the
+ * standalone bridge CLI keeps byte-identical behavior. */
+#ifdef CDC_BRIDGE_NO_MAIN
+#define CDC_BRIDGE_ENTRY cdc_bridge_main
+int cdc_bridge_main(int argc, char **argv);
+#else
+#define CDC_BRIDGE_ENTRY main
+#endif
+int CDC_BRIDGE_ENTRY(int argc, char **argv) {
     if (argc < 2) {
         usage();
     }
@@ -562,4 +569,3 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
-#endif

@@ -2129,8 +2129,16 @@ static void usage(void) {
     exit(2);
 }
 
-#ifndef CDC_NATIVE_NO_MAIN
-int main(int argc, char **argv) {
+/* With CDC_NATIVE_NO_MAIN the same entry point compiles as
+ * cdc_native_main so the unified cdc driver can pass legacy verbs through
+ * with byte-identical behavior (gate CT2). */
+#ifdef CDC_NATIVE_NO_MAIN
+#define CDC_NATIVE_ENTRY cdc_native_main
+int cdc_native_main(int argc, char **argv);
+#else
+#define CDC_NATIVE_ENTRY main
+#endif
+int CDC_NATIVE_ENTRY(int argc, char **argv) {
     Runtime runtime;
     if ((argc == 4 || argc == 5) && strcmp(argv[1], "replay") == 0) {
         run_replay(argv[2], argv[3], argc == 5 ? argv[4] : NULL);
@@ -2161,4 +2169,3 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
-#endif

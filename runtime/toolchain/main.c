@@ -9,6 +9,27 @@
 #include "../cdc_abi.h"
 #include "cmd_verify.h"
 
+/* Transitional passthrough entry points (gate CT2): the legacy runtimes'
+ * guarded mains, linked with CDC_NATIVE_NO_MAIN / CDC_BRIDGE_NO_MAIN so the
+ * unified binary reproduces the standalone CLIs byte-identically. They
+ * retire when the modes route through the ABI execution surface. */
+int cdc_native_main(int argc, char **argv);
+int cdc_bridge_main(int argc, char **argv);
+
+static int is_native_verb(const char *verb) {
+    static const char *const VERBS[] = {
+        "run",     "compile", "interpret", "prove", "surface",
+        "council", "evolve",  "universal", "replay",
+    };
+    size_t i;
+    for (i = 0; i < sizeof(VERBS) / sizeof(VERBS[0]); i++) {
+        if (strcmp(verb, VERBS[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static int cmd_version(void) {
     uint32_t version = cdc_abi_version();
     printf("cdc abi=%u.%u grammar=1\n", version >> 16, version & 0xffffu);
@@ -38,8 +59,18 @@ int main(int argc, char **argv) {
     if (strcmp(argv[1], "version") == 0) {
         return cmd_version();
     }
+    if (is_native_verb(argv[1]) && argc >= 3) {
+        return cdc_native_main(argc, argv);
+    }
+    if (strcmp(argv[1], "bridge") == 0 && argc >= 3) {
+        return cdc_bridge_main(argc - 1, argv + 1);
+    }
     if (strcmp(argv[1], "run") == 0 || strcmp(argv[1], "test") == 0) {
         return cmd_unavailable(argv[1], "Phase C");
+    }
+    if (is_native_verb(argv[1]) || strcmp(argv[1], "bridge") == 0) {
+        usage(stderr);
+        return 2;
     }
     if (strcmp(argv[1], "install") == 0 || strcmp(argv[1], "build") == 0 ||
         strcmp(argv[1], "x") == 0) {

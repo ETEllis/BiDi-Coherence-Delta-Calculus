@@ -228,6 +228,11 @@ run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/cdc_ast.c \
   runtime/cdc_lexer.c \
   runtime/cdc_diagnostic.c \
+  -DCDC_NATIVE_NO_MAIN -DCDC_BRIDGE_NO_MAIN \
+  runtime/cdc_native_runtime.c \
+  runtime/cdc_bridge_runtime.c \
+  runtime/cdc_source.c \
+  -lm \
   -o build/cdc
 run_step ./build/cdc version
 # shellcheck disable=SC2086
@@ -280,6 +285,55 @@ run_step cc -std=c99 -Wall -Wextra -pedantic -O2 -DCDC_NATIVE_NO_MAIN \
 run_step cc -std=c99 -Wall -Wextra -pedantic -O2 -DCDC_BRIDGE_NO_MAIN \
   -c runtime/cdc_bridge_runtime.c -o build/cdc_bridge_nomain.o
 echo "runtime linkability ok (CDC_NATIVE_NO_MAIN + CDC_BRIDGE_NO_MAIN)"
+
+echo
+echo "== Unified driver passthrough parity [gate CT2] =="
+# The unified binary must reproduce the standalone runtimes byte-for-byte,
+# including exit codes, across every legacy mode family (parity is checked
+# AFTER the standalone binaries are built later in this script would be too
+# late — they are compiled here if absent).
+if [ ! -x build/cdc_native_runtime ]; then
+  run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
+    runtime/cdc_native_runtime.c runtime/cdc_source.c -lm \
+    -o build/cdc_native_runtime
+fi
+if [ ! -x build/cdc_bridge_runtime ]; then
+  run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
+    runtime/cdc_bridge_runtime.c runtime/cdc_source.c \
+    -o build/cdc_bridge_runtime
+fi
+PASSTHROUGH_MODES=0
+while IFS= read -r MODE_ARGS; do
+  set +e
+  # shellcheck disable=SC2086
+  ./build/cdc_native_runtime $MODE_ARGS > build/passthrough_a.txt 2>&1
+  RC_A=$?
+  # shellcheck disable=SC2086
+  ./build/cdc $MODE_ARGS > build/passthrough_b.txt 2>&1
+  RC_B=$?
+  set -e
+  test "$RC_A" = "$RC_B"
+  cmp build/passthrough_a.txt build/passthrough_b.txt
+  PASSTHROUGH_MODES=$((PASSTHROUGH_MODES + 1))
+done <<'MODES'
+run native_reducer.cdc
+compile native_reducer.cdc
+interpret native_reducer.cdc
+prove native_reducer.cdc
+surface native_surface.cdc
+council council_bridge.cdc
+evolve council_bridge.cdc
+universal framework_loop.cdc
+run framework_loop.cdc
+MODES
+./build/cdc_bridge_runtime verify bridge64.cdc > build/passthrough_a.txt
+./build/cdc bridge verify bridge64.cdc > build/passthrough_b.txt
+cmp build/passthrough_a.txt build/passthrough_b.txt
+./build/cdc_bridge_runtime lookup-dyadic bridge64.cdc 101011 > build/passthrough_a.txt
+./build/cdc bridge lookup-dyadic bridge64.cdc 101011 > build/passthrough_b.txt
+cmp build/passthrough_a.txt build/passthrough_b.txt
+PASSTHROUGH_MODES=$((PASSTHROUGH_MODES + 2))
+echo "unified passthrough parity ok modes=${PASSTHROUGH_MODES}"
 
 echo
 echo "== ABI boundary counterexamples [2026-07-23 adversarial review] =="

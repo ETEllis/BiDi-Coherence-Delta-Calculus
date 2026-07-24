@@ -42,7 +42,19 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
     (records + structural `end` lines = `statements`), recomputed from the
     corpus on every run.
 
-- **Gate toolchain-verify-parity: LIVE (this commit).** The native
+- **Unified-driver passthrough parity: LIVE (this commit).** The guarded
+  runtime mains compile as `cdc_native_main` / `cdc_bridge_main` under
+  their NO_MAIN macros (zero duplication; standalone CLIs untouched), and
+  `build/cdc` links BOTH runtimes plus the ABI/registry stack into the
+  one binary. verify.sh gates byte-identical stdout+stderr AND exit codes
+  between `build/cdc <verb> ...` and the standalone binaries across 11
+  mode invocations (run/compile/interpret/prove/surface/council/evolve/
+  universal on their canonical sources, plus `cdc bridge verify` and
+  `cdc bridge lookup-dyadic`). CT2 remaining: ordered per-check execution
+  vectors for run/test (Phase C) and ownership-sanitizer sweep of the
+  full unified binary.
+
+- **Gate toolchain-verify-parity: LIVE (previous commit).** The native
   contract evaluator (`runtime/cdc_registry.{h,c}`, ~950 lines: registry
   collect + eval_expect + report mirroring `cdc_boot.py` exactly,
   including Python list-repr label formatting and sorted-witness
