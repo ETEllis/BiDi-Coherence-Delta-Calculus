@@ -1,0 +1,786 @@
+/* cdc_frontend_check: grammar-1 frontend differential harness (gate CT1).
+ *
+ * Modes:
+ *   dump <files...>        emit grammar-0-equivalent declaration records;
+ *                          byte-compared against `cdc_boot.py --dump`
+ *   canon <files...>       emit canonical grammar-1 serialization
+ *   roundtrip <files...>   parse -> canonical -> reparse -> structural equal
+ *   attr-parity <files...> field-for-field comparison of frontend attribute
+ *                          extraction vs the legacy cdc_read_attr scanner,
+ *                          with typed divergence classes
+ *   bounds                 adversarial corpus: typed diagnostics, no crash
+ *   oom <file>             allocator-failure injection at every allocation
+ *   reject <files...>      every file must produce >=1 error diagnostic
+ */
+#define _POSIX_C_SOURCE 200809L
+
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "cdc_abi.h"
+#include "cdc_ast.h"
+#include "cdc_diagnostic.h"
+#include "cdc_lexer.h"
+#include "cdc_parser.h"
+#include "cdc_source.h"
+
+static const char *base_name(const char *path) {
+    const char *slash = strrchr(path, '/');
+    return slash ? slash + 1 : path;
+}
+
+static int parse_or_report(const char *path, cdc_unit *program,
+                           cdc_diag_list *diags) {
+    if (!cdc_unit_parse_file(path, program, diags)) {
+        fprintf(stderr, "cdc-frontend: %s: read or allocation failure\n",
+                path);
+        return 0;
+    }
+    if (diags->errors > 0) {
+        cdc_diag_list_print(diags, stderr);
+        return 0;
+    }
+    return 1;
+}
+
+/* ---- dump ---------------------------------------------------------- */
+
+static void dump_stmt(const cdc_unit *program, const cdc_stmt *stmt) {
+    const char *file = base_name(program->file);
+    size_t i, j;
+    if (stmt->kind == CDC_STMT_END) {
+        return; /* grammar 0 skips structural end lines before dispatch */
+    }
+    printf("%s:%d|%s|", file, stmt->line, cdc_stmt_directive(stmt));
+    if (stmt->kind == CDC_STMT_EXPECT) {
+        for (i = 1; i < stmt->token_count; i++) {
+            if (i > 1) {
+                putchar(' ');
+            }
+            fputs(stmt->tokens[i].text, stdout);
+        }
+        printf("|\n");
+        return;
+    }
+    {
+        int first = 1;
+        for (i = 1; i < stmt->token_count; i++) {
+            if (!memchr(stmt->tokens[i].text, '=', stmt->tokens[i].length)) {
+                if (!first) {
+                    putchar(',');
+                }
+                fputs(stmt->tokens[i].text, stdout);
+                first = 0;
+            }
+        }
+    }
+    putchar('|');
+    {
+        /* dict semantics: first-occurrence order, last value wins */
+        int first = 1;
+        for (i = 1; i < stmt->token_count; i++) {
+            const char *eq =
+                memchr(stmt->tokens[i].text, '=', stmt->tokens[i].length);
+            size_t key_len;
+            int seen_before = 0;
+            if (!eq) {
+                continue;
+            }
+            key_len = (size_t)(eq - stmt->tokens[i].text);
+            for (j = 1; j < i; j++) {
+                const char *prior_eq = memchr(stmt->tokens[j].text, '=',
+                                              stmt->tokens[j].length);
+                if (prior_eq &&
+                    (size_t)(prior_eq - stmt->tokens[j].text) == key_len &&
+                    strncmp(stmt->tokens[j].text, stmt->tokens[i].text,
+                            key_len) == 0) {
+                    seen_before = 1;
+                    break;
+                }
+            }
+            if (seen_before) {
+                continue;
+            }
+            {
+                char key[256];
+                const char *value;
+                if (key_len >= sizeof(key)) {
+                    fprintf(stderr, "cdc-frontend: attribute key too long\n");
+                    exit(1);
+                }
+                memcpy(key, stmt->tokens[i].text, key_len);
+                key[key_len] = '\0';
+                value = cdc_stmt_attr(stmt, key);
+                if (!first) {
+                    putchar(';');
+                }
+                printf("%s=%s", key, value ? value : "");
+                first = 0;
+            }
+        }
+    }
+    printf("|\n");
+}
+
+static int cmd_dump(int argc, char **argv) {
+    int i;
+    for (i = 0; i < argc; i++) {
+        cdc_unit program;
+        cdc_diag_list diags;
+        size_t s;
+        cdc_diag_list_init(&diags);
+        if (!parse_or_report(argv[i], &program, &diags)) {
+            cdc_unit_free(&program);
+            cdc_diag_list_free(&diags);
+            return 1;
+        }
+        for (s = 0; s < program.count; s++) {
+            dump_stmt(&program, &program.stmts[s]);
+        }
+        cdc_unit_free(&program);
+        cdc_diag_list_free(&diags);
+    }
+    return 0;
+}
+
+/* ---- canon / roundtrip --------------------------------------------- */
+
+static int cmd_canon(int argc, char **argv) {
+    int i;
+    for (i = 0; i < argc; i++) {
+        cdc_unit program;
+        cdc_diag_list diags;
+        cdc_diag_list_init(&diags);
+        if (!parse_or_report(argv[i], &program, &diags)) {
+            cdc_unit_free(&program);
+            cdc_diag_list_free(&diags);
+            return 1;
+        }
+        cdc_unit_canonical(&program, stdout);
+        cdc_unit_free(&program);
+        cdc_diag_list_free(&diags);
+    }
+    return 0;
+}
+
+static int cmd_roundtrip(int argc, char **argv) {
+    int i;
+    for (i = 0; i < argc; i++) {
+        cdc_unit first, second;
+        cdc_diag_list diags;
+        char *canon_buf = NULL;
+        size_t canon_size = 0;
+        FILE *mem;
+
+        cdc_diag_list_init(&diags);
+        if (!parse_or_report(argv[i], &first, &diags)) {
+            cdc_unit_free(&first);
+            cdc_diag_list_free(&diags);
+            return 1;
+        }
+        mem = open_memstream(&canon_buf, &canon_size);
+        if (!mem) {
+            fprintf(stderr, "cdc-frontend: memstream failure\n");
+            return 1;
+        }
+        cdc_unit_canonical(&first, mem);
+        fclose(mem);
+        if (!cdc_unit_parse_buffer(canon_buf, canon_size, first.file,
+                                      &second, &diags) ||
+            diags.errors > 0) {
+            fprintf(stderr, "cdc-frontend: %s: canonical form failed to "
+                            "reparse\n",
+                    argv[i]);
+            cdc_diag_list_print(&diags, stderr);
+            return 1;
+        }
+        if (!cdc_unit_equal(&first, &second)) {
+            fprintf(stderr, "cdc-frontend: %s: roundtrip mismatch\n",
+                    argv[i]);
+            return 1;
+        }
+        free(canon_buf);
+        cdc_unit_free(&first);
+        cdc_unit_free(&second);
+        cdc_diag_list_free(&diags);
+    }
+    printf("frontend roundtrip ok files=%d\n", argc);
+    return 0;
+}
+
+/* ---- attr-parity ---------------------------------------------------- */
+
+typedef struct {
+    long checked;
+    long quoting;
+    long collision;
+    long duplicate;
+    long skipped_long;
+    long failed;
+} parity_counts;
+
+static void parity_line(const cdc_unit *program, const cdc_stmt *stmt,
+                        const char *raw_line, parity_counts *counts) {
+    char stripped[8192];
+    size_t i, j;
+
+    snprintf(stripped, sizeof(stripped), "%s", raw_line);
+    cdc_strip_comment(stripped);
+
+    for (i = 1; i < stmt->token_count; i++) {
+        const char *eq =
+            memchr(stmt->tokens[i].text, '=', stmt->tokens[i].length);
+        char key[256];
+        char legacy[4096];
+        const char *frontend_first;
+        const char *frontend_last;
+        size_t key_len;
+        int duplicated = 0;
+
+        if (!eq) {
+            continue;
+        }
+        key_len = (size_t)(eq - stmt->tokens[i].text);
+        if (key_len == 0 || key_len >= sizeof(key)) {
+            counts->skipped_long++;
+            continue;
+        }
+        memcpy(key, stmt->tokens[i].text, key_len);
+        key[key_len] = '\0';
+        if (strlen(key) > 60) { /* legacy needle buffer is 64 with "=" */
+            counts->skipped_long++;
+            continue;
+        }
+        /* only evaluate each key once per line (at its first occurrence) */
+        {
+            int earlier = 0;
+            for (j = 1; j < i; j++) {
+                const char *prior_eq = memchr(stmt->tokens[j].text, '=',
+                                              stmt->tokens[j].length);
+                if (prior_eq &&
+                    (size_t)(prior_eq - stmt->tokens[j].text) == key_len &&
+                    strncmp(stmt->tokens[j].text, key, key_len) == 0) {
+                    earlier = 1;
+                    break;
+                }
+            }
+            if (earlier) {
+                continue;
+            }
+        }
+        for (j = i + 1; j < stmt->token_count; j++) {
+            const char *later_eq = memchr(stmt->tokens[j].text, '=',
+                                          stmt->tokens[j].length);
+            if (later_eq &&
+                (size_t)(later_eq - stmt->tokens[j].text) == key_len &&
+                strncmp(stmt->tokens[j].text, key, key_len) == 0) {
+                duplicated = 1;
+                break;
+            }
+        }
+
+        frontend_first = cdc_stmt_attr_first(stmt, key);
+        frontend_last = cdc_stmt_attr(stmt, key);
+        counts->checked++;
+        if (duplicated ||
+            (frontend_first && frontend_last &&
+             strcmp(frontend_first, frontend_last) != 0)) {
+            counts->duplicate++;
+        }
+
+        if (!cdc_read_attr(stripped, key, legacy, sizeof(legacy))) {
+            counts->failed++;
+            fprintf(stderr, "attr-parity FAIL %s:%d %s: legacy scanner "
+                            "found nothing\n",
+                    base_name(program->file), stmt->line, key);
+            continue;
+        }
+        if (frontend_first && strcmp(legacy, frontend_first) == 0) {
+            continue; /* exact agreement */
+        }
+        /* collision: the legacy strstr hit begins before this token */
+        {
+            char needle[64];
+            const char *hit;
+            snprintf(needle, sizeof(needle), "%s=", key);
+            hit = strstr(stripped, needle);
+            /* a hit not immediately preceded by start-of-line or whitespace
+             * sits inside another token: the legacy scanner read from the
+             * middle of an unrelated attribute (substring collision) */
+            if (hit && hit != stripped && hit[-1] != ' ' &&
+                hit[-1] != '\t') {
+                counts->collision++;
+                fprintf(stderr, "attr-parity collision %s:%d %s\n",
+                        base_name(program->file), stmt->line, key);
+                continue;
+            }
+        }
+        /* quoting divergence: legacy retains quotes / truncates at space */
+        if (frontend_first && legacy[0] == '"') {
+            const char *body = legacy + 1;
+            size_t body_len = strlen(body);
+            if (body_len > 0 && body[body_len - 1] == '"') {
+                body_len--;
+            }
+            if (strncmp(frontend_first, body, body_len) == 0 &&
+                (frontend_first[body_len] == '\0' ||
+                 strchr(frontend_first + body_len, ' ') != NULL ||
+                 frontend_first[body_len] == ' ')) {
+                counts->quoting++;
+                continue;
+            }
+        }
+        counts->failed++;
+        fprintf(stderr,
+                "attr-parity FAIL %s:%d %s: legacy=%s frontend=%s\n",
+                base_name(program->file), stmt->line, key, legacy,
+                frontend_first ? frontend_first : "<none>");
+    }
+}
+
+static int cmd_attr_parity(int argc, char **argv) {
+    parity_counts counts;
+    int i;
+    memset(&counts, 0, sizeof(counts));
+    for (i = 0; i < argc; i++) {
+        cdc_unit program;
+        cdc_diag_list diags;
+        FILE *fp;
+        char raw[8192];
+        int line_no = 0;
+        size_t s = 0;
+
+        cdc_diag_list_init(&diags);
+        if (!parse_or_report(argv[i], &program, &diags)) {
+            cdc_unit_free(&program);
+            cdc_diag_list_free(&diags);
+            return 1;
+        }
+        fp = fopen(argv[i], "r");
+        if (!fp) {
+            fprintf(stderr, "cdc-frontend: cannot reopen %s\n", argv[i]);
+            return 1;
+        }
+        while (fgets(raw, sizeof(raw), fp)) {
+            line_no++;
+            cdc_trim_newline(raw);
+            while (s < program.count && program.stmts[s].line < line_no) {
+                s++;
+            }
+            if (s < program.count && program.stmts[s].line == line_no &&
+                program.stmts[s].kind != CDC_STMT_END) {
+                parity_line(&program, &program.stmts[s], raw, &counts);
+            }
+        }
+        fclose(fp);
+        cdc_unit_free(&program);
+        cdc_diag_list_free(&diags);
+    }
+    printf("frontend attr-parity checked=%ld quoting=%ld collision=%ld "
+           "duplicate=%ld skipped=%ld failed=%ld\n",
+           counts.checked, counts.quoting, counts.collision,
+           counts.duplicate, counts.skipped_long, counts.failed);
+    return counts.failed == 0 ? 0 : 1;
+}
+
+/* ---- bounds --------------------------------------------------------- */
+
+typedef struct {
+    const char *name;
+    const char *code; /* expected diagnostic code, NULL = must accept */
+    const char *buffer;
+    size_t length; /* 0 = strlen(buffer) */
+} bounds_case;
+
+static int diags_contain(const cdc_diag_list *diags, const char *code) {
+    size_t i;
+    for (i = 0; i < diags->count; i++) {
+        if (strcmp(diags->items[i].code, code) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int cmd_bounds(void) {
+    static const char nul_case[] = "flow x a\0b";
+    bounds_case cases[16];
+    size_t n = 0, i;
+    char *long_line = NULL;
+    char *many_tokens = NULL;
+    int failures = 0;
+
+    cases[n].name = "trailing-escape";
+    cases[n].code = "CDC011";
+    cases[n].buffer = "flow x a=1\\";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "unclosed-single";
+    cases[n].code = "CDC012";
+    cases[n].buffer = "commit y label='open";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "unclosed-double-escape";
+    cases[n].code = "CDC011";
+    cases[n].buffer = "commit y label=\"open\\";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "unknown-directive";
+    cases[n].code = "CDC020";
+    cases[n].buffer = "bogus x y=1";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "witness-missing-id";
+    cases[n].code = "CDC021";
+    cases[n].buffer = "witness claim=\"only attrs\"";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "duplicate-framework";
+    cases[n].code = "CDC022";
+    cases[n].buffer = "framework F9 label=a requires=r permits=p\n"
+                      "framework F9 label=b requires=r permits=p";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "embedded-nul";
+    cases[n].code = "CDC014";
+    cases[n].buffer = nul_case;
+    cases[n].length = sizeof(nul_case) - 1;
+    n++;
+    cases[n].name = "empty-source";
+    cases[n].code = NULL;
+    cases[n].buffer = "";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "quote-concat";
+    cases[n].code = NULL;
+    cases[n].buffer = "flow con'cat'\"enate\" a=1";
+    cases[n].length = 0;
+    n++;
+    cases[n].name = "escaped-space-token";
+    cases[n].code = NULL;
+    cases[n].buffer = "flow with\\ space b=2";
+    cases[n].length = 0;
+    n++;
+
+    /* line-too-long */
+    {
+        size_t big = (size_t)CDC_LEX_MAX_LINE + 8;
+        long_line = malloc(big + 1);
+        if (long_line) {
+            memset(long_line, 'a', big);
+            long_line[big] = '\0';
+            cases[n].name = "line-too-long";
+            cases[n].code = "CDC010";
+            cases[n].buffer = long_line;
+            cases[n].length = big;
+            n++;
+        }
+    }
+    /* too many tokens */
+    {
+        size_t count = (size_t)CDC_LEX_MAX_TOKENS + 8;
+        size_t bytes = count * 2 + 16;
+        many_tokens = malloc(bytes);
+        if (many_tokens) {
+            char *p = many_tokens;
+            size_t k;
+            memcpy(p, "flow", 4);
+            p += 4;
+            for (k = 0; k < count; k++) {
+                *p++ = ' ';
+                *p++ = 'a';
+            }
+            *p = '\0';
+            cases[n].name = "too-many-tokens";
+            cases[n].code = "CDC013";
+            cases[n].buffer = many_tokens;
+            cases[n].length = (size_t)(p - many_tokens);
+            n++;
+        }
+    }
+
+    for (i = 0; i < n; i++) {
+        cdc_unit program;
+        cdc_diag_list diags;
+        size_t length =
+            cases[i].length ? cases[i].length : strlen(cases[i].buffer);
+        cdc_diag_list_init(&diags);
+        cdc_unit_parse_buffer(cases[i].buffer, length, cases[i].name,
+                                 &program, &diags);
+        if (cases[i].code) {
+            if (!diags_contain(&diags, cases[i].code)) {
+                fprintf(stderr, "bounds FAIL %s: expected %s\n",
+                        cases[i].name, cases[i].code);
+                failures++;
+            }
+        } else if (diags.errors != 0) {
+            fprintf(stderr, "bounds FAIL %s: unexpected rejection\n",
+                    cases[i].name);
+            cdc_diag_list_print(&diags, stderr);
+            failures++;
+        }
+        cdc_unit_free(&program);
+        cdc_diag_list_free(&diags);
+    }
+    free(long_line);
+    free(many_tokens);
+    if (failures) {
+        return 1;
+    }
+    printf("frontend bounds ok cases=%d\n", (int)n);
+    return 0;
+}
+
+/* ---- oom ------------------------------------------------------------ */
+
+static long oom_fail_at;
+static long oom_counter;
+
+static void *failing_alloc(void *ptr, size_t size) {
+    if (size == 0) {
+        free(ptr);
+        return NULL;
+    }
+    oom_counter++;
+    if (oom_counter == oom_fail_at) {
+        return NULL;
+    }
+    return realloc(ptr, size);
+}
+
+static int cmd_oom(const char *path) {
+    long attempt;
+    for (attempt = 1; attempt < 100000; attempt++) {
+        cdc_unit program;
+        cdc_diag_list diags;
+        int completed;
+        oom_fail_at = attempt;
+        oom_counter = 0;
+        cdc_frontend_set_allocator(failing_alloc);
+        cdc_diag_list_init(&diags);
+        completed = cdc_unit_parse_file(path, &program, &diags);
+        cdc_frontend_set_allocator(NULL);
+        {
+            int clean_success = completed && !diags.out_of_memory &&
+                                oom_counter < oom_fail_at;
+            cdc_unit_free(&program);
+            cdc_diag_list_free(&diags);
+            if (clean_success) {
+                printf("frontend oom ok attempts=%ld\n", attempt);
+                return 0;
+            }
+        }
+    }
+    fprintf(stderr, "frontend oom: no clean completion within bound\n");
+    return 1;
+}
+
+/* ---- ABI counterexamples (2026-07-23 adversarial review) ------------ */
+
+/* Defect-1 regression: a rejected source under an arbitrarily long path
+ * must serialize to complete JSON containing the full path and message —
+ * no fixed-slot truncation, no out-of-bounds. */
+static int cmd_abi_diag(const char *path) {
+    cdc_program *program = NULL;
+    cdc_result *result = NULL;
+    char *json = NULL;
+    size_t length = 0;
+    cdc_status status = cdc_program_parse(path, NULL, 0, &program);
+
+    if (status != CDC_ERR_PARSE) {
+        fprintf(stderr, "abi-diag FAIL: expected parse rejection, got %s\n",
+                cdc_status_name(status));
+        return 1;
+    }
+    if (cdc_program_diagnostics(program, &result) != CDC_OK ||
+        cdc_result_serialize(result, &json, &length) != CDC_OK) {
+        fprintf(stderr, "abi-diag FAIL: diagnostics/serialize\n");
+        return 1;
+    }
+    if (!strstr(json, path)) {
+        fprintf(stderr, "abi-diag FAIL: serialized JSON lacks full path\n");
+        return 1;
+    }
+    if (!strstr(json, "error[CDC")) {
+        fprintf(stderr, "abi-diag FAIL: serialized JSON lacks message\n");
+        return 1;
+    }
+    fwrite(json, 1, length, stdout);
+    fputc('\n', stdout);
+    printf("abi-diag ok bytes=%zu\n", length);
+    cdc_bytes_free(json);
+    cdc_result_destroy(result);
+    cdc_program_destroy(program);
+    return 0;
+}
+
+/* Defect-2 regression: the ABI status for a path must match expectation
+ * (io | parse | ok | memory) — directories, FIFOs, and devices are io,
+ * never empty accepted programs. */
+static int cmd_abi_io(const char *path, const char *expect) {
+    cdc_program *program = NULL;
+    cdc_status status = cdc_program_parse(path, NULL, 0, &program);
+    const char *name = cdc_status_name(status);
+    if (strcmp(name, expect) != 0) {
+        fprintf(stderr, "abi-io FAIL %s: expected %s got %s\n", path, expect,
+                name);
+        cdc_program_destroy(program);
+        return 1;
+    }
+    if (status == CDC_ERR_IO && program != NULL) {
+        fprintf(stderr, "abi-io FAIL %s: io status must not yield a handle\n",
+                path);
+        return 1;
+    }
+    printf("abi-io ok path=%s status=%s\n", path, name);
+    cdc_program_destroy(program);
+    return 0;
+}
+
+/* Defect-2 regression, mid-read arm: reading a directory descriptor through
+ * the stream path must surface ferror() as a typed CDC003, never EOF-as-
+ * empty-program. (The production file path rejects directories before
+ * reading; this proves the backstop.) */
+static int cmd_io_mid_read(const char *dir_path) {
+    int fd = open(dir_path, O_RDONLY);
+    FILE *fp;
+    cdc_unit unit;
+    cdc_diag_list diags;
+    int completed;
+
+    if (fd < 0) {
+        fprintf(stderr, "io-mid-read FAIL: cannot open %s\n", dir_path);
+        return 1;
+    }
+    fp = fdopen(fd, "rb");
+    if (!fp) {
+        fprintf(stderr, "io-mid-read FAIL: fdopen\n");
+        return 1;
+    }
+    cdc_diag_list_init(&diags);
+    completed = cdc_unit_parse_stream(fp, dir_path, &unit, &diags);
+    fclose(fp);
+    if (completed != 0 || !diags_contain(&diags, "CDC003")) {
+        fprintf(stderr,
+                "io-mid-read FAIL: completed=%d (want 0 with CDC003)\n",
+                completed);
+        return 1;
+    }
+    printf("io-mid-read ok reason=CDC003\n");
+    cdc_unit_free(&unit);
+    cdc_diag_list_free(&diags);
+    return 0;
+}
+
+/* Allocation-failure sweep over the full ABI diagnostic pipeline: at every
+ * injected failure the pipeline must return a typed status (CDC_ERR_MEMORY
+ * or a completed parse status) and release everything (leaks are caught by
+ * the sanitizer build running this same mode). */
+static int cmd_oom_abi(const char *path) {
+    long attempt;
+    for (attempt = 1; attempt < 100000; attempt++) {
+        cdc_program *program = NULL;
+        cdc_result *result = NULL;
+        char *json = NULL;
+        size_t length = 0;
+        cdc_status status;
+        int clean = 1;
+
+        oom_fail_at = attempt;
+        oom_counter = 0;
+        cdc_frontend_set_allocator(failing_alloc);
+        status = cdc_program_parse(path, NULL, 0, &program);
+        if (status == CDC_OK || status == CDC_ERR_PARSE) {
+            if (cdc_program_diagnostics(program, &result) == CDC_OK) {
+                if (cdc_result_serialize(result, &json, &length) != CDC_OK) {
+                    clean = 0;
+                }
+            } else {
+                clean = 0;
+            }
+        } else if (status != CDC_ERR_MEMORY && status != CDC_ERR_IO) {
+            cdc_frontend_set_allocator(NULL);
+            fprintf(stderr, "oom-abi FAIL: unexpected status %s\n",
+                    cdc_status_name(status));
+            return 1;
+        }
+        cdc_frontend_set_allocator(NULL);
+        cdc_bytes_free(json);
+        cdc_result_destroy(result);
+        cdc_program_destroy(program);
+        if (clean && oom_counter < oom_fail_at &&
+            (status == CDC_OK || status == CDC_ERR_PARSE)) {
+            printf("oom-abi ok attempts=%ld\n", attempt);
+            return 0;
+        }
+    }
+    fprintf(stderr, "oom-abi FAIL: no clean completion within bound\n");
+    return 1;
+}
+
+/* ---- reject --------------------------------------------------------- */
+
+static int cmd_reject(int argc, char **argv) {
+    int i;
+    for (i = 0; i < argc; i++) {
+        cdc_unit program;
+        cdc_diag_list diags;
+        cdc_diag_list_init(&diags);
+        cdc_unit_parse_file(argv[i], &program, &diags);
+        if (diags.errors == 0) {
+            fprintf(stderr, "reject FAIL %s: accepted\n", argv[i]);
+            return 1;
+        }
+        printf("frontend reject ok %s code=%s\n", base_name(argv[i]),
+               diags.items ? diags.items[0].code : "CDC900");
+        cdc_unit_free(&program);
+        cdc_diag_list_free(&diags);
+    }
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        fprintf(stderr,
+                "usage: cdc_frontend_check "
+                "dump|canon|roundtrip|attr-parity|bounds|oom|reject ...\n");
+        return 2;
+    }
+    if (strcmp(argv[1], "dump") == 0) {
+        return cmd_dump(argc - 2, argv + 2);
+    }
+    if (strcmp(argv[1], "canon") == 0) {
+        return cmd_canon(argc - 2, argv + 2);
+    }
+    if (strcmp(argv[1], "roundtrip") == 0) {
+        return cmd_roundtrip(argc - 2, argv + 2);
+    }
+    if (strcmp(argv[1], "attr-parity") == 0) {
+        return cmd_attr_parity(argc - 2, argv + 2);
+    }
+    if (strcmp(argv[1], "bounds") == 0) {
+        return cmd_bounds();
+    }
+    if (strcmp(argv[1], "oom") == 0 && argc >= 3) {
+        return cmd_oom(argv[2]);
+    }
+    if (strcmp(argv[1], "reject") == 0) {
+        return cmd_reject(argc - 2, argv + 2);
+    }
+    if (strcmp(argv[1], "abi-diag") == 0 && argc >= 3) {
+        return cmd_abi_diag(argv[2]);
+    }
+    if (strcmp(argv[1], "abi-io") == 0 && argc >= 4) {
+        return cmd_abi_io(argv[2], argv[3]);
+    }
+    if (strcmp(argv[1], "io-mid-read") == 0 && argc >= 3) {
+        return cmd_io_mid_read(argv[2]);
+    }
+    if (strcmp(argv[1], "oom-abi") == 0 && argc >= 3) {
+        return cmd_oom_abi(argv[2]);
+    }
+    fprintf(stderr, "cdc_frontend_check: unknown mode '%s'\n", argv[1]);
+    return 2;
+}
