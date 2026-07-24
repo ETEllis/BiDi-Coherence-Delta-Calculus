@@ -18,7 +18,7 @@ before its Phase E work begins.
 |---|---|---|---|
 | interface-version | 1.0.1 | — | BiDi/CDC repo |
 | grammar-version | 1 (canonical lexer/parser/AST frontend, `runtime/cdc_lexer.c` + `cdc_parser.c`; acceptance byte-compatible with grammar 0, proven by the CT1 differential; grammar 0 remains the oracle until its recorded removal gate) | extensions only by version bump | BiDi/CDC repo |
-| abi-version | 1.1 (`runtime/cdc_abi.h`: parse, diagnostics, canonical bytes, result serialization, registry load, contract verify at bootloader parity; execute declared, fails closed with CDC_ERR_STATE) | 1.2 (execution surface, Phase C) | BiDi/CDC repo |
+| abi-version | 1.2 (`runtime/cdc_abi.h`: parse, diagnostics, canonical bytes, result serialization, registry load, contract verify at bootloader parity, statement introspection; execute declared, fails closed with CDC_ERR_STATE) | 1.3 (fused execution surface, Phase C completion) | BiDi/CDC repo |
 | evidence-format-version | 1 (this document §6) | — | BiDi/CDC repo |
 | mm-schema-version | 0 (names reserved, §4; no implementation) | 1 (Phase E, in the Memory Manifold repo) | Memory Manifold repo |
 

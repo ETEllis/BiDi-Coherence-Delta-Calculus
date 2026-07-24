@@ -43,7 +43,7 @@
  */
 
 #define CDC_ABI_VERSION_MAJOR 1
-#define CDC_ABI_VERSION_MINOR 1
+#define CDC_ABI_VERSION_MINOR 2
 
 typedef enum {
     CDC_OK = 0,
@@ -77,6 +77,18 @@ cdc_status cdc_program_parse(const char *path, const char *buffer,
 
 /* Number of statements in the parsed unit (0 when rejected early). */
 size_t cdc_program_statement_count(const cdc_program *program);
+
+/* Statement introspection (ABI 1.2). Index is 0-based over the statement
+ * stream; out-of-range or NULL inputs return NULL. Returned pointers are
+ * borrowed and valid until the program is destroyed. Attribute lookup uses
+ * grammar-0 dict semantics (last occurrence wins). Structural "end"
+ * statements report directive "end" and carry no args/attrs. */
+const char *cdc_program_statement_directive(const cdc_program *program,
+                                            size_t index);
+const char *cdc_program_statement_arg(const cdc_program *program,
+                                      size_t index, size_t arg_index);
+const char *cdc_program_statement_attr(const cdc_program *program,
+                                       size_t index, const char *key);
 
 /* Number of error diagnostics recorded for the unit. */
 size_t cdc_program_error_count(const cdc_program *program);

@@ -222,6 +222,7 @@ rm -f build/cdc
 run_step cc -std=c99 -Wall -Wextra -pedantic -O2 \
   runtime/toolchain/main.c \
   runtime/toolchain/cmd_verify.c \
+  runtime/toolchain/cmd_test.c \
   runtime/cdc_abi.c \
   runtime/cdc_registry.c \
   runtime/cdc_parser.c \
@@ -334,6 +335,29 @@ cmp build/passthrough_a.txt build/passthrough_b.txt
 cmp build/passthrough_a.txt build/passthrough_b.txt
 PASSTHROUGH_MODES=$((PASSTHROUGH_MODES + 2))
 echo "unified passthrough parity ok modes=${PASSTHROUGH_MODES}"
+
+echo
+echo "== Typed test runner [gate CT3 seed] =="
+# A7 policy: commit/hold/nest/fail reported separately (merged totals
+# forbidden); every hold must be declared expect-status=held on its job or
+# the gate fails, even when the underlying runtime exits 0.
+./build/cdc test --gate \
+  native_reducer.cdc native_surface.cdc council_bridge.cdc \
+  framework_transition.cdc framework_procedural.cdc \
+  framework_episodic.cdc framework_deliberative.cdc framework_loop.cdc \
+  | tee build/cdc_test_gate.txt
+grep -q "cdc test ok runs=23 commit=11 hold=5 (expected=5 unexpected=0) nest=10 fail=0" \
+  build/cdc_test_gate.txt
+# Negative: a source the legacy runtime fully accepts (exit 0) but whose
+# hold is undeclared must fail the typed gate with unexpected=1 fail=0.
+run_step ./build/cdc run tests/fixtures/test_runner/silent_hold.cdc
+if ./build/cdc test --gate tests/fixtures/test_runner/silent_hold.cdc \
+  > build/cdc_test_neg.txt 2>/dev/null; then
+  echo "typed gate accepted an undeclared hold" >&2
+  exit 1
+fi
+grep -q "(expected=0 unexpected=1) nest=1 fail=0" build/cdc_test_neg.txt
+echo "typed gate rejects undeclared holds (runtime exit 0 notwithstanding)"
 
 echo
 echo "== ABI boundary counterexamples [2026-07-23 adversarial review] =="

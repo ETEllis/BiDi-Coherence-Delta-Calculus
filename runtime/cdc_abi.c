@@ -119,6 +119,41 @@ size_t cdc_program_error_count(const cdc_program *program) {
     return program ? program->diags.errors : 0;
 }
 
+static const cdc_stmt *statement_at(const cdc_program *program,
+                                    size_t index) {
+    if (!program || index >= program->unit.count) {
+        return NULL;
+    }
+    return &program->unit.stmts[index];
+}
+
+const char *cdc_program_statement_directive(const cdc_program *program,
+                                            size_t index) {
+    const cdc_stmt *stmt = statement_at(program, index);
+    if (!stmt) {
+        return NULL;
+    }
+    return stmt->kind == CDC_STMT_END ? "end" : cdc_stmt_directive(stmt);
+}
+
+const char *cdc_program_statement_arg(const cdc_program *program,
+                                      size_t index, size_t arg_index) {
+    const cdc_stmt *stmt = statement_at(program, index);
+    if (!stmt || stmt->kind == CDC_STMT_END) {
+        return NULL;
+    }
+    return cdc_stmt_arg(stmt, arg_index);
+}
+
+const char *cdc_program_statement_attr(const cdc_program *program,
+                                       size_t index, const char *key) {
+    const cdc_stmt *stmt = statement_at(program, index);
+    if (!stmt || stmt->kind == CDC_STMT_END || !key) {
+        return NULL;
+    }
+    return cdc_stmt_attr(stmt, key);
+}
+
 /* JSON string escaping: '"', '\\', and control bytes. */
 static int json_escape_into(FILE *stream, const char *text) {
     const unsigned char *p = (const unsigned char *)text;

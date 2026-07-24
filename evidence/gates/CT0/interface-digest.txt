@@ -8,3 +8,6 @@ git-blob-sha1: 1264de5dfae3a57533751119b5c9500e543ee916
 
 # v1.0.2 (ABI 1.1: contract verify at bootloader parity)
 ef93f4019fece240211b6074c5f7b099982278d8a2db8ab51bb8de215ac09b85  CDC_MEMORY_MANIFOLD_INTERFACE.md
+
+# v1.0.3 (ABI 1.2: statement introspection; CT3 typed test runner live)
+d1a353481728eb67d3d6b2bfa8befe9df16affc263bf80966472e3a2958399df  CDC_MEMORY_MANIFOLD_INTERFACE.md

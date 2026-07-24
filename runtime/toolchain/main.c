@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "../cdc_abi.h"
+#include "cmd_test.h"
 #include "cmd_verify.h"
 
 /* Transitional passthrough entry points (gate CT2): the legacy runtimes'
@@ -65,7 +66,10 @@ int main(int argc, char **argv) {
     if (strcmp(argv[1], "bridge") == 0 && argc >= 3) {
         return cdc_bridge_main(argc - 1, argv + 1);
     }
-    if (strcmp(argv[1], "run") == 0 || strcmp(argv[1], "test") == 0) {
+    if (strcmp(argv[1], "test") == 0) {
+        return cdc_cmd_test(argc - 2, argv + 2);
+    }
+    if (strcmp(argv[1], "run") == 0) {
         return cmd_unavailable(argv[1], "Phase C");
     }
     if (is_native_verb(argv[1]) || strcmp(argv[1], "bridge") == 0) {

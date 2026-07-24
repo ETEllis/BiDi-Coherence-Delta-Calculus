@@ -42,7 +42,21 @@ Updated at every accepted gate boundary. Companion files: `RESUME_HERE.md`
     (records + structural `end` lines = `statements`), recomputed from the
     corpus on every run.
 
-- **Unified-driver passthrough parity: LIVE (this commit).** The guarded
+- **Phase C seed — typed test runner (gate CT3): LIVE (this commit).**
+  `cdc test [--gate] <files...>` (runtime/toolchain/cmd_test.c, ABI 1.2
+  statement introspection): free discovery (every job carries inline
+  expectations), per-file mode selection over the eight runtime families,
+  forked-child execution of the linked runtime (no external process
+  spawning), and the A7 typed policy — commit/hold/nest/fail counted
+  SEPARATELY, every hold matched against a declared expect-status=held
+  job, unexpected holds fail the gate even when the runtime exits 0
+  (proven by the tracked silent_hold.cdc fixture: runtime green, gate
+  red with expected=0 unexpected=1 fail=0). Executable-corpus gate:
+  runs=23 commit=11 hold=5 (all expected) nest=10 fail=0, exact-gated in
+  verify.sh. CT3 remaining: cancellation/budgets/deterministic-mode
+  contract, per-check ordered vector export, fused `cdc run`.
+
+- **Unified-driver passthrough parity: LIVE (previous commit).** The guarded
   runtime mains compile as `cdc_native_main` / `cdc_bridge_main` under
   their NO_MAIN macros (zero duplication; standalone CLIs untouched), and
   `build/cdc` links BOTH runtimes plus the ABI/registry stack into the
